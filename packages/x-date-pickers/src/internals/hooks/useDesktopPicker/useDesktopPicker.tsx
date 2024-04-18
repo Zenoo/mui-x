@@ -5,15 +5,23 @@ import IconButton from '@mui/material/IconButton';
 import useForkRef from '@mui/utils/useForkRef';
 import useId from '@mui/utils/useId';
 import { PickersPopper } from '../../components/PickersPopper';
-import { DateOrTimeView } from '../../models/views';
-import { UseDesktopPickerParams, UseDesktopPickerProps } from './useDesktopPicker.types';
+import {
+  UseDesktopPickerParams,
+  UseDesktopPickerProps,
+  UseDesktopPickerSlotProps,
+} from './useDesktopPicker.types';
 import { useUtils } from '../useUtils';
 import { usePicker } from '../usePicker';
 import { LocalizationProvider } from '../../../LocalizationProvider';
-import { WrapperVariantContext } from '../../components/wrappers/WrapperVariantContext';
-import { BaseSingleInputFieldProps } from '../../models/fields';
 import { PickersLayout } from '../../../PickersLayout';
-import { InferError } from '../validation/useValidation';
+import { InferError } from '../useValidation';
+import {
+  FieldSection,
+  PickerValidDate,
+  FieldRef,
+  BaseSingleInputFieldProps,
+} from '../../../models';
+import { DateOrTimeViewWithMeridiem } from '../../models';
 
 /**
  * Hook managing all the single-date desktop pickers:
@@ -22,32 +30,46 @@ import { InferError } from '../validation/useValidation';
  * - DesktopTimePicker
  */
 export const useDesktopPicker = <
-  TDate,
-  TView extends DateOrTimeView,
-  TExternalProps extends UseDesktopPickerProps<TDate, TView, any, TExternalProps>,
+  TDate extends PickerValidDate,
+  TView extends DateOrTimeViewWithMeridiem,
+  TEnableAccessibleFieldDOMStructure extends boolean,
+  TExternalProps extends UseDesktopPickerProps<
+    TDate,
+    TView,
+    TEnableAccessibleFieldDOMStructure,
+    any,
+    TExternalProps
+  >,
 >({
   props,
-  valueManager,
   getOpenDialogAriaText,
-  validator,
-}: UseDesktopPickerParams<TDate, TView, TExternalProps>) => {
+  ...pickerParams
+}: UseDesktopPickerParams<TDate, TView, TEnableAccessibleFieldDOMStructure, TExternalProps>) => {
   const {
     slots,
     slotProps: innerSlotProps,
     className,
     sx,
     format,
+    formatDensity,
+    enableAccessibleFieldDOMStructure,
+    selectedSections,
+    onSelectedSectionsChange,
+    timezone,
+    name,
     label,
     inputRef,
     readOnly,
     disabled,
     autoFocus,
     localeText,
+    reduceAnimations,
   } = props;
 
   const utils = useUtils<TDate>();
-  const internalInputRef = React.useRef<HTMLInputElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const fieldRef = React.useRef<FieldRef<FieldSection>>(null);
+
   const labelId = useId();
   const isToolbarHidden = innerSlotProps?.toolbar?.hidden ?? false;
 
@@ -59,18 +81,17 @@ export const useDesktopPicker = <
     renderCurrentView,
     shouldRestoreFocus,
     fieldProps: pickerFieldProps,
-  } = usePicker<TDate | null, TDate, TView, TExternalProps, {}>({
+  } = usePicker<TDate | null, TDate, TView, FieldSection, TExternalProps, {}>({
+    ...pickerParams,
     props,
-    inputRef: internalInputRef,
-    valueManager,
-    validator,
+    fieldRef,
     autoFocusView: true,
     additionalViewProps: {},
     wrapperVariant: 'desktop',
   });
 
   const InputAdornment = slots.inputAdornment ?? MuiInputAdornment;
-  const inputAdornmentProps = useSlotProps({
+  const { ownerState: inputAdornmentOwnerState, ...inputAdornmentProps } = useSlotProps({
     elementType: InputAdornment,
     externalSlotProps: innerSlotProps?.inputAdornment,
     additionalProps: {
@@ -85,7 +106,7 @@ export const useDesktopPicker = <
     externalSlotProps: innerSlotProps?.openPickerButton,
     additionalProps: {
       disabled: disabled || readOnly,
-      onClick: actions.onOpen,
+      onClick: open ? actions.onClose : actions.onOpen,
       'aria-label': getOpenDialogAriaText(pickerFieldProps.value, utils),
       edge: inputAdornmentProps.position,
     },
@@ -95,10 +116,20 @@ export const useDesktopPicker = <
   const OpenPickerIcon = slots.openPickerIcon;
 
   const Field = slots.field;
-  const fieldProps: BaseSingleInputFieldProps<
-    TDate | null,
-    InferError<TExternalProps>
-  > = useSlotProps({
+  const fieldProps = useSlotProps<
+    typeof Field,
+    UseDesktopPickerSlotProps<TDate, TView, TEnableAccessibleFieldDOMStructure>['field'],
+    Partial<
+      BaseSingleInputFieldProps<
+        TDate | null,
+        TDate,
+        FieldSection,
+        TEnableAccessibleFieldDOMStructure,
+        InferError<TExternalProps>
+      >
+    >,
+    TExternalProps
+  >({
     elementType: Field,
     externalSlotProps: innerSlotProps?.field,
     additionalProps: {
@@ -109,8 +140,16 @@ export const useDesktopPicker = <
       className,
       sx,
       format,
+      formatDensity,
+      enableAccessibleFieldDOMStructure,
+      selectedSections,
+      onSelectedSectionsChange,
+      timezone,
       label,
+      name,
       autoFocus: autoFocus && !props.open,
+      focused: open ? true : undefined,
+      ...(inputRef ? { inputRef } : {}),
     },
     ownerState: props,
   });
@@ -127,17 +166,17 @@ export const useDesktopPicker = <
           </OpenPickerButton>
         </InputAdornment>
       ),
-    };
+    } as typeof fieldProps.InputProps;
   }
 
-  const slotsForField: BaseSingleInputFieldProps<TDate | null, unknown>['slots'] = {
+  const slotsForField = {
     textField: slots.textField,
+    clearIcon: slots.clearIcon,
+    clearButton: slots.clearButton,
     ...fieldProps.slots,
   };
 
   const Layout = slots.layout ?? PickersLayout;
-
-  const handleInputRef = useForkRef(internalInputRef, fieldProps.inputRef, inputRef);
 
   let labelledById = labelId;
   if (isToolbarHidden) {
@@ -159,30 +198,31 @@ export const useDesktopPicker = <
     },
   };
 
+  const handleFieldRef = useForkRef(fieldRef, fieldProps.unstableFieldRef);
+
   const renderPicker = () => (
     <LocalizationProvider localeText={localeText}>
-      <WrapperVariantContext.Provider value="desktop">
-        <Field
-          {...fieldProps}
-          slots={slotsForField}
-          slotProps={slotProps}
-          inputRef={handleInputRef}
-        />
-        <PickersPopper
-          role="dialog"
-          placement="bottom-start"
-          anchorEl={containerRef.current}
-          {...actions}
-          open={open}
-          slots={slots}
-          slotProps={slotProps}
-          shouldRestoreFocus={shouldRestoreFocus}
-        >
-          <Layout {...layoutProps} {...slotProps?.layout} slots={slots} slotProps={slotProps}>
-            {renderCurrentView()}
-          </Layout>
-        </PickersPopper>
-      </WrapperVariantContext.Provider>
+      <Field
+        {...fieldProps}
+        slots={slotsForField}
+        slotProps={slotProps}
+        unstableFieldRef={handleFieldRef}
+      />
+      <PickersPopper
+        role="dialog"
+        placement="bottom-start"
+        anchorEl={containerRef.current}
+        {...actions}
+        open={open}
+        slots={slots}
+        slotProps={slotProps}
+        shouldRestoreFocus={shouldRestoreFocus}
+        reduceAnimations={reduceAnimations}
+      >
+        <Layout {...layoutProps} {...slotProps?.layout} slots={slots} slotProps={slotProps}>
+          {renderCurrentView()}
+        </Layout>
+      </PickersPopper>
     </LocalizationProvider>
   );
 

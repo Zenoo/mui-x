@@ -1,19 +1,23 @@
 import * as React from 'react';
 import {
-  ExportedPickersLayoutSlotsComponent,
-  ExportedPickersLayoutSlotsComponentsProps,
+  ExportedPickersLayoutSlots,
+  ExportedPickersLayoutSlotProps,
 } from '../../../PickersLayout/PickersLayout.types';
-import { DateOrTimeView } from '../../models';
 import { BasePickerProps } from '../../models/props/basePickerProps';
-import { UncapitalizeObjectKeys } from '../../utils/slots-migration';
 import { UsePickerParams } from '../usePicker';
 import { UsePickerViewsProps } from '../usePicker/usePickerViews';
+import { FieldSection, PickerValidDate } from '../../../models';
+import { DateOrTimeViewWithMeridiem } from '../../models';
 
-export interface UseStaticPickerSlotsComponent<TDate, TView extends DateOrTimeView>
-  extends ExportedPickersLayoutSlotsComponent<TDate | null, TDate, TView> {}
+export interface UseStaticPickerSlots<
+  TDate extends PickerValidDate,
+  TView extends DateOrTimeViewWithMeridiem,
+> extends ExportedPickersLayoutSlots<TDate | null, TDate, TView> {}
 
-export interface UseStaticPickerSlotsComponentsProps<TDate, TView extends DateOrTimeView>
-  extends ExportedPickersLayoutSlotsComponentsProps<TDate | null, TDate, TView> {}
+export interface UseStaticPickerSlotProps<
+  TDate extends PickerValidDate,
+  TView extends DateOrTimeViewWithMeridiem,
+> extends ExportedPickersLayoutSlotProps<TDate | null, TDate, TView> {}
 
 export interface StaticOnlyPickerProps {
   /**
@@ -23,48 +27,43 @@ export interface StaticOnlyPickerProps {
   displayStaticWrapperAs: 'desktop' | 'mobile';
   /**
    * If `true`, the view is focused during the first mount.
+   * @default false
    */
   autoFocus?: boolean;
+  /**
+   * Callback fired when component requests to be closed.
+   * Can be fired when selecting (by default on `desktop` mode) or clearing a value.
+   * @deprecated Please avoid using as it will be removed in next major version.
+   */
+  onClose?: () => void;
 }
 
 export interface UseStaticPickerProps<
-  TDate,
-  TView extends DateOrTimeView,
+  TDate extends PickerValidDate,
+  TView extends DateOrTimeViewWithMeridiem,
   TError,
-  TExternalProps extends UsePickerViewsProps<TDate | null, TView, any, any>,
+  TExternalProps extends UsePickerViewsProps<TDate | null, TDate, TView, any, any>,
 > extends BasePickerProps<TDate | null, TDate, TView, TError, TExternalProps, {}>,
     StaticOnlyPickerProps {
   /**
-   * Overrideable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: UseStaticPickerSlotsComponent<TDate, TView>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: UseStaticPickerSlotsComponentsProps<TDate, TView>;
-  /**
-   * Overrideable component slots.
+   * Overridable component slots.
    * @default {}
    */
-  slots?: UncapitalizeObjectKeys<UseStaticPickerSlotsComponent<TDate | null, TView>>;
+  slots?: UseStaticPickerSlots<TDate, TView>;
   /**
    * The props used for each component slot.
    * @default {}
    */
-  slotProps?: UseStaticPickerSlotsComponentsProps<TDate, TView>;
+  slotProps?: UseStaticPickerSlotProps<TDate, TView>;
 }
 
 export interface UseStaticPickerParams<
-  TDate,
-  TView extends DateOrTimeView,
+  TDate extends PickerValidDate,
+  TView extends DateOrTimeViewWithMeridiem,
   TExternalProps extends UseStaticPickerProps<TDate, TView, any, TExternalProps>,
 > extends Pick<
-    UsePickerParams<TDate | null, TDate, TView, TExternalProps, {}>,
-    'valueManager' | 'validator'
+    UsePickerParams<TDate | null, TDate, TView, FieldSection, TExternalProps, {}>,
+    'valueManager' | 'valueType' | 'validator'
   > {
   props: TExternalProps;
   /**

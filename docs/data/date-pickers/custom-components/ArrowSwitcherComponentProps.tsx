@@ -7,13 +7,10 @@ import Box from '@mui/material/Box';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
-import {
-  TimeClock,
-  TimeClockSlotsComponentsProps,
-} from '@mui/x-date-pickers/TimeClock';
+import { TimeClock, TimeClockSlotProps } from '@mui/x-date-pickers/TimeClock';
 import { DateRangeCalendar } from '@mui/x-date-pickers-pro/DateRangeCalendar';
 
-const slotProps: TimeClockSlotsComponentsProps = {
+const slotProps: TimeClockSlotProps = {
   leftArrowIcon: { fontSize: 'large' },
   rightArrowIcon: { fontSize: 'large' },
   previousIconButton: {
@@ -54,12 +51,12 @@ export default function ArrowSwitcherComponentProps() {
           <ToggleButton value={'dateRange'}>date range</ToggleButton>
         </ToggleButtonGroup>
         {currentComponent === 'date' && (
-          <DateCalendar defaultValue={dayjs('2022-04-07')} slotProps={slotProps} />
+          <DateCalendar defaultValue={dayjs('2022-04-17')} slotProps={slotProps} />
         )}
         {currentComponent === 'time' && (
           <Box sx={{ position: 'relative' }}>
             <TimeClock
-              defaultValue={dayjs('2022-04-07T15:30')}
+              defaultValue={dayjs('2022-04-17T15:30')}
               slotProps={slotProps}
               showViewSwitcher
             />
@@ -67,7 +64,7 @@ export default function ArrowSwitcherComponentProps() {
         )}
         {currentComponent === 'dateRange' && (
           <DateRangeCalendar
-            defaultValue={[dayjs('2022-04-07'), dayjs('2022-04-10')]}
+            defaultValue={[dayjs('2022-04-17'), dayjs('2022-04-21')]}
             slotProps={slotProps}
           />
         )}

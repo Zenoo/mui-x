@@ -1,13 +1,13 @@
 import * as React from 'react';
 import clsx from 'clsx';
 import { styled } from '@mui/material/styles';
-import { DateOrTimeView } from '../../models/views';
 import { UseStaticPickerParams, UseStaticPickerProps } from './useStaticPicker.types';
 import { usePicker } from '../usePicker';
 import { LocalizationProvider } from '../../../LocalizationProvider';
-import { WrapperVariantContext } from '../../components/wrappers/WrapperVariantContext';
 import { PickersLayout } from '../../../PickersLayout';
 import { DIALOG_WIDTH } from '../../constants/dimensions';
+import { FieldSection, PickerValidDate } from '../../../models';
+import { DateOrTimeViewWithMeridiem } from '../../models';
 
 const PickerStaticLayout = styled(PickersLayout)(({ theme }) => ({
   overflow: 'hidden',
@@ -22,14 +22,13 @@ const PickerStaticLayout = styled(PickersLayout)(({ theme }) => ({
  * - StaticTimePicker
  */
 export const useStaticPicker = <
-  TDate,
-  TView extends DateOrTimeView,
+  TDate extends PickerValidDate,
+  TView extends DateOrTimeViewWithMeridiem,
   TExternalProps extends UseStaticPickerProps<TDate, TView, any, TExternalProps>,
 >({
   props,
-  valueManager,
-  validator,
   ref,
+  ...pickerParams
 }: UseStaticPickerParams<TDate, TView, TExternalProps>) => {
   const { localeText, slots, slotProps, className, sx, displayStaticWrapperAs, autoFocus } = props;
 
@@ -37,13 +36,14 @@ export const useStaticPicker = <
     TDate | null,
     TDate,
     TView,
+    FieldSection,
     TExternalProps,
     {}
   >({
+    ...pickerParams,
     props,
-    valueManager,
-    validator,
     autoFocusView: autoFocus ?? false,
+    fieldRef: undefined,
     additionalViewProps: {},
     wrapperVariant: displayStaticWrapperAs,
   });
@@ -52,19 +52,22 @@ export const useStaticPicker = <
 
   const renderPicker = () => (
     <LocalizationProvider localeText={localeText}>
-      <WrapperVariantContext.Provider value={displayStaticWrapperAs}>
-        <Layout
-          {...layoutProps}
-          {...slotProps?.layout}
-          slots={slots}
-          slotProps={slotProps}
-          sx={sx}
-          className={clsx(className, slotProps?.layout?.className)}
-          ref={ref}
-        >
-          {renderCurrentView()}
-        </Layout>
-      </WrapperVariantContext.Provider>
+      <Layout
+        {...layoutProps}
+        {...slotProps?.layout}
+        slots={slots}
+        slotProps={slotProps}
+        sx={[
+          ...(Array.isArray(sx) ? sx : [sx]),
+          ...(Array.isArray(slotProps?.layout?.sx)
+            ? slotProps!.layout!.sx
+            : [slotProps?.layout?.sx]),
+        ]}
+        className={clsx(className, slotProps?.layout?.className)}
+        ref={ref}
+      >
+        {renderCurrentView()}
+      </Layout>
     </LocalizationProvider>
   );
 

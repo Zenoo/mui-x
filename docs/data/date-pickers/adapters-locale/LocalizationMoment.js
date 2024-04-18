@@ -27,7 +27,11 @@ export default function LocalizationMoment() {
           value={locale}
           exclusive
           fullWidth
-          onChange={(event, newLocale) => setLocale(newLocale)}
+          onChange={(event, newLocale) => {
+            if (newLocale != null) {
+              setLocale(newLocale);
+            }
+          }}
         >
           {locales.map((localeItem) => (
             <ToggleButton key={localeItem} value={localeItem}>
@@ -35,8 +39,8 @@ export default function LocalizationMoment() {
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
-        <DateField label="Date" defaultValue={moment('2022-04-07')} />
-        <TimeField label="Time" defaultValue={moment('2022-04-07T18:30')} />
+        <DateField label="Date" defaultValue={moment('2022-04-17')} />
+        <TimeField label="Time" defaultValue={moment('2022-04-17T18:30')} />
       </Stack>
     </LocalizationProvider>
   );

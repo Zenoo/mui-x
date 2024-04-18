@@ -2,7 +2,7 @@
 title: Data Grid - Row grouping
 ---
 
-# Data Grid - Row grouping [<span class="plan-premium"></span>](/x/introduction/licensing/#premium-plan)
+# Data Grid - Row grouping [<span class="plan-premium"></span>](/x/introduction/licensing/#premium-plan 'Premium plan')
 
 <p class="description">Group your rows according to some column values.</p>
 
@@ -43,7 +43,7 @@ You can use the `onRowGroupingModelChange` prop to listen to changes to the grou
 
 ### Single grouping column
 
-By default, the grid will display a single column holding all grouping columns.
+By default, the data grid will display a single column holding all grouping columns.
 If you have multiple grouping criteria, this column name will be set to "Group."
 
 {{"demo": "RowGroupingSingleGroupingCol.js", "bg": "inline", "defaultCodeOpen": false}}
@@ -125,7 +125,7 @@ You can manage column visibility with `columnVisibilityModel`, `initialState`, o
 To do so, pass them to the hook parameters.
 :::
 
-Bellow are two examples about how to use `columnVisibilityModel` or `initialState` with `useKeepGroupedColumnsHidden` hook.
+Below are two examples about how to use `columnVisibilityModel` or `initialState` with `useKeepGroupedColumnsHidden` hook.
 You can mix the two examples to support both at the same time.
 
 ```tsx
@@ -187,9 +187,21 @@ It will disable all the features related to the row grouping, even if a model is
 ### For some columns
 
 In case you need to disable grouping on specific column(s), set the `groupable` property on the respective column definition (`GridColDef`) to `false`.
-In the example below, the `director` column can not be grouped. And in all example, the `title` and `gross` columns can not be grouped.
+In the example below, the `director` column cannot be grouped. In all examples, the `title` and `gross` columns cannot be grouped.
 
 {{"demo": "RowGroupingColDefCanBeGrouped.js", "bg": "inline", "defaultCodeOpen": false}}
+
+### Grouping non-groupable columns programmatically
+
+To apply row grouping programmatically on non-groupable columns (columns with `groupable: false` in the [column definition](/x/api/data-grid/grid-col-def/)), you can provide row grouping model in one of the following ways:
+
+1. Pass `rowGrouping.model` to the `initialState` prop. This will [initialize the grouping](/x/react-data-grid/row-grouping/#initialize-the-row-grouping) with the provided model.
+2. Provide the `rowGroupingModel` prop. This will [control the grouping](/x/react-data-grid/row-grouping/#controlled-row-grouping) with the provided model.
+3. Call the API method `setRowGroupingModel`. This will set the aggregation with the provided model.
+
+In the following example, the column `company` is not groupable from the UI but the `rowGroupingModel` prop is passed to generate a read-only row group.
+
+{{"demo": "RowGroupingReadOnly.js", "bg": "inline", "defaultCodeOpen": false}}
 
 ## Using `groupingValueGetter` for complex grouping value
 
@@ -200,7 +212,7 @@ If your cell value is more complex, pass a `groupingValueGetter` property to the
 const columns: GridColDef[] = [
   {
     field: 'composer',
-    groupingValueGetter: (params) => params.value.name,
+    groupingValueGetter: (value) => value.name,
   },
   // ...
 ];
@@ -214,7 +226,7 @@ If your column also has a `valueGetter` property, the value passed to the `group
 
 ## Rows with missing groups
 
-If the grouping key of a grouping criteria is `null` or `undefined` for a row, the grid will consider that this row does not have a value for this group. and will inline it for those groups.
+If the grouping key of a grouping criteria is `null` or `undefined` for a row, the data grid will consider that this row does not have a value for this group. and will inline it for those groups.
 
 {{"demo": "RowGroupingRowsWithMissingGroups.js", "bg": "inline", "defaultCodeOpen": false}}
 
@@ -236,47 +248,51 @@ isGroupExpandedByDefault={
 
 {{"demo": "RowGroupingIsGroupExpandedByDefault.js", "bg": "inline", "defaultCodeOpen": false}}
 
-Use the `setRowChildrenExpansion` method on `apiRef` to programmatically set the expansion of a row.
+Use the `setRowChildrenExpansion` method on `apiRef` to programmatically set the expansion of a row. Changing the expansion of a row emits a `rowExpansionChange` event, listen to it to react to the expansion change.
 
 {{"demo": "RowGroupingSetChildrenExpansion.js", "bg": "inline", "defaultCodeOpen": false}}
 
 ### Customize grouping cell indent
 
-To change the default cell indent you can pass the `offsetMultiplier` prop to the `<GridTreeDataGroupingCell />` component and use it as `groupingColDef.renderCell`:
+To change the default cell indent, you can use the `--DataGrid-cellOffsetMultiplier` CSS variable:
 
 ```tsx
-const groupingColDef = {
-  renderCell: (params) => (
-    <GridTreeDataGroupingCell {...params} offsetMultiplier={4} />
-  ),
-};
-
-<DataGridPremium groupingColDef={groupingColDef} />;
+<DataGridPremium
+  sx={{
+    // default value is 2
+    '--DataGrid-cellOffsetMultiplier': 6,
+  }}
+/>
 ```
+
+{{"demo": "RowGroupingCustomCellIndent.js", "bg": "inline", "defaultCodeOpen": false}}
 
 ## Sorting / Filtering
 
 ### Single grouping column
 
-When using `rowGroupingColumnMode = "single"`, the default behavior is to apply the `sortComparator` and `filterOperators` of the top-level grouping criteria.
+When using `rowGroupingColumnMode = "single"`, the default behavior is to:
 
-If you are rendering leaves with the `leafField` property of `groupColDef`, the sorting and filtering will be applied on the leaves based on the `sortComparator` and `filterOperators` of their original column.
+- sort each grouping criteria using the `sortComparator` of the column
+- apply the `filterOperators` of the top-level grouping criteria
 
-In both cases, you can force the sorting and filtering to be applied on another grouping criteria with the `mainGroupingCriteria` property of `groupColDef`
+If you are rendering leaves with the `leafField` property of `groupingColDef`, the sorting and filtering will be applied on the leaves based on the `sortComparator` and `filterOperators` of their original column.
+
+You can force the filtering to be applied on another grouping criteria with the `mainGroupingCriteria` property of `groupingColDef`
 
 :::warning
-This feature is not yet compatible with `sortingMode = "server"` and `filteringMode = "server"`
+This feature is not yet compatible with `sortingMode = "server"` and `filteringMode = "server"`.
 :::
 
-{{"demo": "RowGroupingSortingSingleGroupingColDef.js", "bg": "inline", "defaultCodeOpen": false}}
+{{"demo": "RowGroupingFilteringSingleGroupingColDef.js", "bg": "inline", "defaultCodeOpen": false}}
 
 ### Multiple grouping columns
 
 When using `rowGroupingColumnMode = "multiple"`, the default behavior is to apply the `sortComparator` and `filterOperators` of the grouping criteria of each grouping column.
 
-If you are rendering leaves on one of those columns with the `leafField` property of `groupColDef`, the sorting and filtering will be applied on the leaves for this grouping column based on the `sortComparator` and `filterOperators` of the leave's original column.
+If you are rendering leaves on one of those columns with the `leafField` property of `groupingColDef`, the sorting and filtering will be applied on the leaves for this grouping column based on the `sortComparator` and `filterOperators` of the leave's original column.
 
-If you want to render leaves but apply the sorting and filtering on the grouping criteria of the column, you can force it by setting the `mainGroupingCriteria` property `groupColDef` to be equal to the grouping criteria.
+If you want to render leaves but apply the sorting and filtering on the grouping criteria of the column, you can force it by setting the `mainGroupingCriteria` property `groupingColDef` to be equal to the grouping criteria.
 
 In the example below:
 
@@ -286,13 +302,13 @@ In the example below:
 {{"demo": "RowGroupingSortingMultipleGroupingColDef.js", "bg": "inline", "defaultCodeOpen": false}}
 
 :::warning
-If you are dynamically switching the `leafField` or `mainGroupingCriteria`, the sorting and filtering models will not automatically be cleaned-up and the sorting/filtering will not be re-applied.
+If you are dynamically switching the `leafField` or `mainGroupingCriteria`, the sorting and filtering models will not be cleaned up automatically, and the sorting/filtering will not be re-applied.
 :::
 
 ## Get the rows in a group
 
 You can use the `apiRef.current.getRowGroupChildren` method to get the id of all rows contained in a group.
-It will not contain the autogenerated rows (i.e. the subgroup rows or the aggregation footers).
+It will not contain the autogenerated rows (that is the subgroup rows or the aggregation footers).
 
 ```ts
 const rows: GridRowId[] = apiRef.current.getRowGroupChildren({
@@ -316,12 +332,14 @@ const rows = apiRef.current.getRowGroupChildren({
 
 {{"demo": "RowGroupingGetRowGroupChildren.js", "bg": "inline", "defaultCodeOpen": false}}
 
-## 🚧 Row group panel
+## Row group panel 🚧
 
 :::warning
 This feature isn't implemented yet. It's coming.
 
 👍 Upvote [issue #5235](https://github.com/mui/mui-x/issues/5235) if you want to see it land faster.
+
+Don't hesitate to leave a comment on the same issue to influence what gets built. Especially if you already have a use case for this component, or if you are facing a pain point with your current solution.
 :::
 
 With this panel, your users will be able to control which columns are used for grouping just by dragging them inside the panel.
@@ -335,6 +353,8 @@ With this panel, your users will be able to control which columns are used for g
 See [Row grouping recipes](/x/react-data-grid/recipes-row-grouping/) for more advanced use cases.
 
 ## apiRef
+
+The grid exposes a set of methods that enables all of these features using the imperative `apiRef`. To know more about how to use it, check the [API Object](/x/react-data-grid/api-object/) section.
 
 {{"demo": "RowGroupingApiNoSnap.js", "bg": "inline", "hideToolbar": true}}
 

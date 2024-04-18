@@ -28,7 +28,7 @@ const useFakeMutation = () => {
       new Promise<Partial<User>>((resolve, reject) => {
         setTimeout(() => {
           if (user.name?.trim() === '') {
-            reject(new Error("Error while saving user: name can't be empty."));
+            reject(new Error('Error while saving user: name cannot be empty.'));
           } else {
             resolve({ ...user, name: user.name?.toUpperCase() });
           }
@@ -86,7 +86,14 @@ export default function ServerSidePersistence() {
 
 const columns: GridColDef[] = [
   { field: 'name', headerName: 'Name', width: 180, editable: true },
-  { field: 'age', headerName: 'Age', type: 'number', editable: true },
+  {
+    field: 'age',
+    headerName: 'Age',
+    type: 'number',
+    editable: true,
+    align: 'left',
+    headerAlign: 'left',
+  },
   {
     field: 'dateCreated',
     headerName: 'Date Created',

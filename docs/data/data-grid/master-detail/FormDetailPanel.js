@@ -1,5 +1,4 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -85,10 +84,6 @@ function DetailPanelContent({ row }) {
   );
 }
 
-DetailPanelContent.propTypes = {
-  row: PropTypes.object.isRequired,
-};
-
 const columns = [
   { field: 'id', headerName: 'Order ID' },
   { field: 'customer', headerName: 'Customer', width: 200 },
@@ -136,7 +131,6 @@ export default function FormDetailPanel() {
       <DataGridPro
         columns={columns}
         rows={rows}
-        rowThreshold={0}
         getDetailPanelHeight={getDetailPanelHeight}
         getDetailPanelContent={getDetailPanelContent}
       />

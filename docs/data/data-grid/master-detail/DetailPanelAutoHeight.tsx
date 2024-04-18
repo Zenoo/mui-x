@@ -55,7 +55,7 @@ function DetailPanelContent({ row: rowProp }: { row: Customer }) {
     [apiRef, rowProp],
   );
 
-  const columns = React.useMemo<GridColDef[]>(
+  const columns = React.useMemo<GridColDef<Customer['products'][number]>[]>(
     () => [
       { field: 'name', headerName: 'Product', flex: 1, editable: true },
       {
@@ -71,7 +71,7 @@ function DetailPanelContent({ row: rowProp }: { row: Customer }) {
         field: 'total',
         headerName: 'Total',
         type: 'number',
-        valueGetter: ({ row }) => row.quantity * row.unitPrice,
+        valueGetter: (value, row) => row.quantity * row.unitPrice,
       },
       {
         field: 'actions',
@@ -116,11 +116,11 @@ function DetailPanelContent({ row: rowProp }: { row: Customer }) {
               >{`${rowProp.city}, ${rowProp.country.label}`}</Typography>
             </Grid>
           </Grid>
-          <Box>
+          <div>
             <Button variant="outlined" size="small" onClick={addProduct}>
               Add Product
             </Button>
-          </Box>
+          </div>
           <DataGridPro
             density="compact"
             autoHeight
@@ -144,7 +144,7 @@ const columns: GridColDef[] = [
     field: 'total',
     type: 'number',
     headerName: 'Total',
-    valueGetter: ({ row }) => {
+    valueGetter: (value, row) => {
       const subtotal = row.products.reduce(
         (acc: number, product: any) => product.unitPrice * product.quantity,
         0,
@@ -218,7 +218,7 @@ const rows = [
   },
 ];
 
-type Customer = typeof rows[number];
+type Customer = (typeof rows)[number];
 
 export default function DetailPanelAutoHeight() {
   const getDetailPanelContent = React.useCallback<
@@ -234,7 +234,6 @@ export default function DetailPanelAutoHeight() {
       <DataGridPro
         columns={columns}
         rows={rows}
-        rowThreshold={0}
         getDetailPanelHeight={getDetailPanelHeight}
         getDetailPanelContent={getDetailPanelContent}
       />

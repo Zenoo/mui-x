@@ -1,6 +1,10 @@
 import { MultiInputDateRangeField } from '@mui/x-date-pickers-pro/MultiInputDateRangeField';
-import { describeRangeValidation } from '@mui/x-date-pickers-pro/tests/describeRangeValidation';
-import { createPickerRenderer } from 'test/utils/pickers-utils';
+import {
+  createPickerRenderer,
+  adapterToUse,
+  describeRangeValidation,
+  setValueOnFieldInput,
+} from 'test/utils/pickers';
 
 describe('<MultiInputDateRangeField />', () => {
   const { render, clock } = createPickerRenderer({ clock: 'fake' });
@@ -10,5 +14,8 @@ describe('<MultiInputDateRangeField />', () => {
     clock,
     componentFamily: 'field',
     views: ['year', 'month', 'day'],
+    setValue: (value, { setEndDate } = {}) => {
+      setValueOnFieldInput(adapterToUse.format(value, 'keyboardDate'), setEndDate ? 1 : 0);
+    },
   }));
 });

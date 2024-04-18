@@ -1,6 +1,4 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
-import Box from '@mui/material/Box';
 import {
   DataGridPro,
   GRID_CHECKBOX_SELECTION_FIELD,
@@ -134,7 +132,7 @@ const AntDesignStyledDataGridPro = styled(DataGridPro)(({ theme }) => ({
   },
 }));
 
-const StyledBox = styled(Box)(({ theme }) => ({
+const StyledBox = styled('div')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   height: 600,
@@ -224,13 +222,6 @@ function SettingsPanel(props) {
   );
 }
 
-SettingsPanel.propTypes = {
-  onApply: PropTypes.func.isRequired,
-  size: PropTypes.number.isRequired,
-  theme: PropTypes.oneOf(['ant', 'default']).isRequired,
-  type: PropTypes.oneOf(['Commodity', 'Employee']).isRequired,
-};
-
 export default function FullFeaturedDemo() {
   const [isAntDesign, setIsAntDesign] = React.useState(false);
   const [type, setType] = React.useState('Commodity');
@@ -310,7 +301,6 @@ export default function FullFeaturedDemo() {
         loading={loading}
         checkboxSelection
         disableRowSelectionOnClick
-        rowThreshold={0}
         initialState={{
           ...data.initialState,
           pinnedColumns: { left: [GRID_CHECKBOX_SELECTION_FIELD, 'desk'] },

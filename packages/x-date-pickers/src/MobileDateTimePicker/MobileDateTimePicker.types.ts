@@ -1,48 +1,44 @@
 import {
-  UseMobilePickerSlotsComponent,
-  ExportedUseMobilePickerSlotsComponentsProps,
+  UseMobilePickerSlots,
+  ExportedUseMobilePickerSlotProps,
   MobileOnlyPickerProps,
 } from '../internals/hooks/useMobilePicker';
 import {
   BaseDateTimePickerProps,
-  BaseDateTimePickerSlotsComponent,
-  BaseDateTimePickerSlotsComponentsProps,
+  BaseDateTimePickerSlots,
+  BaseDateTimePickerSlotProps,
 } from '../DateTimePicker/shared';
 import { MakeOptional } from '../internals/models/helpers';
-import { DateOrTimeView } from '../internals/models/views';
-import { UncapitalizeObjectKeys } from '../internals/utils/slots-migration';
+import { DateOrTimeView, PickerValidDate } from '../models';
+import { DateOrTimeViewWithMeridiem } from '../internals/models';
 
-export interface MobileDateTimePickerSlotsComponent<TDate>
-  extends BaseDateTimePickerSlotsComponent<TDate>,
-    MakeOptional<UseMobilePickerSlotsComponent<TDate, DateOrTimeView>, 'Field'> {}
+export interface MobileDateTimePickerSlots<
+  TDate extends PickerValidDate,
+  TView extends DateOrTimeViewWithMeridiem,
+> extends BaseDateTimePickerSlots<TDate>,
+    MakeOptional<UseMobilePickerSlots<TDate, TView>, 'field'> {}
 
-export interface MobileDateTimePickerSlotsComponentsProps<TDate>
-  extends BaseDateTimePickerSlotsComponentsProps<TDate>,
-    ExportedUseMobilePickerSlotsComponentsProps<TDate, DateOrTimeView> {}
+export interface MobileDateTimePickerSlotProps<
+  TDate extends PickerValidDate,
+  TView extends DateOrTimeViewWithMeridiem,
+  TEnableAccessibleFieldDOMStructure extends boolean,
+> extends BaseDateTimePickerSlotProps<TDate>,
+    ExportedUseMobilePickerSlotProps<TDate, TView, TEnableAccessibleFieldDOMStructure> {}
 
-export interface MobileDateTimePickerProps<TDate>
-  extends BaseDateTimePickerProps<TDate>,
-    MobileOnlyPickerProps<TDate> {
+export interface MobileDateTimePickerProps<
+  TDate extends PickerValidDate,
+  TView extends DateOrTimeViewWithMeridiem = DateOrTimeView,
+  TEnableAccessibleFieldDOMStructure extends boolean = false,
+> extends BaseDateTimePickerProps<TDate, TView>,
+    MobileOnlyPickerProps {
   /**
-   * Overrideable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: MobileDateTimePickerSlotsComponent<TDate>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: MobileDateTimePickerSlotsComponentsProps<TDate>;
-  /**
-   * Overrideable component slots.
+   * Overridable component slots.
    * @default {}
    */
-  slots?: UncapitalizeObjectKeys<MobileDateTimePickerSlotsComponent<TDate>>;
+  slots?: MobileDateTimePickerSlots<TDate, TView>;
   /**
    * The props used for each component slot.
    * @default {}
    */
-  slotProps?: MobileDateTimePickerSlotsComponentsProps<TDate>;
+  slotProps?: MobileDateTimePickerSlotProps<TDate, TView, TEnableAccessibleFieldDOMStructure>;
 }

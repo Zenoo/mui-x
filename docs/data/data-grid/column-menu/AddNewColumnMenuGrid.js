@@ -22,11 +22,11 @@ function CustomColumnMenu(props) {
   return (
     <GridColumnMenu
       {...props}
-      components={{
+      slots={{
         // Add new item
-        ColumnMenuUserItem: CustomUserItem,
+        columnMenuUserItem: CustomUserItem,
       }}
-      componentsProps={{
+      slotProps={{
         columnMenuUserItem: {
           // set `displayOrder` for new item
           displayOrder: 15,

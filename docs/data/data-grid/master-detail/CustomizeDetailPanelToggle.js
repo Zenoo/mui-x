@@ -1,5 +1,4 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -31,7 +30,6 @@ export default function CustomizeDetailPanelToggle() {
       <DataGridPro
         rows={rows}
         columns={columns}
-        rowThreshold={0}
         getDetailPanelContent={getDetailPanelContent}
         getDetailPanelHeight={getDetailPanelHeight}
       />
@@ -73,11 +71,6 @@ function CustomDetailPanelToggle(props) {
     </IconButton>
   );
 }
-
-CustomDetailPanelToggle.propTypes = {
-  id: PropTypes.any.isRequired,
-  value: PropTypes.any.isRequired,
-};
 
 const columns = [
   { field: 'id', headerName: 'Order ID' },

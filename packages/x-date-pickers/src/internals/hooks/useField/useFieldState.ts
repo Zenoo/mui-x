@@ -1,69 +1,90 @@
 import * as React from 'react';
-import { useTheme } from '@mui/material/styles';
 import useControlled from '@mui/utils/useControlled';
+import { useTheme } from '@mui/material/styles';
 import { useUtils, useLocaleText, useLocalizationContext } from '../useUtils';
 import {
-  FieldSection,
-  UseFieldForwardedProps,
   UseFieldInternalProps,
   UseFieldParams,
   UseFieldState,
-  FieldSelectedSectionsIndexes,
-  FieldSelectedSections,
-  FieldSectionsValueBoundaries,
+  FieldParsedSelectedSections,
   FieldChangeHandlerContext,
+  FieldSectionsValueBoundaries,
+  UseFieldForwardedProps,
 } from './useField.types';
 import {
-  addPositionPropertiesToSections,
-  splitFormatIntoSections,
-  clampDaySection,
   mergeDateIntoReferenceDate,
   getSectionsBoundaries,
   validateSections,
   getDateFromDateSections,
+  parseSelectedSections,
+  getLocalizedDigits,
 } from './useField.utils';
-import { InferError } from '../validation/useValidation';
+import { buildSectionsFromFormat } from './buildSectionsFromFormat';
+import { InferError } from '../useValidation';
+import {
+  FieldSection,
+  FieldSelectedSections,
+  PickersTimezone,
+  PickerValidDate,
+} from '../../../models';
+import { useValueWithTimezone } from '../useValueWithTimezone';
+import {
+  GetDefaultReferenceDateProps,
+  getSectionTypeGranularity,
+} from '../../utils/getDefaultReferenceDate';
 
-export interface UpdateSectionValueParams<TDate, TSection extends FieldSection> {
+export interface UpdateSectionValueParams<TSection extends FieldSection> {
   /**
    * The section on which we want to apply the new value.
    */
   activeSection: TSection;
   /**
-   * Function called if the current date is valid.
-   * It must return a new date with the value of the active section updated.
-   * If it returns null, the update will be ignored.
-   * @template TDate, TSection
-   * @param {TDate} activeDate The date to modify.
-   * @param {FieldSectionsValueBoundaries<TDate, TSection>} sectionsValueBoundaries The minimum and maximum value of each section.
-   * @returns {{ date: TDate; shouldGoToNextSection: boolean } | null} The modified active date and a boolean indicating if the focus should move to the next section.
+   * Value to apply to the active section.
    */
-  setSectionValueOnDate: (
-    activeDate: TDate,
-    sectionsValueBoundaries: FieldSectionsValueBoundaries<TDate>,
-  ) => { date: TDate; shouldGoToNextSection: boolean } | null;
+  newSectionValue: string;
   /**
-   * Function called if the current date is not valid.
-   * It must return the new value of the active section.
-   * If it returns null, the update will be ignored.
-   * @template TDate, TSection
-   * @param {FieldSectionsValueBoundaries<TDate, TSection>} sectionsValueBoundaries The minimum and maximum value of each section.
-   * @returns {{ sectionValue: string; shouldGoToNextSection: boolean } | null} The new value of the active section and a boolean indicating if the focus should move to the next section.
+   * If `true`, the focus will move to the next section.
    */
-  setSectionValueOnSections: (
-    sectionsValueBoundaries: FieldSectionsValueBoundaries<TDate>,
-  ) => { sectionValue: string; shouldGoToNextSection: boolean } | null;
+  shouldGoToNextSection: boolean;
+}
+
+export interface UseFieldStateResponse<
+  TValue,
+  TDate extends PickerValidDate,
+  TSection extends FieldSection,
+> {
+  state: UseFieldState<TValue, TSection>;
+  activeSectionIndex: number | null;
+  parsedSelectedSections: FieldParsedSelectedSections;
+  setSelectedSections: (sections: FieldSelectedSections) => void;
+  clearValue: () => void;
+  clearActiveSection: () => void;
+  updateSectionValue: (params: UpdateSectionValueParams<TSection>) => void;
+  updateValueFromValueStr: (valueStr: string) => void;
+  setTempAndroidValueStr: (tempAndroidValueStr: string | null) => void;
+  sectionsValueBoundaries: FieldSectionsValueBoundaries<TDate>;
+  getSectionsFromValue: (value: TValue, fallbackSections?: TSection[] | null) => TSection[];
+  localizedDigits: string[];
+  timezone: PickersTimezone;
 }
 
 export const useFieldState = <
   TValue,
-  TDate,
+  TDate extends PickerValidDate,
   TSection extends FieldSection,
-  TForwardedProps extends UseFieldForwardedProps,
-  TInternalProps extends UseFieldInternalProps<any, any>,
+  TEnableAccessibleFieldDOMStructure extends boolean,
+  TForwardedProps extends UseFieldForwardedProps<TEnableAccessibleFieldDOMStructure>,
+  TInternalProps extends UseFieldInternalProps<any, any, any, any, any>,
 >(
-  params: UseFieldParams<TValue, TDate, TSection, TForwardedProps, TInternalProps>,
-) => {
+  params: UseFieldParams<
+    TValue,
+    TDate,
+    TSection,
+    TEnableAccessibleFieldDOMStructure,
+    TForwardedProps,
+    TInternalProps
+  >,
+): UseFieldStateResponse<TValue, TDate, TSection> => {
   const utils = useUtils<TDate>();
   const localeText = useLocaleText<TDate>();
   const adapter = useLocalizationContext<TDate>();
@@ -79,44 +100,91 @@ export const useFieldState = <
     internalProps: {
       value: valueProp,
       defaultValue,
+      referenceDate: referenceDateProp,
       onChange,
       format,
+      formatDensity = 'dense',
       selectedSections: selectedSectionsProp,
       onSelectedSectionsChange,
+      shouldRespectLeadingZeros = false,
+      timezone: timezoneProp,
+      enableAccessibleFieldDOMStructure = false,
     },
   } = params;
 
-  const firstDefaultValue = React.useRef(defaultValue);
-  const valueFromTheOutside = valueProp ?? firstDefaultValue.current ?? valueManager.emptyValue;
+  const {
+    timezone,
+    value: valueFromTheOutside,
+    handleValueChange,
+  } = useValueWithTimezone({
+    timezone: timezoneProp,
+    value: valueProp,
+    defaultValue,
+    onChange,
+    valueManager,
+  });
 
-  const sectionsValueBoundaries = React.useMemo(() => getSectionsBoundaries<TDate>(utils), [utils]);
+  const localizedDigits = React.useMemo(() => getLocalizedDigits(utils), [utils]);
 
-  const [sectionOrder, setSectionOrder] = React.useState(() =>
-    fieldValueManager.getSectionOrder(utils, localeText, format, isRTL),
+  const sectionsValueBoundaries = React.useMemo(
+    () => getSectionsBoundaries<TDate>(utils, localizedDigits, timezone),
+    [utils, localizedDigits, timezone],
   );
-  React.useEffect(() => {
-    setSectionOrder(fieldValueManager.getSectionOrder(utils, localeText, format, isRTL));
-  }, [fieldValueManager, format, isRTL, localeText, utils]);
+
+  const getSectionsFromValue = React.useCallback(
+    (value: TValue, fallbackSections: TSection[] | null = null) =>
+      fieldValueManager.getSectionsFromValue(utils, value, fallbackSections, (date) =>
+        buildSectionsFromFormat({
+          utils,
+          timezone,
+          localeText,
+          localizedDigits,
+          format,
+          date,
+          formatDensity,
+          shouldRespectLeadingZeros,
+          enableAccessibleFieldDOMStructure,
+          isRTL,
+        }),
+      ),
+    [
+      fieldValueManager,
+      format,
+      localeText,
+      localizedDigits,
+      isRTL,
+      shouldRespectLeadingZeros,
+      utils,
+      formatDensity,
+      timezone,
+      enableAccessibleFieldDOMStructure,
+    ],
+  );
 
   const [state, setState] = React.useState<UseFieldState<TValue, TSection>>(() => {
-    const sections = fieldValueManager.getSectionsFromValue(
-      utils,
-      localeText,
-      null,
-      valueFromTheOutside,
-      format,
-    );
+    const sections = getSectionsFromValue(valueFromTheOutside);
     validateSections(sections, valueType);
 
-    return {
+    const stateWithoutReferenceDate: UseFieldState<TValue, TSection> = {
       sections,
       value: valueFromTheOutside,
-      referenceValue: fieldValueManager.updateReferenceValue(
-        utils,
-        valueFromTheOutside,
-        valueManager.getTodayValue(utils),
-      ),
+      referenceValue: valueManager.emptyValue,
       tempValueStrAndroid: null,
+    };
+
+    const granularity = getSectionTypeGranularity(sections);
+    const referenceValue = valueManager.getInitialReferenceValue({
+      referenceDate: referenceDateProp,
+      value: valueFromTheOutside,
+      utils,
+      props: internalProps as GetDefaultReferenceDateProps<TDate>,
+      granularity,
+      timezone,
+    });
+
+    return {
+      ...stateWithoutReferenceDate,
+      referenceValue,
     };
   });
 
@@ -124,74 +192,47 @@ export const useFieldState = <
     controlled: selectedSectionsProp,
     default: null,
     name: 'useField',
-    state: 'selectedSectionIndexes',
+    state: 'selectedSections',
   });
 
   const setSelectedSections = (newSelectedSections: FieldSelectedSections) => {
     innerSetSelectedSections(newSelectedSections);
     onSelectedSectionsChange?.(newSelectedSections);
-
-    setState((prevState) => ({
-      ...prevState,
-      selectedSectionQuery: null,
-    }));
   };
 
-  const selectedSectionIndexes = React.useMemo<FieldSelectedSectionsIndexes | null>(() => {
-    if (selectedSections == null) {
-      return null;
-    }
+  const parsedSelectedSections = React.useMemo<FieldParsedSelectedSections>(
+    () => parseSelectedSections(selectedSections, state.sections),
+    [selectedSections, state.sections],
+  );
 
-    if (selectedSections === 'all') {
-      return {
-        startIndex: 0,
-        endIndex: state.sections.length - 1,
-        shouldSelectBoundarySelectors: true,
-      };
-    }
+  const activeSectionIndex = parsedSelectedSections === 'all' ? 0 : parsedSelectedSections;
 
-    if (typeof selectedSections === 'number') {
-      return { startIndex: selectedSections, endIndex: selectedSections };
-    }
-
-    if (typeof selectedSections === 'string') {
-      const selectedSectionIndex = state.sections.findIndex(
-        (section) => section.dateSectionName === selectedSections,
-      );
-
-      return { startIndex: selectedSectionIndex, endIndex: selectedSectionIndex };
-    }
-
-    return selectedSections;
-  }, [selectedSections, state.sections]);
-
-  const publishValue = (
-    { value, referenceValue }: Pick<UseFieldState<TValue, TSection>, 'value' | 'referenceValue'>,
-    sections = state.sections,
-  ) => {
-    const newSections = fieldValueManager.getSectionsFromValue(
-      utils,
-      localeText,
-      sections,
-      value,
-      format,
-    );
-
+  const publishValue = ({
+    value,
+    referenceValue,
+    sections,
+  }: Pick<UseFieldState<TValue, TSection>, 'value' | 'referenceValue' | 'sections'>) => {
     setState((prevState) => ({
       ...prevState,
-      sections: newSections,
+      sections,
       value,
       referenceValue,
       tempValueStrAndroid: null,
     }));
 
-    if (onChange) {
-      const context: FieldChangeHandlerContext<InferError<TInternalProps>> = {
-        validationError: validator({ adapter, value, props: { ...internalProps, value } }),
-      };
-
-      onChange(value, context);
+    if (valueManager.areValuesEqual(utils, state.value, value)) {
+      return;
     }
+
+    const context: FieldChangeHandlerContext<InferError<TInternalProps>> = {
+      validationError: validator({
+        adapter,
+        value,
+        props: { ...internalProps, value, timezone },
+      }),
+    };
+
+    handleValueChange(value, context);
   };
 
   const setSectionValue = (sectionIndex: number, newSectionValue: string) => {
@@ -200,51 +241,39 @@ export const useFieldState = <
     newSections[sectionIndex] = {
       ...newSections[sectionIndex],
       value: newSectionValue,
-      edited: true,
+      modified: true,
     };
 
-    return addPositionPropertiesToSections<TSection>(newSections);
+    return newSections;
   };
 
-  const clearValue = () =>
+  const clearValue = () => {
     publishValue({
       value: valueManager.emptyValue,
       referenceValue: state.referenceValue,
+      sections: getSectionsFromValue(valueManager.emptyValue),
     });
+  };
 
   const clearActiveSection = () => {
-    if (selectedSectionIndexes == null) {
-      return undefined;
+    if (activeSectionIndex == null) {
+      return;
     }
 
-    const activeSection = state.sections[selectedSectionIndexes.startIndex];
+    const activeSection = state.sections[activeSectionIndex];
     const activeDateManager = fieldValueManager.getActiveDateManager(utils, state, activeSection);
-    const activeDateSections = fieldValueManager.getActiveDateSections(
-      state.sections,
-      activeSection,
-    );
 
-    const isTheOnlyNonEmptySection = activeDateSections.every((section) => {
-      if (section.startInInput === activeSection.startInInput) {
-        return true;
-      }
+    const nonEmptySectionCountBefore = activeDateManager
+      .getSections(state.sections)
+      .filter((section) => section.value !== '').length;
+    const hasNoOtherNonEmptySections =
+      nonEmptySectionCountBefore === (activeSection.value === '' ? 0 : 1);
 
-      return section.value === '';
-    });
+    const newSections = setSectionValue(activeSectionIndex, '');
+    const newActiveDate = hasNoOtherNonEmptySections ? null : utils.getInvalidDate();
+    const newValues = activeDateManager.getNewValuesFromNewActiveDate(newActiveDate);
 
-    const newSections = setSectionValue(selectedSectionIndexes.startIndex, '');
-    const newValue = activeDateManager.getNewValueFromNewActiveDate(null);
-
-    if (isTheOnlyNonEmptySection) {
-      return publishValue(newValue, newSections);
-    }
-
-    return setState((prevState) => ({
-      ...prevState,
-      sections: newSections,
-      tempValueStrAndroid: null,
-      ...newValue,
-    }));
+    publishValue({ ...newValues, sections: newSections });
   };
 
   const updateValueFromValueStr = (valueStr: string) => {
@@ -254,8 +283,19 @@ export const useFieldState = <
         return null;
       }
 
-      const sections = splitFormatIntoSections(utils, localeText, format, date);
-      return mergeDateIntoReferenceDate(utils, date, sections, referenceDate, false);
+      const sections = buildSectionsFromFormat({
+        utils,
+        timezone,
+        localeText,
+        localizedDigits,
+        format,
+        date,
+        formatDensity,
+        shouldRespectLeadingZeros,
+        enableAccessibleFieldDOMStructure,
+        isRTL,
+      });
+      return mergeDateIntoReferenceDate(utils, timezone, date, sections, referenceDate, false);
     };
 
     const newValue = fieldValueManager.parseValueStr(valueStr, state.referenceValue, parseDateStr);
@@ -269,138 +309,95 @@ export const useFieldState = <
     publishValue({
       value: newValue,
       referenceValue: newReferenceValue,
+      sections: getSectionsFromValue(newValue, state.sections),
     });
   };
 
   const updateSectionValue = ({
     activeSection,
-    setSectionValueOnDate,
-    setSectionValueOnSections,
-  }: UpdateSectionValueParams<TDate, TSection>) => {
-    const commit = (
-      commitParams: {
-        shouldGoToNextSection: boolean;
-        shouldPublish: boolean;
-        values: Pick<UseFieldState<TValue, TSection>, 'value' | 'referenceValue'>;
-        sections?: TSection[];
-      } | null,
-    ) => {
-      if (commitParams === null) {
-        return setState((prev) => ({ ...prev, tempValueStrAndroid: null }));
-      }
+    newSectionValue,
+    shouldGoToNextSection,
+  }: UpdateSectionValueParams<TSection>) => {
+    /**
+     * 1. Decide which section should be focused
+     */
+    if (shouldGoToNextSection && activeSectionIndex! < state.sections.length - 1) {
+      setSelectedSections(activeSectionIndex! + 1);
+    }
 
-      const { shouldGoToNextSection, shouldPublish, values, sections } = commitParams;
-
-      if (
-        shouldGoToNextSection &&
-        selectedSectionIndexes &&
-        selectedSectionIndexes.startIndex < state.sections.length - 1
-      ) {
-        setSelectedSections(selectedSectionIndexes.startIndex + 1);
-      } else if (
-        selectedSectionIndexes &&
-        selectedSectionIndexes.startIndex !== selectedSectionIndexes.endIndex
-      ) {
-        setSelectedSections(selectedSectionIndexes.startIndex);
-      }
-
-      if (shouldPublish) {
-        return publishValue(values);
-      }
-
-      return setState((prev) => ({
-        ...prev,
-        tempValueStrAndroid: null,
-        ...values,
-        sections: sections ?? prev.sections,
-      }));
-    };
-
+    /**
+     * 2. Try to build a valid date from the new section value
+     */
     const activeDateManager = fieldValueManager.getActiveDateManager(utils, state, activeSection);
-    if (activeDateManager.activeDate != null && utils.isValid(activeDateManager.activeDate)) {
-      const validDateResponse = setSectionValueOnDate(
-        activeDateManager.activeDate,
-        sectionsValueBoundaries,
-      );
-      if (validDateResponse == null) {
-        // The section was not updated
-        return commit(null);
-      }
+    const newSections = setSectionValue(activeSectionIndex!, newSectionValue);
+    const newActiveDateSections = activeDateManager.getSections(newSections);
+    const newActiveDate = getDateFromDateSections(utils, newActiveDateSections, localizedDigits);
 
-      return commit({
-        shouldGoToNextSection: validDateResponse.shouldGoToNextSection,
-        shouldPublish: true,
-        values: activeDateManager.getNewValueFromNewActiveDate(validDateResponse.date),
-      });
-    }
+    let values: Pick<UseFieldState<TValue, TSection>, 'value' | 'referenceValue'>;
+    let shouldPublish: boolean;
 
-    // The date is not valid, we have to update the section value rather than date itself.
-    const invalidDateResponse = setSectionValueOnSections(sectionsValueBoundaries);
-
-    if (invalidDateResponse == null) {
-      // The section was not updated
-      return commit(null);
-    }
-
-    const newSections = setSectionValue(
-      selectedSectionIndexes!.startIndex,
-      invalidDateResponse.sectionValue,
-    );
-    const activeDateSections = fieldValueManager.getActiveDateSections(newSections, activeSection);
-    let newDate = getDateFromDateSections(utils, activeDateSections);
-
-    // When all the sections are filled but the date is invalid, it can be because the month has fewer days than asked.
-    // We can try to set the day to the maximum boundary.
-    if (
-      !utils.isValid(newDate) &&
-      activeDateSections.every(
-        (section) => section.dateSectionName === 'weekDay' || section.value !== '',
-      ) &&
-      activeDateSections.some((section) => section.dateSectionName === 'day')
-    ) {
-      const cleanSections = clampDaySection(utils, activeDateSections, sectionsValueBoundaries);
-      if (cleanSections != null) {
-        newDate = getDateFromDateSections(utils, cleanSections);
-      }
-    }
-
-    if (newDate != null && utils.isValid(newDate)) {
+    /**
+     * If the new date is valid,
+     * Then we merge the value of the modified sections into the reference date.
+     * This makes sure that we don't lose some information of the initial date (like the time on a date field).
+     */
+    if (newActiveDate != null && utils.isValid(newActiveDate)) {
       const mergedDate = mergeDateIntoReferenceDate(
         utils,
-        newDate,
-        activeDateSections,
-        activeDateManager.referenceActiveDate,
+        timezone,
+        newActiveDate,
+        newActiveDateSections,
+        activeDateManager.referenceDate,
         true,
       );
 
-      return commit({
-        shouldGoToNextSection: invalidDateResponse.shouldGoToNextSection,
-        shouldPublish: true,
-        values: activeDateManager.getNewValueFromNewActiveDate(mergedDate),
-      });
+      values = activeDateManager.getNewValuesFromNewActiveDate(mergedDate);
+      shouldPublish = true;
+    } else {
+      values = activeDateManager.getNewValuesFromNewActiveDate(newActiveDate);
+      shouldPublish =
+        (newActiveDate != null && !utils.isValid(newActiveDate)) !==
+        (activeDateManager.date != null && !utils.isValid(activeDateManager.date));
     }
 
-    return commit({
-      shouldGoToNextSection: invalidDateResponse.shouldGoToNextSection,
-      shouldPublish: false,
-      values: activeDateManager.getNewValueFromNewActiveDate(newDate),
+    /**
+     * Publish or update the internal state with the new value and sections.
+     */
+    if (shouldPublish) {
+      return publishValue({ ...values, sections: newSections });
+    }
+
+    return setState((prevState) => ({
+      ...prevState,
+      ...values,
       sections: newSections,
-    });
+      tempValueStrAndroid: null,
+    }));
   };
 
-  const setTempAndroidValueStr = (tempValueStrAndroid: string) =>
+  const setTempAndroidValueStr = (tempValueStrAndroid: string | null) =>
     setState((prev) => ({ ...prev, tempValueStrAndroid }));
 
   React.useEffect(() => {
-    if (!valueManager.areValuesEqual(utils, state.value, valueFromTheOutside)) {
-      const sections = fieldValueManager.getSectionsFromValue(
-        utils,
-        localeText,
-        state.sections,
-        valueFromTheOutside,
-        format,
-      );
+    const sections = getSectionsFromValue(state.value);
+    validateSections(sections, valueType);
+    setState((prevState) => ({
+      ...prevState,
+      sections,
+    }));
+  }, [format, utils.locale, isRTL]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  React.useEffect(() => {
+    let shouldUpdate: boolean;
+    if (!valueManager.areValuesEqual(utils, state.value, valueFromTheOutside)) {
+      shouldUpdate = true;
+    } else {
+      shouldUpdate =
+        valueManager.getTimezone(utils, state.value) !==
+        valueManager.getTimezone(utils, valueFromTheOutside);
+    }
+
+    if (shouldUpdate) {
       setState((prevState) => ({
         ...prevState,
         value: valueFromTheOutside,
@@ -409,35 +406,24 @@ export const useFieldState = <
           valueFromTheOutside,
           prevState.referenceValue,
         ),
-        sections,
+        sections: getSectionsFromValue(valueFromTheOutside),
       }));
     }
   }, [valueFromTheOutside]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  React.useEffect(() => {
-    const sections = fieldValueManager.getSectionsFromValue(
-      utils,
-      localeText,
-      state.sections,
-      state.value,
-      format,
-    );
-    validateSections(sections, valueType);
-    setState((prevState) => ({
-      ...prevState,
-      sections,
-    }));
-  }, [format, utils.locale]); // eslint-disable-line react-hooks/exhaustive-deps
-
   return {
     state,
-    selectedSectionIndexes,
+    activeSectionIndex,
+    parsedSelectedSections,
     setSelectedSections,
     clearValue,
     clearActiveSection,
     updateSectionValue,
     updateValueFromValueStr,
     setTempAndroidValueStr,
-    sectionOrder,
+    getSectionsFromValue,
+    sectionsValueBoundaries,
+    localizedDigits,
+    timezone,
   };
 };

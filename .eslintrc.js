@@ -10,10 +10,6 @@ const buildPackageRestrictedImports = (packageName, root) => ({
       {
         paths: [
           {
-            name: '@mui/base',
-            message: 'Use @mui/material instead',
-          },
-          {
             name: packageName,
             message: 'Use relative import instead',
           },
@@ -23,10 +19,6 @@ const buildPackageRestrictedImports = (packageName, root) => ({
           },
         ],
         patterns: [
-          {
-            group: ['@mui/base/*'],
-            message: 'Use @mui/material instead',
-          },
           // TODO move rule into main repo to allow deep @mui/monorepo imports
           {
             group: ['@mui/*/*/*'],
@@ -42,21 +34,9 @@ const buildPackageRestrictedImports = (packageName, root) => ({
   },
 });
 
-// Remove the rule blocking `@mui/material` root imports
-// TODO: Remove when our packages will have `@mui/base` as a dependency.
-const baselineOverrides = baseline.overrides.filter((override) => {
-  const noRestrictedImports = override.rules?.['no-restricted-imports']?.[1];
-
-  if (!noRestrictedImports?.paths) {
-    return true;
-  }
-
-  return noRestrictedImports.paths;
-});
-
 module.exports = {
   ...baseline,
-  plugins: [...baseline.plugins, 'jsdoc', 'filenames'],
+  plugins: [...baseline.plugins, 'eslint-plugin-jsdoc'],
   settings: {
     'import/resolver': {
       webpack: {
@@ -81,10 +61,25 @@ module.exports = {
     'jsdoc/require-returns': ['error', { contexts: ['TSFunctionType'] }],
     'jsdoc/require-returns-type': ['error', { contexts: ['TSFunctionType'] }],
     'jsdoc/require-returns-description': ['error', { contexts: ['TSFunctionType'] }],
+    'jsdoc/no-bad-blocks': [
+      'error',
+      {
+        ignore: [
+          'ts-check',
+          'ts-expect-error',
+          'ts-ignore',
+          'ts-nocheck',
+          'typescript-to-proptypes-ignore',
+        ],
+      },
+    ],
+    // Fixes false positive when using both `inputProps` and `InputProps` on the same example
+    // See https://stackoverflow.com/questions/42367236/why-am-i-getting-this-warning-no-duplicate-props-allowed-react-jsx-no-duplicate
+    'react/jsx-no-duplicate-props': [1, { ignoreCase: false }],
     'react/no-unstable-nested-components': ['error', { allowAsProps: true }],
   },
   overrides: [
-    ...baselineOverrides,
+    ...baseline.overrides,
     {
       files: [
         // matching the pattern of the test runner
@@ -103,11 +98,16 @@ module.exports = {
       },
     },
     {
-      files: ['packages/grid/**/*.ts', 'packages/grid/**/*.js', 'docs/src/pages/**/*.tsx'],
+      files: [
+        'packages/x-data-grid/**/*{.tsx,.ts,.js}',
+        'packages/x-data-grid-pro/**/*{.tsx,.ts,.js}',
+        'packages/x-data-grid-premium/**/*{.tsx,.ts,.js}',
+        'docs/src/pages/**/*.tsx',
+      ],
       excludedFiles: [
-        'packages/grid/x-data-grid/src/themeAugmentation/index.js', // TypeScript ignores JS files with the same name as the TS file
-        'packages/grid/x-data-grid-pro/src/themeAugmentation/index.js',
-        'packages/grid/x-data-grid-premium/src/themeAugmentation/index.js',
+        'packages/x-data-grid/src/themeAugmentation/index.js', // TypeScript ignores JS files with the same name as the TS file
+        'packages/x-data-grid-pro/src/themeAugmentation/index.js',
+        'packages/x-data-grid-premium/src/themeAugmentation/index.js',
       ],
       rules: {
         'material-ui/no-direct-state-access': 'error',
@@ -128,6 +128,12 @@ module.exports = {
       },
     },
     {
+      files: ['**/*.mjs'],
+      rules: {
+        'import/extensions': ['error', 'ignorePackages'],
+      },
+    },
+    {
       files: ['packages/*/src/**/*{.ts,.tsx,.js}'],
       excludedFiles: ['*.d.ts', '*.spec.ts', '*.spec.tsx'],
       rules: {
@@ -140,6 +146,7 @@ module.exports = {
               'useTimePickerDefaultizedProps',
               'useDateTimePickerDefaultizedProps',
               'useDateRangePickerDefaultizedProps',
+              'useDateTimeRangePickerDefaultizedProps',
               'useDateCalendarDefaultizedProps',
               'useMonthCalendarDefaultizedProps',
               'useYearCalendarDefaultizedProps',
@@ -149,12 +156,13 @@ module.exports = {
         ],
       },
     },
-    buildPackageRestrictedImports('@mui/x-data-grid', 'grid/x-data-grid'),
-    buildPackageRestrictedImports('@mui/x-data-grid-pro', 'grid/x-data-grid-pro'),
-    buildPackageRestrictedImports('@mui/x-data-grid-premium', 'grid/x-data-grid-premium'),
-    buildPackageRestrictedImports('@mui/x-data-grid-generator', 'grid/x-data-grid-generator'),
+    buildPackageRestrictedImports('@mui/x-charts', 'x-charts'),
+    buildPackageRestrictedImports('@mui/x-data-grid', 'x-data-grid'),
+    buildPackageRestrictedImports('@mui/x-data-grid-pro', 'x-data-grid-pro'),
+    buildPackageRestrictedImports('@mui/x-data-grid-premium', 'x-data-grid-premium'),
+    buildPackageRestrictedImports('@mui/x-data-grid-generator', 'x-data-grid-generator'),
     buildPackageRestrictedImports('@mui/x-pickers', 'x-pickers'),
     buildPackageRestrictedImports('@mui/x-pickers-pro', 'x-pickers-pro'),
-    buildPackageRestrictedImports('@mui/x-license-pro', 'x-license-pro'),
+    buildPackageRestrictedImports('@mui/x-license', 'x-license'),
   ],
 };

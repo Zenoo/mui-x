@@ -124,7 +124,7 @@ const rows = [
   },
 ];
 
-type Customer = typeof rows[number];
+type Customer = (typeof rows)[number];
 
 export default function FormDetailPanel() {
   const getDetailPanelContent = React.useCallback(
@@ -139,7 +139,6 @@ export default function FormDetailPanel() {
       <DataGridPro
         columns={columns}
         rows={rows}
-        rowThreshold={0}
         getDetailPanelHeight={getDetailPanelHeight}
         getDetailPanelContent={getDetailPanelContent}
       />

@@ -18,6 +18,12 @@ In the following demo, the "username" column cannot be hidden.
 
 To initialize the visible columns without controlling them, provide the model to the `initialState` prop.
 
+:::info
+
+Passing the visible columns to the `initialState` prop will only have an impact when the data grid is rendered for the first time. In order to update the visible columns after the first render, you need to use the [`columnVisibilityModel`](#controlled-visible-columns) prop.
+
+:::
+
 ```tsx
 <DataGrid
   initialState={{
@@ -53,16 +59,59 @@ You can use the `onColumnVisibilityModelChange` prop to listen to the changes to
 
 ## Column visibility panel
 
-The column visibility panel can be opened through the grid toolbar.
-To enable it, you need to add `toolbar: GridToolbar` to the grid `slots` prop.
+The column visibility panel allows the user to control which columns are visible in the Data Grid.
 
-The user can then choose which columns are visible using the _Columns_ button.
+The panel can be opened by:
+
+- Clicking the _Columns_ button in the [toolbar](/x/react-data-grid/components/#toolbar).
+- Clicking the _Manage columns_ button in the [column menu](/x/react-data-grid/column-menu/).
 
 {{"demo": "ColumnSelectorGrid.js", "bg": "inline"}}
 
-### Disable action buttons
+### Disable the column visibility panel
 
-To disable `Hide all` or `Show all` buttons in the column visibility panel, pass `disableHideAllButton` or `disableShowAllButton` to `slotProps.columnsPanel`.
+Sometimes, the intention is to disable the columns panel or control the visible columns programmatically based on the application state.
+To disable the column visibility panel, set the prop `disableColumnSelector={true}` and use the [`columnVisibilityModel`](#controlled-visible-columns) prop to control the visible columns.
+
+```tsx
+<DataGrid disableColumnSelector columnVisibilityModel={columnVisibilityModel} />
+```
+
+In the following demo, the columns panel is disabled, and access to columns `id`, `quantity`, and `filledQuantity` is only allowed for the `Admin` type user.
+
+{{"demo": "ColumnSelectorDisabledGrid.js", "bg": "inline"}}
+
+### Customize the list of columns in columns management
+
+To show or hide specific columns in the column visibility panel, use the `slotProps.columnsManagement.getTogglableColumns` prop. It should return an array of column field names.
+
+```tsx
+// stop `id`, `__row_group_by_columns_group__`, and `status` columns to be togglable
+const hiddenFields = ['id', '__row_group_by_columns_group__', 'status'];
+
+const getTogglableColumns = (columns: GridColDef[]) => {
+  return columns
+    .filter((column) => !hiddenFields.includes(column.field))
+    .map((column) => column.field);
+};
+
+<DataGrid
+  slots={{
+    toolbar: GridToolbar,
+  }}
+  slotProps={{
+    columnsManagement: {
+      getTogglableColumns,
+    },
+  }}
+/>;
+```
+
+{{"demo": "ColumnSelectorGridCustomizeColumns.js", "bg": "inline"}}
+
+### Disable actions in footer
+
+To disable `Show/Hide All` checkbox or `Reset` button in the footer of the columns management component, pass `disableShowHideToggle` or `disableResetButton` to `slotProps.columnsManagement`.
 
 ```tsx
 <DataGrid
@@ -70,17 +119,31 @@ To disable `Hide all` or `Show all` buttons in the column visibility panel, pass
     toolbar: GridToolbar,
   }}
   slotProps={{
-    columnsPanel: {
-      disableHideAllButton: true,
-      disableShowAllButton: true,
+    columnsManagement: {
+      disableShowHideToggle: true,
+      disableResetButton: true,
     },
   }}
 />
 ```
 
-:::info
-To hide the column visibility panel from the toolbar, set the prop `disableColumnSelector={true}`.
-:::
+### Customize action buttons behavior when search is active
+
+By default, the `Show/Hide All` checkbox toggles the visibility of all columns, including the ones that are not visible in the current search results.
+
+To only toggle the visibility of the columns that are present in the current search results, pass `toggleAllMode: 'filteredOnly'` to `slotProps.columnsManagement`.
+
+```tsx
+<DataGrid
+  slotProps={{
+    columnsManagement: {
+      toggleAllMode: 'filteredOnly',
+    },
+  }}
+/>
+```
+
+{{"demo": "ColumnSelectorGridToggleAllMode.js", "bg": "inline"}}
 
 ## API
 

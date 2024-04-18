@@ -1,5 +1,13 @@
 import { PickersLocaleText } from './utils/pickersLocaleTextApi';
 import { getPickersLocalization } from './utils/getPickersLocalization';
+import { TimeViewWithMeridiem } from '../internals/models';
+
+const timeViews: Record<TimeViewWithMeridiem, string> = {
+  hours: 'horas',
+  minutes: 'minutos',
+  seconds: 'segundos',
+  meridiem: 'meridiano',
+};
 
 const ptBRPickers: Partial<PickersLocaleText<any>> = {
   // Calendar navigation
@@ -14,9 +22,13 @@ const ptBRPickers: Partial<PickersLocaleText<any>> = {
       ? 'Seleção de ano está aberta, alternando para seleção de calendário'
       : 'Seleção de calendários está aberta, alternando para seleção de ano',
 
-  // DateRange placeholders
+  // DateRange labels
   start: 'Início',
   end: 'Fim',
+  // startDate: 'Start date',
+  // startTime: 'Start time',
+  // endDate: 'End date',
+  // endTime: 'End time',
 
   // Action bar
   cancelButtonLabel: 'Cancelar',
@@ -32,20 +44,19 @@ const ptBRPickers: Partial<PickersLocaleText<any>> = {
 
   // Clock labels
   clockLabelText: (view, time, adapter) =>
-    `Selecione ${view}. ${
-      time === null
-        ? 'Hora não selecionada'
-        : `Selecionado a hora ${adapter.format(time, 'fullTime')}`
-    }`,
+    `Selecione ${timeViews[view]}. ${time === null ? 'Hora não selecionada' : `Selecionado a hora ${adapter.format(time, 'fullTime')}`}`,
   hoursClockNumberText: (hours) => `${hours} horas`,
   minutesClockNumberText: (minutes) => `${minutes} minutos`,
   secondsClockNumberText: (seconds) => `${seconds} segundos`,
 
+  // Digital clock labels
+  selectViewText: (view) => `Selecione ${timeViews[view]}`,
+
   // Calendar labels
-  // calendarWeekNumberHeaderLabel: 'Week number',
-  // calendarWeekNumberHeaderText: '#',
-  // calendarWeekNumberAriaLabelText: weekNumber => `Week ${weekNumber}`,
-  // calendarWeekNumberText: weekNumber => `${weekNumber}`,
+  calendarWeekNumberHeaderLabel: 'Número da semana',
+  calendarWeekNumberHeaderText: '#',
+  calendarWeekNumberAriaLabelText: (weekNumber) => `Semana ${weekNumber}`,
+  calendarWeekNumberText: (weekNumber) => `${weekNumber}`,
 
   // Open picker labels
   openDatePickerDialogue: (value, utils) =>
@@ -56,20 +67,34 @@ const ptBRPickers: Partial<PickersLocaleText<any>> = {
     value !== null && utils.isValid(value)
       ? `Escolha uma hora, hora selecionada ${utils.format(value, 'fullTime')}`
       : 'Escolha uma hora',
+  // fieldClearLabel: 'Clear value',
 
   // Table labels
   timeTableLabel: 'escolha uma hora',
   dateTableLabel: 'escolha uma data',
 
   // Field section placeholders
-  // fieldYearPlaceholder: params => 'Y'.repeat(params.digitAmount),
-  // fieldMonthPlaceholder: params => params.contentType === 'letter' ? 'MMMM' : 'MM',
-  // fieldDayPlaceholder: () => 'DD',
-  // fieldWeekDayPlaceholder: params => params.contentType === 'letter' ? 'EEEE' : 'EE',
-  // fieldHoursPlaceholder: () => 'hh',
-  // fieldMinutesPlaceholder: () => 'mm',
-  // fieldSecondsPlaceholder: () => 'ss',
-  // fieldMeridiemPlaceholder: () => 'aa',
+  fieldYearPlaceholder: (params) => 'A'.repeat(params.digitAmount),
+  fieldMonthPlaceholder: (params) => (params.contentType === 'letter' ? 'MMMM' : 'MM'),
+  fieldDayPlaceholder: () => 'DD',
+  fieldWeekDayPlaceholder: (params) => (params.contentType === 'letter' ? 'SSSS' : 'SS'),
+  fieldHoursPlaceholder: () => 'hh',
+  fieldMinutesPlaceholder: () => 'mm',
+  fieldSecondsPlaceholder: () => 'ss',
+  fieldMeridiemPlaceholder: () => 'aa',
+
+  // View names
+  // year: 'Year',
+  // month: 'Month',
+  // day: 'Day',
+  // weekDay: 'Week day',
+  // hours: 'Hours',
+  // minutes: 'Minutes',
+  // seconds: 'Seconds',
+  // meridiem: 'Meridiem',
+
+  // Common
+  // empty: 'Empty',
 };
 
 export const ptBR = getPickersLocalization(ptBRPickers);

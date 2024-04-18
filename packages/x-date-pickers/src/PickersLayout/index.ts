@@ -1,8 +1,10 @@
 export { PickersLayout, PickersLayoutRoot, PickersLayoutContentWrapper } from './PickersLayout';
 export type {
   PickersLayoutProps,
-  PickersLayoutSlotsComponent,
-  PickersLayoutSlotsComponentsProps,
+  PickersLayoutSlots,
+  PickersLayoutSlotProps,
+  ExportedPickersLayoutSlots,
+  ExportedPickersLayoutSlotProps,
 } from './PickersLayout.types';
 
 export { default as usePickerLayout } from './usePickerLayout';

@@ -13,20 +13,20 @@ Use the `rowHeight` prop to change this default value, as shown below:
 
 ## Variable row height
 
-If you need some rows to have different row heights this can be achieved using the `getRowHeight` prop.
+If you need some rows to have different row heights, this can be achieved using the `getRowHeight` prop.
 This function is called for each visible row and if the return value is a `number` then that `number` will be set as that row's `rowHeight`.
 If the return value is `null` or `undefined`, then the `rowHeight` prop will take effect for the given row.
 
 {{"demo": "VariableRowHeightGrid.js", "bg": "inline"}}
 
 :::warning
-Changing the `DataGrid` density does not affect the rows with variable row height.
+Changing the Data Grid density does not affect the rows with variable row height.
 You can access the density factor from the params provided to the `getRowHeight` prop
 :::
 
 :::warning
 Always memoize the function provided to `getRowHeight`.
-The grid bases on the referential value of these props to cache their values and optimize the rendering.
+The Data Grid bases on the referential value of these props to cache their values and optimize the rendering.
 :::
 
 ```tsx
@@ -37,7 +37,7 @@ const getRowHeight = React.useCallback(() => { ... }, []);
 
 ## Dynamic row height
 
-Instead of a fixed row height, you can let the grid calculate the height of each row based on its content.
+Instead of a fixed row height, you can let the data grid calculate the height of each row based on its content.
 To do so, return `"auto"` on the function passed to the `getRowHeight` prop.
 
 ```tsx
@@ -48,7 +48,7 @@ The following demo shows this feature in action:
 
 {{"demo": "DynamicRowHeightGrid.js", "bg": "inline", "defaultCodeOpen": false}}
 
-The dynamic row height implementaion is based on a lazy approach, which means that the rows are measured as they are rendered.
+The dynamic row height implementation is based on a lazy approach, which means that the rows are measured as they are rendered.
 Because of this, you may see the size of the scrollbar thumb changing during scroll.
 This side effect happens because a row height estimation is used while a row is not rendered, then this value is replaced once the true measurement is obtained.
 You can configure the estimated value used by passing a function to the `getEstimatedRowHeight` prop.
@@ -111,8 +111,8 @@ To add a border instead, set `rowSpacingType` to `"border"` and customize the co
 />
 ```
 
-:::info
-⚠ Adding a bottom margin or border to rows that also have a [detail panel](/x/react-data-grid/master-detail/) is not recommended because the detail panel relies on the bottom margin to work.
+:::success
+Adding a bottom margin or border to rows that also have a [detail panel](/x/react-data-grid/master-detail/) is not recommended because the detail panel relies on the bottom margin to work.
 
 As an alternative, you can use the top spacing to define the space between rows.
 It's easier to always increase the next row spacing no matter if the detail panel is expanded or not, but you can use `gridDetailPanelExpandedRowIdsSelector` to apply a spacing depending on the open state.

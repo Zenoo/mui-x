@@ -1,8 +1,7 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
-import { DataGridPro } from '@mui/x-data-grid-pro';
+import { DataGrid } from '@mui/x-data-grid';
 import BuildIcon from '@mui/icons-material/Build';
 import PersonIcon from '@mui/icons-material/Person';
 
@@ -27,10 +26,10 @@ const columns = [
 ];
 
 const rows = [
-  { id: 1, lastName: 'Snow', firstName: 'Jon', age: 35 },
-  { id: 2, lastName: 'Lannister', firstName: 'Cersei', age: 42 },
-  { id: 3, lastName: 'Lannister', firstName: 'Jaime', age: 45 },
-  { id: 4, lastName: 'Stark', firstName: 'Arya', age: 16 },
+  { id: 1, lastName: 'Snow', firstName: 'Jon', age: 14 },
+  { id: 2, lastName: 'Lannister', firstName: 'Cersei', age: 31 },
+  { id: 3, lastName: 'Lannister', firstName: 'Jaime', age: 31 },
+  { id: 4, lastName: 'Stark', firstName: 'Arya', age: 11 },
   { id: 5, lastName: 'Targaryen', firstName: 'Daenerys', age: null },
   { id: 6, lastName: 'Melisandre', firstName: null, age: 150 },
   { id: 7, lastName: 'Clifford', firstName: 'Ferrara', age: 44 },
@@ -58,19 +57,6 @@ function HeaderWithIcon(props) {
     </HeaderWithIconRoot>
   );
 }
-
-HeaderWithIcon.propTypes = {
-  /**
-   * A unique string identifying the group.
-   */
-  groupId: PropTypes.oneOfType([PropTypes.oneOf([null]), PropTypes.string])
-    .isRequired,
-  /**
-   * The title of the column rendered in the column header cell.
-   */
-  headerName: PropTypes.string,
-  icon: PropTypes.node,
-};
 
 const columnGroupingModel = [
   {
@@ -112,10 +98,9 @@ export default function CustomizationDemo() {
         },
       }}
     >
-      <DataGridPro
+      <DataGrid
         rows={rows}
         columns={columns}
-        experimentalFeatures={{ columnGrouping: true }}
         checkboxSelection
         disableRowSelectionOnClick
         columnGroupingModel={columnGroupingModel}

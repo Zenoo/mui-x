@@ -1,5 +1,13 @@
 import { PickersLocaleText } from './utils/pickersLocaleTextApi';
 import { getPickersLocalization } from './utils/getPickersLocalization';
+import { TimeViewWithMeridiem } from '../internals/models';
+
+const timeViews: Record<TimeViewWithMeridiem, string> = {
+  hours: 'godzin',
+  minutes: 'minut',
+  seconds: 'sekund',
+  meridiem: 'popołudnie',
+};
 
 const plPLPickers: Partial<PickersLocaleText<any>> = {
   // Calendar navigation
@@ -7,16 +15,20 @@ const plPLPickers: Partial<PickersLocaleText<any>> = {
   nextMonth: 'Następny miesiąc',
 
   // View navigation
-  openPreviousView: 'otwórz poprzedni widok',
-  openNextView: 'otwórz następny widok',
+  openPreviousView: 'Otwórz poprzedni widok',
+  openNextView: 'Otwórz następny widok',
   calendarViewSwitchingButtonAriaLabel: (view) =>
     view === 'year'
       ? 'otwarty jest widok roku, przełącz na widok kalendarza'
       : 'otwarty jest widok kalendarza, przełącz na widok roku',
 
-  // DateRange placeholders
+  // DateRange labels
   start: 'Początek',
   end: 'Koniec',
+  // startDate: 'Start date',
+  // startTime: 'Start time',
+  // endDate: 'End date',
+  // endTime: 'End time',
 
   // Action bar
   cancelButtonLabel: 'Anuluj',
@@ -25,25 +37,26 @@ const plPLPickers: Partial<PickersLocaleText<any>> = {
   todayButtonLabel: 'Dzisiaj',
 
   // Toolbar titles
-  // datePickerToolbarTitle: 'Select date',
-  // dateTimePickerToolbarTitle: 'Select date & time',
-  // timePickerToolbarTitle: 'Select time',
-  // dateRangePickerToolbarTitle: 'Select date range',
+  datePickerToolbarTitle: 'Wybierz datę',
+  dateTimePickerToolbarTitle: 'Wybierz datę i czas',
+  timePickerToolbarTitle: 'Wybierz czas',
+  dateRangePickerToolbarTitle: 'Wybierz zakres dat',
 
   // Clock labels
   clockLabelText: (view, time, adapter) =>
-    `Select ${view}. ${
-      time === null ? 'Nie wybrano czasu' : `Wybrany czas to ${adapter.format(time, 'fullTime')}`
-    }`,
+    `Wybierz ${timeViews[view]}. ${time === null ? 'Nie wybrano czasu' : `Wybrany czas to ${adapter.format(time, 'fullTime')}`}`,
   hoursClockNumberText: (hours) => `${hours} godzin`,
   minutesClockNumberText: (minutes) => `${minutes} minut`,
   secondsClockNumberText: (seconds) => `${seconds} sekund`,
 
+  // Digital clock labels
+  selectViewText: (view) => `Wybierz ${timeViews[view]}`,
+
   // Calendar labels
-  // calendarWeekNumberHeaderLabel: 'Week number',
-  // calendarWeekNumberHeaderText: '#',
-  // calendarWeekNumberAriaLabelText: weekNumber => `Week ${weekNumber}`,
-  // calendarWeekNumberText: weekNumber => `${weekNumber}`,
+  calendarWeekNumberHeaderLabel: 'Numer tygodnia',
+  calendarWeekNumberHeaderText: '#',
+  calendarWeekNumberAriaLabelText: (weekNumber) => `Tydzień ${weekNumber}`,
+  calendarWeekNumberText: (weekNumber) => `${weekNumber}`,
 
   // Open picker labels
   openDatePickerDialogue: (value, utils) =>
@@ -54,6 +67,7 @@ const plPLPickers: Partial<PickersLocaleText<any>> = {
     value !== null && utils.isValid(value)
       ? `Wybierz czas, obecnie wybrany czas to ${utils.format(value, 'fullTime')}`
       : 'Wybierz czas',
+  // fieldClearLabel: 'Clear value',
 
   // Table labels
   timeTableLabel: 'wybierz czas',
@@ -68,6 +82,19 @@ const plPLPickers: Partial<PickersLocaleText<any>> = {
   // fieldMinutesPlaceholder: () => 'mm',
   // fieldSecondsPlaceholder: () => 'ss',
   // fieldMeridiemPlaceholder: () => 'aa',
+
+  // View names
+  // year: 'Year',
+  // month: 'Month',
+  // day: 'Day',
+  // weekDay: 'Week day',
+  // hours: 'Hours',
+  // minutes: 'Minutes',
+  // seconds: 'Seconds',
+  // meridiem: 'Meridiem',
+
+  // Common
+  // empty: 'Empty',
 };
 
 export const plPL = getPickersLocalization(plPLPickers);

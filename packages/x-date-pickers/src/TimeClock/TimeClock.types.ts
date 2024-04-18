@@ -1,23 +1,14 @@
-import { SxProps } from '@mui/system';
-import { Theme } from '@mui/material/styles';
 import { TimeClockClasses } from './timeClockClasses';
-import { TimeValidationProps, BaseTimeValidationProps } from '../internals/hooks/validation/models';
 import {
-  PickersArrowSwitcherSlotsComponent,
-  PickersArrowSwitcherSlotsComponentsProps,
+  PickersArrowSwitcherSlots,
+  PickersArrowSwitcherSlotProps,
 } from '../internals/components/PickersArrowSwitcher';
-import { TimeView } from '../internals/models/views';
-import { PickerSelectionState } from '../internals/hooks/usePicker/usePickerValue';
-import { UncapitalizeObjectKeys } from '../internals/utils/slots-migration';
+import { BaseClockProps, ExportedBaseClockProps } from '../internals/models/props/clock';
+import { PickerValidDate, TimeView } from '../models';
+import { TimeViewWithMeridiem } from '../internals/models';
 
-export interface ExportedTimeClockProps<TDate>
-  extends TimeValidationProps<TDate>,
-    BaseTimeValidationProps {
-  /**
-   * 12h/24h view for hour selection clock.
-   * @default `utils.is12HourCycleInCurrentLocale()`
-   */
-  ampm?: boolean;
+export interface ExportedTimeClockProps<TDate extends PickerValidDate>
+  extends ExportedBaseClockProps<TDate> {
   /**
    * Display ampm controls under the clock (instead of in the toolbar).
    * @default false
@@ -25,91 +16,33 @@ export interface ExportedTimeClockProps<TDate>
   ampmInClock?: boolean;
 }
 
-export interface TimeClockSlotsComponent extends PickersArrowSwitcherSlotsComponent {}
+export interface TimeClockSlots extends PickersArrowSwitcherSlots {}
 
-export interface TimeClockSlotsComponentsProps extends PickersArrowSwitcherSlotsComponentsProps {}
+export interface TimeClockSlotProps extends PickersArrowSwitcherSlotProps {}
 
-export interface TimeClockProps<TDate> extends ExportedTimeClockProps<TDate> {
-  className?: string;
+export interface TimeClockProps<
+  TDate extends PickerValidDate,
+  TView extends TimeViewWithMeridiem = TimeView,
+> extends ExportedTimeClockProps<TDate>,
+    BaseClockProps<TDate, TView> {
   /**
-   * The system prop that allows defining system overrides as well as additional CSS styles.
+   * Available views.
+   * @default ['hours', 'minutes']
    */
-  sx?: SxProps<Theme>;
-  /**
-   * Set to `true` if focus should be moved to clock picker.
-   */
-  autoFocus?: boolean;
+  views?: readonly TView[];
   /**
    * Override or extend the styles applied to the component.
    */
   classes?: Partial<TimeClockClasses>;
   /**
-   * Overrideable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: TimeClockSlotsComponent;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: TimeClockSlotsComponentsProps;
-  /**
-   * Overrideable component slots.
+   * Overridable component slots.
    * @default {}
    */
-  slots?: UncapitalizeObjectKeys<TimeClockSlotsComponent>;
+  slots?: TimeClockSlots;
   /**
    * The props used for each component slot.
    * @default {}
    */
-  slotProps?: TimeClockSlotsComponentsProps;
-  /**
-   * The selected value.
-   * Used when the component is controlled.
-   */
-  value?: TDate | null;
-  /**
-   * The default selected value.
-   * Used when the component is not controlled.
-   */
-  defaultValue?: TDate | null;
-  /**
-   * Callback fired when the value changes.
-   * @template TDate
-   * @param {TDate | null} value The new value.
-   * @param {PickerSelectionState | undefined} selectionState Indicates if the date selection is complete.
-   */
-  onChange?: (value: TDate | null, selectionState?: PickerSelectionState) => void;
+  slotProps?: TimeClockSlotProps;
   showViewSwitcher?: boolean;
-  /**
-   * Controlled open view.
-   */
-  view?: TimeView;
-  /**
-   * Views for calendar picker.
-   * @default ['hours', 'minutes']
-   */
-  views?: readonly TimeView[];
-  /**
-   * Callback fired on view change.
-   * @param {TimeView} view The new view.
-   */
-  onViewChange?: (view: TimeView) => void;
-  /**
-   * Initially open view.
-   * @default 'hours'
-   */
-  openTo?: TimeView;
-  /**
-   * If `true`, the picker and text field are disabled.
-   * @default false
-   */
-  disabled?: boolean;
-  /**
-   * Make picker read only.
-   * @default false
-   */
-  readOnly?: boolean;
 }

@@ -1,46 +1,35 @@
 import {
   BaseDateTimePickerProps,
-  BaseDateTimePickerSlotsComponent,
-  BaseDateTimePickerSlotsComponentsProps,
+  BaseDateTimePickerSlots,
+  BaseDateTimePickerSlotProps,
 } from '../DateTimePicker/shared';
 import {
   StaticOnlyPickerProps,
-  UseStaticPickerSlotsComponent,
-  UseStaticPickerSlotsComponentsProps,
+  UseStaticPickerSlots,
+  UseStaticPickerSlotProps,
 } from '../internals/hooks/useStaticPicker';
-import { DateOrTimeView, MakeOptional, UncapitalizeObjectKeys } from '../internals';
+import { MakeOptional } from '../internals/models/helpers';
+import { DateOrTimeView, PickerValidDate } from '../models';
 
-export interface StaticDateTimePickerSlotsComponent<TDate>
-  extends BaseDateTimePickerSlotsComponent<TDate>,
-    UseStaticPickerSlotsComponent<TDate, DateOrTimeView> {}
+export interface StaticDateTimePickerSlots<TDate extends PickerValidDate>
+  extends BaseDateTimePickerSlots<TDate>,
+    UseStaticPickerSlots<TDate, DateOrTimeView> {}
 
-export interface StaticDateTimePickerSlotsComponentsProps<TDate>
-  extends BaseDateTimePickerSlotsComponentsProps<TDate>,
-    UseStaticPickerSlotsComponentsProps<TDate, DateOrTimeView> {}
+export interface StaticDateTimePickerSlotProps<TDate extends PickerValidDate>
+  extends BaseDateTimePickerSlotProps<TDate>,
+    UseStaticPickerSlotProps<TDate, DateOrTimeView> {}
 
-export interface StaticDateTimePickerProps<TDate>
-  extends BaseDateTimePickerProps<TDate>,
+export interface StaticDateTimePickerProps<TDate extends PickerValidDate>
+  extends BaseDateTimePickerProps<TDate, DateOrTimeView>,
     MakeOptional<StaticOnlyPickerProps, 'displayStaticWrapperAs'> {
   /**
-   * Overrideable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: StaticDateTimePickerSlotsComponent<TDate>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: StaticDateTimePickerSlotsComponentsProps<TDate>;
-  /**
-   * Overrideable component slots.
+   * Overridable component slots.
    * @default {}
    */
-  slots?: UncapitalizeObjectKeys<StaticDateTimePickerSlotsComponent<TDate>>;
+  slots?: StaticDateTimePickerSlots<TDate>;
   /**
    * The props used for each component slot.
    * @default {}
    */
-  slotProps?: StaticDateTimePickerSlotsComponentsProps<TDate>;
+  slotProps?: StaticDateTimePickerSlotProps<TDate>;
 }

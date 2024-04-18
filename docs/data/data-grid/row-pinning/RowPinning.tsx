@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DataGridPro, GridPinnedRowsProp } from '@mui/x-data-grid-pro';
+import { DataGridPro, GridPinnedRowsProp, GridColDef } from '@mui/x-data-grid-pro';
 import {
   randomCity,
   randomEmail,
@@ -9,7 +9,7 @@ import {
   randomUserName,
 } from '@mui/x-data-grid-generator';
 
-const columns = [
+const columns: GridColDef[] = [
   { field: 'name', headerName: 'Name', width: 150 },
   { field: 'city', headerName: 'City', width: 150 },
   { field: 'username', headerName: 'Username' },
@@ -42,12 +42,7 @@ const pinnedRows: GridPinnedRowsProp = {
 export default function RowPinning() {
   return (
     <div style={{ height: 500, width: '100%' }}>
-      <DataGridPro
-        columns={columns}
-        rows={rows}
-        pinnedRows={pinnedRows}
-        experimentalFeatures={{ rowPinning: true }}
-      />
+      <DataGridPro columns={columns} rows={rows} pinnedRows={pinnedRows} />
     </div>
   );
 }

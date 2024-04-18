@@ -9,6 +9,7 @@ import {
   GridCellModes,
   GridEventListener,
   GridCellModesModel,
+  GridSlots,
 } from '@mui/x-data-grid';
 import {
   randomCreatedDate,
@@ -130,6 +131,13 @@ export default function StartEditButtonGrid() {
     [cellMode],
   );
 
+  const handleCellEditStop = React.useCallback<GridEventListener<'cellEditStop'>>(
+    (params, event) => {
+      event.defaultMuiPrevented = true;
+    },
+    [],
+  );
+
   return (
     <div style={{ height: 400, width: '100%' }}>
       <DataGrid
@@ -137,9 +145,10 @@ export default function StartEditButtonGrid() {
         columns={columns}
         onCellKeyDown={handleCellKeyDown}
         cellModesModel={cellModesModel}
+        onCellEditStop={handleCellEditStop}
         onCellModesModelChange={(model) => setCellModesModel(model)}
         slots={{
-          toolbar: EditToolbar,
+          toolbar: EditToolbar as GridSlots['toolbar'],
         }}
         slotProps={{
           toolbar: {
@@ -160,7 +169,14 @@ export default function StartEditButtonGrid() {
 
 const columns: GridColDef[] = [
   { field: 'name', headerName: 'Name', width: 180, editable: true },
-  { field: 'age', headerName: 'Age', type: 'number', editable: true },
+  {
+    field: 'age',
+    headerName: 'Age',
+    type: 'number',
+    editable: true,
+    align: 'left',
+    headerAlign: 'left',
+  },
   {
     field: 'dateCreated',
     headerName: 'Date Created',

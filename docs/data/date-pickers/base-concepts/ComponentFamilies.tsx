@@ -1,5 +1,6 @@
 import * as React from 'react';
 import dayjs from 'dayjs';
+import { styled } from '@mui/material/styles';
 import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -12,12 +13,27 @@ import { MultiInputDateTimeRangeField } from '@mui/x-date-pickers-pro/MultiInput
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 
+const ProSpan = styled('span')({
+  display: 'inline-block',
+  height: '1em',
+  width: '1em',
+  verticalAlign: 'middle',
+  marginLeft: '0.3em',
+  marginBottom: '0.08em',
+  backgroundSize: 'contain',
+  backgroundRepeat: 'no-repeat',
+  backgroundImage: 'url(https://mui.com/static/x/pro.svg)',
+});
+
 function ProLabel({ children }: { children: React.ReactNode }) {
   return (
     <Stack direction="row" spacing={0.5} component="span">
       <Tooltip title="Included in Pro package">
-        <a href="/x/introduction/licensing/#pro-plan">
-          <span className="plan-pro" />
+        <a
+          href="https://mui.com/x/introduction/licensing/#pro-plan"
+          aria-label="Included in Pro package"
+        >
+          <ProSpan />
         </a>
       </Tooltip>
       <span>{children}</span>
@@ -39,20 +55,20 @@ export default function ComponentFamilies() {
         ]}
       >
         <DemoItem label="Date">
-          <DateField defaultValue={dayjs('2022-04-07')} />
+          <DateField defaultValue={dayjs('2022-04-17')} />
         </DemoItem>
         <DemoItem label="Time">
-          <TimeField defaultValue={dayjs('2022-04-07T15:30')} />
+          <TimeField defaultValue={dayjs('2022-04-17T15:30')} />
         </DemoItem>
         <DemoItem label="Date Time">
-          <DateTimeField defaultValue={dayjs('2022-04-07T15:30')} />
+          <DateTimeField defaultValue={dayjs('2022-04-17T15:30')} />
         </DemoItem>
         <DemoItem
           label={<ProLabel>Date Range</ProLabel>}
           component="MultiInputDateRangeField"
         >
           <MultiInputDateRangeField
-            defaultValue={[dayjs('2022-04-07'), dayjs('2022-04-10')]}
+            defaultValue={[dayjs('2022-04-17'), dayjs('2022-04-21')]}
           />
         </DemoItem>
         <DemoItem
@@ -60,7 +76,7 @@ export default function ComponentFamilies() {
           component="MultiInputTimeRangeField"
         >
           <MultiInputTimeRangeField
-            defaultValue={[dayjs('2022-04-07T15:30'), dayjs('2022-04-07T18:30')]}
+            defaultValue={[dayjs('2022-04-17T15:30'), dayjs('2022-04-17T18:30')]}
           />
         </DemoItem>
         <DemoItem
@@ -68,7 +84,7 @@ export default function ComponentFamilies() {
           component="MultiInputDateTimeRangeField"
         >
           <MultiInputDateTimeRangeField
-            defaultValue={[dayjs('2022-04-07T15:30'), dayjs('2022-04-10T18:30')]}
+            defaultValue={[dayjs('2022-04-17T15:30'), dayjs('2022-04-21T18:30')]}
           />
         </DemoItem>
       </DemoContainer>

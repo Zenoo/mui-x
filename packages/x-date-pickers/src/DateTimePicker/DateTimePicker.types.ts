@@ -1,26 +1,42 @@
 import {
   DesktopDateTimePickerProps,
-  DesktopDateTimePickerSlotsComponent,
-  DesktopDateTimePickerSlotsComponentsProps,
+  DesktopDateTimePickerSlots,
+  DesktopDateTimePickerSlotProps,
 } from '../DesktopDateTimePicker';
-import { UncapitalizeObjectKeys } from '../internals/utils/slots-migration';
+import { DateOrTimeViewWithMeridiem } from '../internals/models';
 import {
   MobileDateTimePickerProps,
-  MobileDateTimePickerSlotsComponent,
-  MobileDateTimePickerSlotsComponentsProps,
+  MobileDateTimePickerSlots,
+  MobileDateTimePickerSlotProps,
 } from '../MobileDateTimePicker';
+import { PickerValidDate } from '../models';
 
-export interface DateTimePickerSlotsComponents<TDate>
-  extends DesktopDateTimePickerSlotsComponent<TDate>,
-    MobileDateTimePickerSlotsComponent<TDate> {}
+export interface DateTimePickerSlots<TDate extends PickerValidDate>
+  extends DesktopDateTimePickerSlots<TDate>,
+    MobileDateTimePickerSlots<TDate, DateOrTimeViewWithMeridiem> {}
 
-export interface DateTimePickerSlotsComponentsProps<TDate>
-  extends DesktopDateTimePickerSlotsComponentsProps<TDate>,
-    MobileDateTimePickerSlotsComponentsProps<TDate> {}
+export interface DateTimePickerSlotProps<
+  TDate extends PickerValidDate,
+  TEnableAccessibleFieldDOMStructure extends boolean,
+> extends DesktopDateTimePickerSlotProps<TDate, TEnableAccessibleFieldDOMStructure>,
+    MobileDateTimePickerSlotProps<
+      TDate,
+      DateOrTimeViewWithMeridiem,
+      TEnableAccessibleFieldDOMStructure
+    > {}
 
-export interface DateTimePickerProps<TDate>
-  extends DesktopDateTimePickerProps<TDate>,
-    MobileDateTimePickerProps<TDate> {
+export interface DateTimePickerProps<
+  TDate extends PickerValidDate,
+  TEnableAccessibleFieldDOMStructure extends boolean = false,
+> extends DesktopDateTimePickerProps<TDate, TEnableAccessibleFieldDOMStructure>,
+    Omit<
+      MobileDateTimePickerProps<
+        TDate,
+        DateOrTimeViewWithMeridiem,
+        TEnableAccessibleFieldDOMStructure
+      >,
+      'views'
+    > {
   /**
    * CSS media query when `Mobile` mode will be changed to `Desktop`.
    * @default '@media (pointer: fine)'
@@ -33,25 +49,13 @@ export interface DateTimePickerProps<TDate>
    */
   yearsPerRow?: 3 | 4;
   /**
-   * Overrideable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: DateTimePickerSlotsComponents<TDate>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: DateTimePickerSlotsComponentsProps<TDate>;
-  /**
-   * Overrideable component slots.
+   * Overridable component slots.
    * @default {}
    */
-  slots?: UncapitalizeObjectKeys<DateTimePickerSlotsComponents<TDate>>;
+  slots?: DateTimePickerSlots<TDate>;
   /**
    * The props used for each component slot.
    * @default {}
    */
-  slotProps?: DateTimePickerSlotsComponentsProps<TDate>;
+  slotProps?: DateTimePickerSlotProps<TDate, TEnableAccessibleFieldDOMStructure>;
 }

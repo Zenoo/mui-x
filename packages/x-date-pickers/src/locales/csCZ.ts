@@ -1,31 +1,35 @@
 import { PickersLocaleText } from './utils/pickersLocaleTextApi';
 import { getPickersLocalization } from './utils/getPickersLocalization';
-
-// This object is not Partial<PickersLocaleText> because it is the default values
+import { TimeViewWithMeridiem } from '../internals/models';
 
 // maps TimeView to its translation
-const timeViews = {
+const timeViews: Record<TimeViewWithMeridiem, string> = {
   hours: 'Hodiny',
   minutes: 'Minuty',
   seconds: 'Sekundy',
+  meridiem: 'Odpoledne',
 };
 
 const csCZPickers: Partial<PickersLocaleText<any>> = {
   // Calendar navigation
-  previousMonth: 'Další měsíc',
-  nextMonth: 'Předchozí month',
+  previousMonth: 'Předchozí měsíc',
+  nextMonth: 'Další měsíc',
 
   // View navigation
-  openPreviousView: 'otevřít předchozí zobrazení',
-  openNextView: 'otevřít další zobrazení',
+  openPreviousView: 'Otevřít předchozí zobrazení',
+  openNextView: 'Otevřít další zobrazení',
   calendarViewSwitchingButtonAriaLabel: (view) =>
     view === 'year'
       ? 'roční zobrazení otevřeno, přepněte do zobrazení kalendáře'
       : 'zobrazení kalendáře otevřeno, přepněte do zobrazení roku',
 
-  // DateRange placeholders
+  // DateRange labels
   start: 'Začátek',
   end: 'Konec',
+  // startDate: 'Start date',
+  // startTime: 'Start time',
+  // endDate: 'End date',
+  // endTime: 'End time',
 
   // Action bar
   cancelButtonLabel: 'Zrušit',
@@ -41,12 +45,13 @@ const csCZPickers: Partial<PickersLocaleText<any>> = {
 
   // Clock labels
   clockLabelText: (view, time, adapter) =>
-    `${timeViews[view] ?? view} vybrány. ${
-      time === null ? 'Není vybrán čas' : `Vybraný čas je ${adapter.format(time, 'fullTime')}`
-    }`,
+    `${timeViews[view] ?? view} vybrány. ${time === null ? 'Není vybrán čas' : `Vybraný čas je ${adapter.format(time, 'fullTime')}`}`,
   hoursClockNumberText: (hours) => `${hours} hodin`,
   minutesClockNumberText: (minutes) => `${minutes} minut`,
   secondsClockNumberText: (seconds) => `${seconds} sekund`,
+
+  // Digital clock labels
+  selectViewText: (view) => `Vyberte ${timeViews[view]}`,
 
   // Calendar labels
   calendarWeekNumberHeaderLabel: 'Týden v roce',
@@ -57,12 +62,13 @@ const csCZPickers: Partial<PickersLocaleText<any>> = {
   // Open picker labels
   openDatePickerDialogue: (value, utils) =>
     value !== null && utils.isValid(value)
-      ? `Vybrané datum, vybrané datum je ${utils.format(value, 'fullDate')}`
+      ? `Vyberte datum, vybrané datum je ${utils.format(value, 'fullDate')}`
       : 'Vyberte datum',
   openTimePickerDialogue: (value, utils) =>
     value !== null && utils.isValid(value)
-      ? `Vybrané čas, vybraný čas je ${utils.format(value, 'fullTime')}`
+      ? `Vyberte čas, vybraný čas je ${utils.format(value, 'fullTime')}`
       : 'Vyberte čas',
+  // fieldClearLabel: 'Clear value',
 
   // Table labels
   timeTableLabel: 'vyberte čas',
@@ -77,6 +83,19 @@ const csCZPickers: Partial<PickersLocaleText<any>> = {
   fieldMinutesPlaceholder: () => 'mm',
   fieldSecondsPlaceholder: () => 'ss',
   fieldMeridiemPlaceholder: () => 'aa',
+
+  // View names
+  // year: 'Year',
+  // month: 'Month',
+  // day: 'Day',
+  // weekDay: 'Week day',
+  // hours: 'Hours',
+  // minutes: 'Minutes',
+  // seconds: 'Seconds',
+  // meridiem: 'Meridiem',
+
+  // Common
+  // empty: 'Empty',
 };
 
 export const csCZ = getPickersLocalization(csCZPickers);

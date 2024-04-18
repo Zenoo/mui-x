@@ -3,74 +3,40 @@ import {
   singleItemValueManager,
 } from '../internals/utils/valueManagers';
 import { useField } from '../internals/hooks/useField';
-import {
-  UseDateFieldProps,
-  UseDateFieldDefaultizedProps,
-  UseDateFieldParams,
-} from './DateField.types';
-import { validateDate } from '../internals/hooks/validation/useDateValidation';
-import { applyDefaultDate } from '../internals/utils/date-utils';
-import { useUtils, useDefaultDates } from '../internals/hooks/useUtils';
+import { UseDateFieldProps } from './DateField.types';
+import { validateDate } from '../internals/utils/validation/validateDate';
+import { splitFieldInternalAndForwardedProps } from '../internals/utils/fields';
+import { FieldSection, PickerValidDate } from '../models';
+import { useDefaultizedDateField } from '../internals/hooks/defaultizedFieldProps';
 
-const useDefaultizedDateField = <TDate, AdditionalProps extends {}>(
-  props: UseDateFieldProps<TDate>,
-): AdditionalProps & UseDateFieldDefaultizedProps<TDate> => {
-  const utils = useUtils<TDate>();
-  const defaultDates = useDefaultDates<TDate>();
+export const useDateField = <
+  TDate extends PickerValidDate,
+  TEnableAccessibleFieldDOMStructure extends boolean,
+  TAllProps extends UseDateFieldProps<TDate, TEnableAccessibleFieldDOMStructure>,
+>(
+  inProps: TAllProps,
+) => {
+  const props = useDefaultizedDateField<
+    TDate,
+    UseDateFieldProps<TDate, TEnableAccessibleFieldDOMStructure>,
+    TAllProps
+  >(inProps);
 
-  return {
-    ...props,
-    disablePast: props.disablePast ?? false,
-    disableFuture: props.disableFuture ?? false,
-    format: props.format ?? utils.formats.keyboardDate,
-    minDate: applyDefaultDate(utils, props.minDate, defaultDates.minDate),
-    maxDate: applyDefaultDate(utils, props.maxDate, defaultDates.maxDate),
-  } as any;
-};
+  const { forwardedProps, internalProps } = splitFieldInternalAndForwardedProps<
+    typeof props,
+    keyof UseDateFieldProps<TDate, TEnableAccessibleFieldDOMStructure>
+  >(props, 'date');
 
-export const useDateField = <TDate, TChildProps extends {}>({
-  props,
-  inputRef,
-}: UseDateFieldParams<TDate, TChildProps>) => {
-  const {
-    value,
-    defaultValue,
-    format,
-    onChange,
-    readOnly,
-    onError,
-    shouldDisableDate,
-    shouldDisableMonth,
-    shouldDisableYear,
-    minDate,
-    maxDate,
-    disableFuture,
-    disablePast,
-    selectedSections,
-    onSelectedSectionsChange,
-    ...other
-  } = useDefaultizedDateField<TDate, TChildProps>(props);
-
-  return useField({
-    inputRef,
-    forwardedProps: other as Omit<TChildProps, keyof UseDateFieldProps<TDate>>,
-    internalProps: {
-      value,
-      defaultValue,
-      format,
-      onChange,
-      readOnly,
-      onError,
-      shouldDisableDate,
-      shouldDisableMonth,
-      shouldDisableYear,
-      minDate,
-      maxDate,
-      disableFuture,
-      disablePast,
-      selectedSections,
-      onSelectedSectionsChange,
-    },
+  return useField<
+    TDate | null,
+    TDate,
+    FieldSection,
+    TEnableAccessibleFieldDOMStructure,
+    typeof forwardedProps,
+    typeof internalProps
+  >({
+    forwardedProps,
+    internalProps,
     valueManager: singleItemValueManager,
     fieldValueManager: singleItemFieldValueManager,
     validator: validateDate,

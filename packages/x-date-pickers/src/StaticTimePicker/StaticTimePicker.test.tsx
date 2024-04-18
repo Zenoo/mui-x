@@ -1,19 +1,21 @@
 import * as React from 'react';
 import { expect } from 'chai';
 import { spy } from 'sinon';
+import { fireTouchChangedEvent, screen, getAllByRole, fireEvent } from '@mui-internal/test-utils';
 import {
-  describeConformance,
-  fireTouchChangedEvent,
-  screen,
-  getAllByRole,
-  fireEvent,
-} from '@mui/monorepo/test/utils';
-import { adapterToUse, wrapPickerMount, createPickerRenderer } from 'test/utils/pickers-utils';
+  adapterToUse,
+  wrapPickerMount,
+  createPickerRenderer,
+  describeValidation,
+} from 'test/utils/pickers';
 import { StaticTimePicker } from '@mui/x-date-pickers/StaticTimePicker';
-import { describeValidation } from '@mui/x-date-pickers/tests/describeValidation';
+import { describeConformance } from 'test/utils/describeConformance';
 
 describe('<StaticTimePicker />', () => {
-  const { render, clock } = createPickerRenderer({ clock: 'fake' });
+  const { render, clock } = createPickerRenderer({
+    clock: 'fake',
+    clockConfig: new Date(2018, 2, 12, 8, 16, 0),
+  });
 
   describeValidation(StaticTimePicker, () => ({
     render,
@@ -23,7 +25,8 @@ describe('<StaticTimePicker />', () => {
   }));
 
   describeConformance(<StaticTimePicker />, () => ({
-    classes: {},
+    classes: {} as any,
+    render,
     muiName: 'MuiStaticTimePicker',
     wrapMount: wrapPickerMount,
     refInstanceof: undefined,
@@ -42,7 +45,7 @@ describe('<StaticTimePicker />', () => {
     ],
   }));
 
-  it('should allows view modification, but not update value when `readOnly` prop is passed', function test() {
+  it('should allow view modification, but not update value when `readOnly` prop is passed', function test() {
     // Only run in supported browsers
     if (typeof Touch === 'undefined') {
       this.skip();
@@ -59,7 +62,7 @@ describe('<StaticTimePicker />', () => {
     const onViewChange = spy();
     render(
       <StaticTimePicker
-        value={adapterToUse.date(new Date(2019, 0, 1))}
+        value={adapterToUse.date('2019-01-01')}
         onChange={onChange}
         onViewChange={onViewChange}
         readOnly
@@ -109,7 +112,7 @@ describe('<StaticTimePicker />', () => {
     const onViewChange = spy();
     render(
       <StaticTimePicker
-        value={adapterToUse.date(new Date(2019, 0, 1))}
+        value={adapterToUse.date('2019-01-01')}
         onChange={onChange}
         onViewChange={onViewChange}
         disabled
@@ -143,13 +146,5 @@ describe('<StaticTimePicker />', () => {
     // meridiem are disabled
     expect(screen.getByRole('button', { name: /AM/i })).to.have.attribute('disabled');
     expect(screen.getByRole('button', { name: /PM/i })).to.have.attribute('disabled');
-  });
-
-  describe('localization', () => {
-    it('should respect the `localeText` prop', () => {
-      render(<StaticTimePicker localeText={{ cancelButtonLabel: 'Custom cancel' }} />);
-
-      expect(screen.queryByText('Custom cancel')).not.to.equal(null);
-    });
   });
 });

@@ -21,7 +21,11 @@ export default function AmPMCustomization() {
           value={locale}
           exclusive
           fullWidth
-          onChange={(event, newLocale) => setLocale(newLocale)}
+          onChange={(event, newLocale) => {
+            if (newLocale != null) {
+              setLocale(newLocale);
+            }
+          }}
         >
           {locales.map((localeItem) => (
             <ToggleButton key={localeItem} value={localeItem}>
@@ -31,12 +35,12 @@ export default function AmPMCustomization() {
         </ToggleButtonGroup>
         <TimePicker
           label="Locale default"
-          defaultValue={dayjs('2022-04-07T18:30')}
+          defaultValue={dayjs('2022-04-17T18:30')}
         />
-        <TimePicker label="AM / PM" defaultValue={dayjs('2022-04-07T18:30')} ampm />
+        <TimePicker label="AM / PM" defaultValue={dayjs('2022-04-17T18:30')} ampm />
         <TimePicker
           label="24 hours"
-          defaultValue={dayjs('2022-04-07T18:30')}
+          defaultValue={dayjs('2022-04-17T18:30')}
           ampm={false}
         />
       </Stack>

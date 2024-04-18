@@ -22,7 +22,6 @@ function CustomGridTreeDataGroupingCell(props) {
     apiRef,
     gridFilteredDescendantCountLookupSelector,
   );
-
   const filteredDescendantCount = filteredDescendantCountLookup[rowNode.id] ?? 0;
 
   const handleClick = (event) => {
@@ -147,8 +146,8 @@ const columns = [
   {
     field: 'name',
     headerName: 'Name',
-    valueGetter: (params) => {
-      const hierarchy = params.row.hierarchy;
+    valueGetter: (value, row) => {
+      const hierarchy = row.hierarchy;
       return hierarchy[hierarchy.length - 1];
     },
   },

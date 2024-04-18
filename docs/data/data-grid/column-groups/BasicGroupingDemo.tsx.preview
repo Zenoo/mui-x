@@ -1,5 +1,4 @@
-<DataGridPro
-  experimentalFeatures={{ columnGrouping: true }}
+<DataGrid
   rows={rows}
   columns={columns}
   checkboxSelection

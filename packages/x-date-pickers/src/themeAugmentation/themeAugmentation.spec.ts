@@ -1,10 +1,10 @@
 import { createTheme } from '@mui/material/styles';
 import {
   dateCalendarClasses,
-  dayPickerClasses,
-  pickersCalendarHeaderClasses,
+  dayCalendarClasses,
   pickersSlideTransitionClasses,
 } from '../DateCalendar';
+import { pickersCalendarHeaderClasses } from '../PickersCalendarHeader';
 import { dayCalendarSkeletonClasses } from '../DayCalendarSkeleton';
 import {
   clockClasses,
@@ -14,14 +14,16 @@ import {
 } from '../TimeClock';
 import { datePickerToolbarClasses } from '../DatePicker';
 import { dateTimePickerToolbarClasses } from '../DateTimePicker';
-import {
-  pickersArrowSwitcherClasses,
-  pickersPopperClasses,
-  pickersToolbarClasses,
-} from '../internals';
+import { pickersArrowSwitcherClasses } from '../internals/components/PickersArrowSwitcher';
+import { pickersPopperClasses } from '../internals/components/pickersPopperClasses';
 import { pickersDayClasses } from '../PickersDay';
 import { timePickerToolbarClasses } from '../TimePicker';
 import { pickersMonthClasses } from '../MonthCalendar';
+import { digitalClockClasses } from '../DigitalClock';
+import {
+  multiSectionDigitalClockClasses,
+  multiSectionDigitalClockSectionClasses,
+} from '../MultiSectionDigitalClock';
 
 createTheme({
   components: {
@@ -44,6 +46,13 @@ createTheme({
         },
       },
     },
+    MuiDateField: {
+      defaultProps: {
+        className: 'class',
+        // @ts-expect-error invalid MuiDateField prop
+        someRandomProp: true,
+      },
+    },
     MuiDayCalendarSkeleton: {
       defaultProps: {
         className: 'class',
@@ -58,6 +67,63 @@ createTheme({
           },
         },
         // @ts-expect-error invalid MuiDayCalendarSkeleton class key
+        content: {
+          backgroundColor: 'blue',
+        },
+      },
+    },
+    MuiDigitalClock: {
+      defaultProps: {
+        timeStep: 42,
+        // @ts-expect-error invalid MuiDigitalClock prop
+        someRandomProp: true,
+      },
+      styleOverrides: {
+        root: {
+          backgroundColor: 'red',
+          [`.${digitalClockClasses.item}`]: {
+            backgroundColor: 'green',
+          },
+        },
+        // @ts-expect-error invalid MuiDigitalClock class key
+        content: {
+          backgroundColor: 'blue',
+        },
+      },
+    },
+    MuiMultiSectionDigitalClock: {
+      defaultProps: {
+        timeSteps: { minutes: 42 },
+        // @ts-expect-error invalid MuiMultiSectionDigitalClock prop
+        someRandomProp: true,
+      },
+      styleOverrides: {
+        root: {
+          backgroundColor: 'red',
+          [`&.${multiSectionDigitalClockClasses.root}`]: {
+            backgroundColor: 'green',
+          },
+        },
+        // @ts-expect-error invalid MuiMultiSectionDigitalClock class key
+        content: {
+          backgroundColor: 'blue',
+        },
+      },
+    },
+    MuiMultiSectionDigitalClockSection: {
+      defaultProps: {
+        className: 'class',
+        // @ts-expect-error invalid MuiMultiSectionDigitalClockSection prop
+        someRandomProp: true,
+      },
+      styleOverrides: {
+        root: {
+          backgroundColor: 'red',
+          [`.${multiSectionDigitalClockSectionClasses.item}`]: {
+            backgroundColor: 'green',
+          },
+        },
+        // @ts-expect-error invalid MuiMultiSectionDigitalClockSection class key
         content: {
           backgroundColor: 'blue',
         },
@@ -120,11 +186,18 @@ createTheme({
         },
       },
     },
+    MuiDateTimeField: {
+      defaultProps: {
+        className: 'class',
+        // @ts-expect-error invalid MuiDateTimeField prop
+        someRandomProp: true,
+      },
+    },
     MuiDatePickerToolbar: {
       defaultProps: {
-        disabled: true,
+        hidden: false,
         // @ts-expect-error invalid MuiDatePickerToolbar prop
-        someRandomProp: true,
+        view: 'day',
       },
       styleOverrides: {
         root: {
@@ -157,9 +230,9 @@ createTheme({
     },
     MuiDateTimePickerToolbar: {
       defaultProps: {
-        disabled: true,
+        hidden: false,
         // @ts-expect-error invalid MuiDateTimePickerToolbar prop
-        someRandomProp: true,
+        view: 'day',
       },
       styleOverrides: {
         root: {
@@ -183,7 +256,7 @@ createTheme({
       styleOverrides: {
         header: {
           backgroundColor: 'red',
-          [`.${dayPickerClasses.weekContainer}`]: {
+          [`.${dayCalendarClasses.weekContainer}`]: {
             backgroundColor: 'green',
           },
         },
@@ -348,9 +421,6 @@ createTheme({
       styleOverrides: {
         root: {
           backgroundColor: 'red',
-          [`.${pickersToolbarClasses.penIconButton}`]: {
-            backgroundColor: 'green',
-          },
         },
         // @ts-expect-error invalid MuiPickersToolbar class key
         contentWrapper: {
@@ -444,11 +514,18 @@ createTheme({
         },
       },
     },
+    MuiTimeField: {
+      defaultProps: {
+        className: 'class',
+        // @ts-expect-error invalid MuiTimeField prop
+        someRandomProp: true,
+      },
+    },
     MuiTimePickerToolbar: {
       defaultProps: {
-        disabled: true,
+        hidden: false,
         // @ts-expect-error invalid MuiTimePickerToolbar prop
-        someRandomProp: true,
+        view: 'hours',
       },
       styleOverrides: {
         root: {
@@ -567,6 +644,104 @@ createTheme({
         disabled: true,
         // @ts-expect-error invalid MuiStaticDateTimePicker prop
         someRandomProp: true,
+      },
+    },
+
+    // V7 Pickers's TextField
+    MuiPickersTextField: {
+      defaultProps: {
+        classes: { root: 'test' },
+        // @ts-expect-error invalid MuiPickersTextField prop
+        someRandomProp: true,
+      },
+      styleOverrides: {
+        root: {
+          backgroundColor: 'red',
+        },
+        // @ts-expect-error invalid MuiPickersTextField class key
+        content: {
+          backgroundColor: 'blue',
+        },
+      },
+    },
+    MuiPickersInputBase: {
+      defaultProps: {
+        classes: { root: 'test' },
+        // @ts-expect-error invalid MuiPickersInputBase prop
+        someRandomProp: true,
+      },
+      styleOverrides: {
+        root: {
+          backgroundColor: 'red',
+        },
+        // @ts-expect-error invalid MuiPickersInputBase class key
+        content: {
+          backgroundColor: 'blue',
+        },
+      },
+    },
+    MuiPickersInput: {
+      defaultProps: {
+        classes: { root: 'test' },
+        // @ts-expect-error invalid MuiPickersInput prop
+        someRandomProp: true,
+      },
+      styleOverrides: {
+        root: {
+          backgroundColor: 'red',
+        },
+        // @ts-expect-error invalid MuiPickersInput class key
+        content: {
+          backgroundColor: 'blue',
+        },
+      },
+    },
+    MuiPickersFilledInput: {
+      defaultProps: {
+        classes: { root: 'test' },
+        // @ts-expect-error invalid MuiPickersFilledInput prop
+        someRandomProp: true,
+      },
+      styleOverrides: {
+        root: {
+          backgroundColor: 'red',
+        },
+        // @ts-expect-error invalid MuiPickersFilledInput class key
+        content: {
+          backgroundColor: 'blue',
+        },
+      },
+    },
+    MuiPickersOutlinedInput: {
+      defaultProps: {
+        classes: { root: 'test' },
+        // @ts-expect-error invalid MuiPickersOutlinedInput prop
+        someRandomProp: true,
+      },
+      styleOverrides: {
+        root: {
+          backgroundColor: 'red',
+        },
+        // @ts-expect-error invalid MuiPickersOutlinedInput class key
+        content: {
+          backgroundColor: 'blue',
+        },
+      },
+    },
+    MuiPickersSectionList: {
+      defaultProps: {
+        classes: { root: 'test' },
+        // @ts-expect-error invalid MuiPickersSectionList prop
+        someRandomProp: true,
+      },
+      styleOverrides: {
+        root: {
+          backgroundColor: 'red',
+        },
+        // @ts-expect-error invalid MuiPickersSectionList class key
+        content: {
+          backgroundColor: 'blue',
+        },
       },
     },
   },

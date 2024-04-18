@@ -1,48 +1,44 @@
 import {
-  UseMobilePickerSlotsComponent,
-  ExportedUseMobilePickerSlotsComponentsProps,
+  UseMobilePickerSlots,
+  ExportedUseMobilePickerSlotProps,
   MobileOnlyPickerProps,
 } from '../internals/hooks/useMobilePicker';
 import {
   BaseTimePickerProps,
-  BaseTimePickerSlotsComponent,
-  BaseTimePickerSlotsComponentsProps,
+  BaseTimePickerSlots,
+  BaseTimePickerSlotProps,
 } from '../TimePicker/shared';
 import { MakeOptional } from '../internals/models/helpers';
-import { TimeView } from '../internals/models/views';
-import { UncapitalizeObjectKeys } from '../internals/utils/slots-migration';
+import { PickerValidDate, TimeView } from '../models';
+import { TimeViewWithMeridiem } from '../internals/models';
 
-export interface MobileTimePickerSlotsComponent<TDate>
-  extends BaseTimePickerSlotsComponent<TDate>,
-    MakeOptional<UseMobilePickerSlotsComponent<TDate, TimeView>, 'Field'> {}
+export interface MobileTimePickerSlots<
+  TDate extends PickerValidDate,
+  TView extends TimeViewWithMeridiem,
+> extends BaseTimePickerSlots<TDate>,
+    MakeOptional<UseMobilePickerSlots<TDate, TView>, 'field'> {}
 
-export interface MobileTimePickerSlotsComponentsProps<TDate>
-  extends BaseTimePickerSlotsComponentsProps,
-    ExportedUseMobilePickerSlotsComponentsProps<TDate, TimeView> {}
+export interface MobileTimePickerSlotProps<
+  TDate extends PickerValidDate,
+  TView extends TimeViewWithMeridiem,
+  TEnableAccessibleFieldDOMStructure extends boolean,
+> extends BaseTimePickerSlotProps,
+    ExportedUseMobilePickerSlotProps<TDate, TView, TEnableAccessibleFieldDOMStructure> {}
 
-export interface MobileTimePickerProps<TDate>
-  extends BaseTimePickerProps<TDate>,
-    MobileOnlyPickerProps<TDate> {
+export interface MobileTimePickerProps<
+  TDate extends PickerValidDate,
+  TView extends TimeViewWithMeridiem = TimeView,
+  TEnableAccessibleFieldDOMStructure extends boolean = false,
+> extends BaseTimePickerProps<TDate, TView>,
+    MobileOnlyPickerProps {
   /**
-   * Overrideable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: MobileTimePickerSlotsComponent<TDate>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: MobileTimePickerSlotsComponentsProps<TDate>;
-  /**
-   * Overrideable component slots.
+   * Overridable component slots.
    * @default {}
    */
-  slots?: UncapitalizeObjectKeys<MobileTimePickerSlotsComponent<TDate>>;
+  slots?: MobileTimePickerSlots<TDate, TView>;
   /**
    * The props used for each component slot.
    * @default {}
    */
-  slotProps?: MobileTimePickerSlotsComponentsProps<TDate>;
+  slotProps?: MobileTimePickerSlotProps<TDate, TView, TEnableAccessibleFieldDOMStructure>;
 }

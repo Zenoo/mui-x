@@ -1,14 +1,13 @@
 import { PickersLocaleText } from './utils/pickersLocaleTextApi';
 import { getPickersLocalization } from './utils/getPickersLocalization';
+import { TimeViewWithMeridiem } from '../internals/models';
 
-const views = {
+const views: Record<TimeViewWithMeridiem, string> = {
   // maps TimeView to its translation
   hours: 'гадзіны',
   minutes: 'хвіліны',
   seconds: 'секунды',
-  // maps PickersToolbar["viewType"] to its translation
-  date: 'календара',
-  time: 'часу',
+  meridiem: 'мерыдыем',
 };
 
 const beBYPickers: Partial<PickersLocaleText<any>> = {
@@ -17,16 +16,20 @@ const beBYPickers: Partial<PickersLocaleText<any>> = {
   nextMonth: 'Наступны месяц',
 
   // View navigation
-  openPreviousView: 'адкрыць папярэдні выгляд',
-  openNextView: 'адкрыць наступны выгляд',
+  openPreviousView: 'Aдкрыць папярэдні выгляд',
+  openNextView: 'Aдкрыць наступны выгляд',
   calendarViewSwitchingButtonAriaLabel: (view) =>
     view === 'year'
       ? 'гадавы выгляд адкрыты, перайсці да каляндарнага выгляду'
       : 'каляндарны выгляд адкрыты, перайсці да гадавога выгляду',
 
-  // DateRange placeholders
+  // DateRange labels
   start: 'Пачатак',
   end: 'Канец',
+  // startDate: 'Start date',
+  // startTime: 'Start time',
+  // endDate: 'End date',
+  // endTime: 'End time',
 
   // Action bar
   cancelButtonLabel: 'Адмена',
@@ -42,12 +45,13 @@ const beBYPickers: Partial<PickersLocaleText<any>> = {
 
   // Clock labels
   clockLabelText: (view, time, adapter) =>
-    `Абярыце ${views[view]}. ${
-      time === null ? 'Час не абраны' : `Абраны час ${adapter.format(time, 'fullTime')}`
-    }`,
+    `Абярыце ${views[view]}. ${time === null ? 'Час не абраны' : `Абраны час ${adapter.format(time, 'fullTime')}`}`,
   hoursClockNumberText: (hours) => `${hours} гадзін`,
   minutesClockNumberText: (minutes) => `${minutes} хвілін`,
   secondsClockNumberText: (seconds) => `${seconds} секунд`,
+
+  // Digital clock labels
+  selectViewText: (view) => `Абярыце ${views[view]}`,
 
   // Calendar labels
   calendarWeekNumberHeaderLabel: 'Нумар тыдня',
@@ -64,6 +68,7 @@ const beBYPickers: Partial<PickersLocaleText<any>> = {
     value !== null && utils.isValid(value)
       ? `Абраць час, абрыны час  ${utils.format(value, 'fullTime')}`
       : 'Абраць час',
+  // fieldClearLabel: 'Clear value',
 
   // Table labels
   timeTableLabel: 'абраць час',
@@ -78,6 +83,19 @@ const beBYPickers: Partial<PickersLocaleText<any>> = {
   fieldMinutesPlaceholder: () => 'mm',
   fieldSecondsPlaceholder: () => 'ss',
   fieldMeridiemPlaceholder: () => 'aa',
+
+  // View names
+  // year: 'Year',
+  // month: 'Month',
+  // day: 'Day',
+  // weekDay: 'Week day',
+  // hours: 'Hours',
+  // minutes: 'Minutes',
+  // seconds: 'Seconds',
+  // meridiem: 'Meridiem',
+
+  // Common
+  // empty: 'Empty',
 };
 
 export const beBY = getPickersLocalization(beBYPickers);

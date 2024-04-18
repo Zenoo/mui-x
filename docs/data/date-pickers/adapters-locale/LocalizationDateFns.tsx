@@ -1,7 +1,5 @@
 import * as React from 'react';
-import de from 'date-fns/locale/de';
-import enGB from 'date-fns/locale/en-GB';
-import zhCN from 'date-fns/locale/zh-CN';
+import { de, enGB, zhCN } from 'date-fns/locale';
 import Stack from '@mui/material/Stack';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
@@ -27,7 +25,11 @@ export default function LocalizationDateFns() {
           value={locale}
           exclusive
           fullWidth
-          onChange={(event, newLocale) => setLocale(newLocale)}
+          onChange={(event, newLocale) => {
+            if (newLocale != null) {
+              setLocale(newLocale);
+            }
+          }}
         >
           {Object.keys(locales).map((localeItem) => (
             <ToggleButton key={localeItem} value={localeItem}>
@@ -35,8 +37,8 @@ export default function LocalizationDateFns() {
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
-        <DateField label="Date" defaultValue={new Date('2022-04-07')} />
-        <TimeField label="Time" defaultValue={new Date('2022-04-07T18:30')} />
+        <DateField label="Date" defaultValue={new Date('2022-04-17')} />
+        <TimeField label="Time" defaultValue={new Date('2022-04-17T18:30')} />
       </Stack>
     </LocalizationProvider>
   );

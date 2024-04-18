@@ -1,18 +1,19 @@
-import { describeValidation } from '@mui/x-date-pickers/tests/describeValidation';
-import { screen, userEvent } from '@mui/monorepo/test/utils';
+import * as React from 'react';
+import { PickersTextField } from '@mui/x-date-pickers/PickersTextField';
 import { DateTimeField } from '@mui/x-date-pickers/DateTimeField';
 import {
   adapterToUse,
-  buildFieldInteractions,
   createPickerRenderer,
-  expectInputValue,
-} from 'test/utils/pickers-utils';
-import { describeValue } from '@mui/x-date-pickers/tests/describeValue';
+  wrapPickerMount,
+  expectFieldValueV7,
+  describeValidation,
+  describeValue,
+  getFieldInputRoot,
+} from 'test/utils/pickers';
+import { describeConformance } from 'test/utils/describeConformance';
 
 describe('<DateTimeField /> - Describes', () => {
   const { render, clock } = createPickerRenderer({ clock: 'fake' });
-
-  const { clickOnInput } = buildFieldInteractions({ clock, render, Component: DateTimeField });
 
   describeValidation(DateTimeField, () => ({
     render,
@@ -21,31 +22,51 @@ describe('<DateTimeField /> - Describes', () => {
     componentFamily: 'field',
   }));
 
+  describeConformance(<DateTimeField enableAccessibleFieldDOMStructure />, () => ({
+    classes: {} as any,
+    inheritComponent: PickersTextField,
+    render,
+    muiName: 'MuiDateTimeField',
+    wrapMount: wrapPickerMount,
+    refInstanceof: window.HTMLDivElement,
+    // cannot test reactTestRenderer because of required context
+    skip: [
+      'reactTestRenderer',
+      'componentProp',
+      'componentsProp',
+      'themeDefaultProps',
+      'themeStyleOverrides',
+      'themeVariants',
+    ],
+  }));
+
   describeValue(DateTimeField, () => ({
     render,
     componentFamily: 'field',
-    values: [adapterToUse.date(new Date(2018, 0, 1)), adapterToUse.date(new Date(2018, 0, 2))],
+    values: [adapterToUse.date('2018-01-01'), adapterToUse.date('2018-01-02')],
     emptyValue: null,
     clock,
     assertRenderedValue: (expectedValue: any) => {
       const hasMeridiem = adapterToUse.is12HourCycleInCurrentLocale();
+      const fieldRoot = getFieldInputRoot();
+
       let expectedValueStr: string;
-      if (expectedValue == null) {
-        expectedValueStr = hasMeridiem ? 'MM/DD/YYYY hh:mm aa' : 'MM/DD/YYYY hh:mm';
-      } else {
+      if (expectedValue) {
         expectedValueStr = adapterToUse.format(
           expectedValue,
           hasMeridiem ? 'keyboardDateTime12h' : 'keyboardDateTime24h',
         );
+      } else {
+        expectedValueStr = hasMeridiem ? 'MM/DD/YYYY hh:mm aa' : 'MM/DD/YYYY hh:mm';
       }
 
-      expectInputValue(screen.getByRole('textbox'), expectedValueStr, true);
+      expectFieldValueV7(fieldRoot, expectedValueStr);
     },
-    setNewValue: (value) => {
+    setNewValue: (value, { selectSection, pressKey }) => {
       const newValue = adapterToUse.addDays(value, 1);
-      const input = screen.getByRole('textbox');
-      clickOnInput(input, 10); // Update the day
-      userEvent.keyPress(input, { key: 'ArrowUp' });
+      selectSection('day');
+      pressKey(undefined, 'ArrowUp');
+
       return newValue;
     },
   }));

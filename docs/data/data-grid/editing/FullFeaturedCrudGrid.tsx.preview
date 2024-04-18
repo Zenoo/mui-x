@@ -1,14 +1,13 @@
-<DataGridPro
+<DataGrid
   rows={rows}
   columns={columns}
   editMode="row"
   rowModesModel={rowModesModel}
   onRowModesModelChange={handleRowModesModelChange}
-  onRowEditStart={handleRowEditStart}
   onRowEditStop={handleRowEditStop}
   processRowUpdate={processRowUpdate}
   slots={{
-    toolbar: EditToolbar,
+    toolbar: EditToolbar as GridSlots['toolbar'],
   }}
   slotProps={{
     toolbar: { setRows, setRowModesModel },

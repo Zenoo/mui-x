@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DataGrid, GridValueFormatterParams } from '@mui/x-data-grid';
+import { DataGrid } from '@mui/x-data-grid';
 
 const rows = [
   {
@@ -27,13 +27,17 @@ export default function ValueFormatterGrid() {
             field: 'taxRate',
             headerName: 'Tax Rate',
             width: 150,
-            valueFormatter: (params: GridValueFormatterParams<number>) => {
-              if (params.value == null) {
+            valueGetter: (value) => {
+              if (!value) {
+                return value;
+              }
+              return value * 100;
+            },
+            valueFormatter: (value?: number) => {
+              if (value == null) {
                 return '';
               }
-
-              const valueFormatted = Number(params.value * 100).toLocaleString();
-              return `${valueFormatted} %`;
+              return `${value.toLocaleString()} %`;
             },
           },
         ]}

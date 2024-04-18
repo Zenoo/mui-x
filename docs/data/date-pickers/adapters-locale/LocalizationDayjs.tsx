@@ -25,7 +25,11 @@ export default function LocalizationDayjs() {
           value={locale}
           exclusive
           fullWidth
-          onChange={(event, newLocale) => setLocale(newLocale)}
+          onChange={(event, newLocale) => {
+            if (newLocale != null) {
+              setLocale(newLocale);
+            }
+          }}
         >
           {locales.map((localeItem) => (
             <ToggleButton key={localeItem} value={localeItem}>
@@ -33,8 +37,8 @@ export default function LocalizationDayjs() {
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
-        <DateField label="Date" defaultValue={dayjs('2022-04-07')} />
-        <TimeField label="Time" defaultValue={dayjs('2022-04-07T18:30')} />
+        <DateField label="Date" defaultValue={dayjs('2022-04-17')} />
+        <TimeField label="Time" defaultValue={dayjs('2022-04-17T18:30')} />
       </Stack>
     </LocalizationProvider>
   );

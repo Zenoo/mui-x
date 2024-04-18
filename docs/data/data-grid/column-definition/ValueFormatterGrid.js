@@ -27,13 +27,17 @@ export default function ValueFormatterGrid() {
             field: 'taxRate',
             headerName: 'Tax Rate',
             width: 150,
-            valueFormatter: (params) => {
-              if (params.value == null) {
+            valueGetter: (value) => {
+              if (!value) {
+                return value;
+              }
+              return value * 100;
+            },
+            valueFormatter: (value) => {
+              if (value == null) {
                 return '';
               }
-
-              const valueFormatted = Number(params.value * 100).toLocaleString();
-              return `${valueFormatted} %`;
+              return `${value.toLocaleString()} %`;
             },
           },
         ]}
