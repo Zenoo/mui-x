@@ -1,51 +1,45 @@
-import { MakeOptional, UncapitalizeObjectKeys } from '@mui/x-date-pickers/internals';
+import { MakeOptional } from '@mui/x-internals/types';
 import {
-  UseDesktopRangePickerSlotsComponent,
-  UseDesktopRangePickerSlotsComponentsProps,
+  UseDesktopRangePickerSlots,
+  UseDesktopRangePickerSlotProps,
   DesktopRangeOnlyPickerProps,
-} from '../internal/hooks/useDesktopRangePicker';
+} from '../internals/hooks/useDesktopRangePicker';
 import {
   BaseDateRangePickerProps,
-  BaseDateRangePickerSlotsComponent,
-  BaseDateRangePickerSlotsComponentsProps,
+  BaseDateRangePickerSlots,
+  BaseDateRangePickerSlotProps,
 } from '../DateRangePicker/shared';
 
-export interface DesktopDateRangePickerSlotsComponent<TDate>
-  extends BaseDateRangePickerSlotsComponent<TDate>,
-    MakeOptional<UseDesktopRangePickerSlotsComponent<TDate, 'day'>, 'Field'> {}
+export interface DesktopDateRangePickerSlots
+  extends BaseDateRangePickerSlots,
+    MakeOptional<UseDesktopRangePickerSlots, 'field'> {}
 
-export interface DesktopDateRangePickerSlotsComponentsProps<TDate>
-  extends BaseDateRangePickerSlotsComponentsProps<TDate>,
-    UseDesktopRangePickerSlotsComponentsProps<TDate, 'day'> {}
+export interface DesktopDateRangePickerSlotProps<TEnableAccessibleFieldDOMStructure extends boolean>
+  extends BaseDateRangePickerSlotProps,
+    Omit<UseDesktopRangePickerSlotProps<TEnableAccessibleFieldDOMStructure>, 'tabs' | 'toolbar'> {}
 
-export interface DesktopDateRangePickerProps<TDate>
-  extends BaseDateRangePickerProps<TDate>,
-    DesktopRangeOnlyPickerProps<TDate> {
+export interface DesktopDateRangePickerProps<
+  TEnableAccessibleFieldDOMStructure extends boolean = true,
+> extends BaseDateRangePickerProps,
+    DesktopRangeOnlyPickerProps {
   /**
    * The number of calendars to render on **desktop**.
    * @default 2
    */
   calendars?: 1 | 2 | 3;
   /**
-   * Overridable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: DesktopDateRangePickerSlotsComponent<TDate>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: DesktopDateRangePickerSlotsComponentsProps<TDate>;
-  /**
    * Overridable component slots.
    * @default {}
    */
-  slots?: UncapitalizeObjectKeys<DesktopDateRangePickerSlotsComponent<TDate>>;
+  slots?: DesktopDateRangePickerSlots;
   /**
    * The props used for each component slot.
    * @default {}
    */
-  slotProps?: DesktopDateRangePickerSlotsComponentsProps<TDate>;
+  slotProps?: DesktopDateRangePickerSlotProps<TEnableAccessibleFieldDOMStructure>;
+  /**
+   * If `true`, the Picker will close after submitting the full date.
+   * @default true
+   */
+  closeOnSelect?: boolean;
 }

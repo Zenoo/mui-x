@@ -1,11 +1,16 @@
 import * as React from 'react';
 import { expect } from 'chai';
-import { describeConformance, screen, userEvent } from '@mui/monorepo/test/utils';
+import { fireEvent, screen } from '@mui/internal-test-utils';
 import { DateCalendar, dateCalendarClasses as classes } from '@mui/x-date-pickers/DateCalendar';
 import { pickersDayClasses } from '@mui/x-date-pickers/PickersDay';
-import { adapterToUse, wrapPickerMount, createPickerRenderer } from 'test/utils/pickers-utils';
-import { describeValidation } from '@mui/x-date-pickers/tests/describeValidation';
-import { describeValue } from '@mui/x-date-pickers/tests/describeValue';
+import { PickerValue } from '@mui/x-date-pickers/internals';
+import {
+  adapterToUse,
+  createPickerRenderer,
+  describeValidation,
+  describeValue,
+} from 'test/utils/pickers';
+import { describeConformance } from 'test/utils/describeConformance';
 
 describe('<DateCalendar /> - Describes', () => {
   const { render, clock } = createPickerRenderer({ clock: 'fake' });
@@ -22,16 +27,14 @@ describe('<DateCalendar /> - Describes', () => {
     inheritComponent: 'div',
     render,
     muiName: 'MuiDateCalendar',
-    wrapMount: wrapPickerMount,
     refInstanceof: window.HTMLDivElement,
-    // cannot test reactTestRenderer because of required context
-    skip: ['componentProp', 'componentsProp', 'reactTestRenderer', 'themeVariants'],
+    skip: ['componentProp', 'componentsProp', 'themeVariants'],
   }));
 
-  describeValue(DateCalendar, () => ({
+  describeValue<PickerValue, 'calendar'>(DateCalendar, () => ({
     render,
     componentFamily: 'calendar',
-    values: [adapterToUse.date(new Date(2018, 0, 1)), adapterToUse.date(new Date(2018, 0, 2))],
+    values: [adapterToUse.date('2018-01-01'), adapterToUse.date('2018-01-02')],
     emptyValue: null,
     clock,
     assertRenderedValue: (expectedValue: any) => {
@@ -44,8 +47,8 @@ describe('<DateCalendar /> - Describes', () => {
       }
     },
     setNewValue: (value) => {
-      const newValue = adapterToUse.addDays(value, 1);
-      userEvent.mousePress(
+      const newValue = adapterToUse.addDays(value!, 1);
+      fireEvent.click(
         screen.getByRole('gridcell', { name: adapterToUse.getDate(newValue).toString() }),
       );
 

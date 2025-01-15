@@ -1,48 +1,39 @@
 ---
-product: charts
-title: Charts - Overview
+title: React Charts
+productId: x-charts
+githubLabel: 'component: charts'
+packageName: '@mui/x-charts'
 ---
 
-# Charts - Overview
+# MUI X Charts
 
-<p class="description">This page groups general topics that are common to multiple charts.</p>
+<p class="description">A collection of React chart components for data visualization.</p>
 
-> ⚠️ This is an upcoming library. Please upvote 👍 features you would like to see first.
-> And comments if you have specific needs to be solved by them.
+{{"component": "@mui/docs/ComponentLinkHeader", "design": false}}
 
-:::info
-💡 If you do not see the charts you want in the menu, we may have forget it.
-Please open an issue to ask for it, explaining which need it solves.
-:::
+## Overview
 
-## Display charts
+MUI X Charts is a library of production-ready components for rendering charts with React.
+It uses [D3.js](https://d3js.org/) for data manipulation and SVGs for rendering.
 
-Charts can be rendered in two ways.
-With a single component or by composing sub components.
+The components provide a high level of customization, with beautiful defaults as well as extensive configuration props and flexible composition options.
+They also have access to all [MUI System](https://mui.com/system/getting-started/) tools such as theme overrides and the `sx` prop.
 
-### Single charts
+{{"demo": "ChartsOverviewDemo.js", "defaultCodeOpen": true}}
 
-For common use case, single component is the recommended way.
+## All MUI X Charts
 
-You have to provide the `series` props.
-The `width` and `height` if the component is not responsive.
+{{"component": "modules/components/ChartComponentsGrid.js"}}
 
-{{"demo": "SimpleCharts.js", "bg": "inline"}}
+## Using this documentation
 
-### Multiple charts
+Each Chart type has two accompanying documents:
 
-To combine different charts, like lines with bars, you can use composition with `<ChartContainer />` and `<CartesianContextProvider />` wrappers.
+1. **Overview** – a general description of built-in features
+2. **Demo** – a collection of custom examples
 
-Inside those wrappers, you can render `<XAxis />`, `<YAxis />`, or any plot component (`<BarPlot />`, `<LinePlot />`, `<ScatterPlot />`)
+## Supported features
 
-{{"demo": "Combining.js", "bg": "inline"}}
+Features shared across Chart components such as axes and legends are described in standalone documents:
 
-## Axis management
-
-### Multiple axis scales
-
-### Axis customization
-
-## Zoom management
-
-## Data selection
+{{"component": "modules/components/ChartFeaturesGrid.js"}}

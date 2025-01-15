@@ -1,13 +1,15 @@
 import { PickersLocaleText } from './utils/pickersLocaleTextApi';
 import { getPickersLocalization } from './utils/getPickersLocalization';
+import { TimeViewWithMeridiem } from '../internals/models';
 
-const views = {
+const views: Record<TimeViewWithMeridiem, string> = {
   hours: '小时',
   minutes: '分钟',
   seconds: '秒',
+  meridiem: '十二小时制',
 };
 
-const zhCNPickers: Partial<PickersLocaleText<any>> = {
+const zhCNPickers: Partial<PickersLocaleText> = {
   // Calendar navigation
   previousMonth: '上个月',
   nextMonth: '下个月',
@@ -18,9 +20,13 @@ const zhCNPickers: Partial<PickersLocaleText<any>> = {
   calendarViewSwitchingButtonAriaLabel: (view) =>
     view === 'year' ? '年视图已打开，切换为日历视图' : '日历视图已打开，切换为年视图',
 
-  // DateRange placeholders
+  // DateRange labels
   start: '开始',
   end: '结束',
+  startDate: '开始日期',
+  startTime: '开始时间',
+  endDate: '结束日期',
+  endTime: '结束时间',
 
   // Action bar
   cancelButtonLabel: '取消',
@@ -29,49 +35,60 @@ const zhCNPickers: Partial<PickersLocaleText<any>> = {
   todayButtonLabel: '今天',
 
   // Toolbar titles
-  // datePickerToolbarTitle: 'Select date',
-  // dateTimePickerToolbarTitle: 'Select date & time',
-  // timePickerToolbarTitle: 'Select time',
-  // dateRangePickerToolbarTitle: 'Select date range',
+  datePickerToolbarTitle: '选择日期',
+  dateTimePickerToolbarTitle: '选择日期和时间',
+  timePickerToolbarTitle: '选择时间',
+  dateRangePickerToolbarTitle: '选择时间范围',
 
   // Clock labels
-  clockLabelText: (view, time, adapter) =>
-    `Select ${views[view]}. ${
-      time === null ? '未选择时间' : `已选择${adapter.format(time, 'fullTime')}`
-    }`,
+  clockLabelText: (view, formattedTime) =>
+    `选择 ${views[view]}. ${!formattedTime ? '未选择时间' : `已选择${formattedTime}`}`,
   hoursClockNumberText: (hours) => `${hours}小时`,
   minutesClockNumberText: (minutes) => `${minutes}分钟`,
   secondsClockNumberText: (seconds) => `${seconds}秒`,
 
+  // Digital clock labels
+  selectViewText: (view) => `选择 ${views[view]}`,
+
   // Calendar labels
-  // calendarWeekNumberHeaderLabel: 'Week number',
-  // calendarWeekNumberHeaderText: '#',
-  // calendarWeekNumberAriaLabelText: weekNumber => `Week ${weekNumber}`,
-  // calendarWeekNumberText: weekNumber => `${weekNumber}`,
+  calendarWeekNumberHeaderLabel: '周数',
+  calendarWeekNumberHeaderText: '#',
+  calendarWeekNumberAriaLabelText: (weekNumber) => `第${weekNumber}周`,
+  calendarWeekNumberText: (weekNumber) => `${weekNumber}`,
 
   // Open picker labels
-  openDatePickerDialogue: (value, utils) =>
-    value !== null && utils.isValid(value)
-      ? `选择日期，已选择${utils.format(value, 'fullDate')}`
-      : '选择日期',
-  openTimePickerDialogue: (value, utils) =>
-    value !== null && utils.isValid(value)
-      ? `选择时间，已选择${utils.format(value, 'fullTime')}`
-      : '选择时间',
+  openDatePickerDialogue: (formattedDate) =>
+    formattedDate ? `选择日期，已选择${formattedDate}` : '选择日期',
+  openTimePickerDialogue: (formattedTime) =>
+    formattedTime ? `选择时间，已选择${formattedTime}` : '选择时间',
+  fieldClearLabel: '清除',
 
   // Table labels
   timeTableLabel: '选择时间',
   dateTableLabel: '选择日期',
 
   // Field section placeholders
-  // fieldYearPlaceholder: params => 'Y'.repeat(params.digitAmount),
-  // fieldMonthPlaceholder: params => params.contentType === 'letter' ? 'MMMM' : 'MM',
-  // fieldDayPlaceholder: () => 'DD',
-  // fieldWeekDayPlaceholder: params => params.contentType === 'letter' ? 'EEEE' : 'EE',
-  // fieldHoursPlaceholder: () => 'hh',
-  // fieldMinutesPlaceholder: () => 'mm',
-  // fieldSecondsPlaceholder: () => 'ss',
-  // fieldMeridiemPlaceholder: () => 'aa',
+  fieldYearPlaceholder: (params) => 'Y'.repeat(params.digitAmount),
+  fieldMonthPlaceholder: (params) => (params.contentType === 'letter' ? 'MMMM' : 'MM'),
+  fieldDayPlaceholder: () => 'DD',
+  fieldWeekDayPlaceholder: (params) => (params.contentType === 'letter' ? 'EEEE' : 'EE'),
+  fieldHoursPlaceholder: () => 'hh',
+  fieldMinutesPlaceholder: () => 'mm',
+  fieldSecondsPlaceholder: () => 'ss',
+  fieldMeridiemPlaceholder: () => 'aa',
+
+  // View names
+  year: '年份',
+  month: '月份',
+  day: '日期',
+  weekDay: '星期',
+  hours: '时',
+  minutes: '分',
+  seconds: '秒',
+  meridiem: '十二小时制',
+
+  // Common
+  empty: '空',
 };
 
 export const zhCN = getPickersLocalization(zhCNPickers);

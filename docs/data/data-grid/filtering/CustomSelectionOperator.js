@@ -11,7 +11,7 @@ const VISIBLE_FIELDS = ['name', 'rating', 'country', 'dateCreated', 'isAdmin'];
 const defaultColumnTypes = getGridDefaultColumnTypes();
 
 export default function CustomSelectionOperator() {
-  const { data } = useDemoData({
+  const { data, loading } = useDemoData({
     dataSet: 'Employee',
     visibleFields: VISIBLE_FIELDS,
     rowLength: 100,
@@ -40,7 +40,6 @@ export default function CustomSelectionOperator() {
   );
 
   const rowSelectionModelLookupRef = React.useRef(rowSelectionModelLookup);
-
   rowSelectionModelLookupRef.current = rowSelectionModelLookup;
 
   const columns = React.useMemo(() => {
@@ -54,12 +53,13 @@ export default function CustomSelectionOperator() {
           return innerFilterFn;
         }
 
-        return (params) => {
-          if (rowSelectionModelLookupRef.current[params.id]) {
+        return (value, row, col, apiRef) => {
+          const rowId = apiRef.current.getRowId(row);
+          if (rowSelectionModelLookupRef.current[rowId]) {
             return true;
           }
 
-          return innerFilterFn(params);
+          return innerFilterFn(value, row, col, apiRef);
         };
       };
 
@@ -102,6 +102,7 @@ export default function CustomSelectionOperator() {
     <div style={{ height: 400, width: '100%' }}>
       <DataGrid
         {...data}
+        loading={loading}
         columns={columns}
         onRowSelectionModelChange={handleRowSelectionModelChange}
         onFilterModelChange={handleFilterModelChange}

@@ -1,47 +1,37 @@
+import { MakeOptional } from '@mui/x-internals/types';
 import {
   BaseDatePickerProps,
-  BaseDatePickerSlotsComponent,
-  BaseDatePickerSlotsComponentsProps,
+  BaseDatePickerSlots,
+  BaseDatePickerSlotProps,
 } from '../DatePicker/shared';
 import {
   StaticOnlyPickerProps,
-  UseStaticPickerSlotsComponent,
-  UseStaticPickerSlotsComponentsProps,
+  UseStaticPickerSlots,
+  UseStaticPickerSlotProps,
 } from '../internals/hooks/useStaticPicker';
-import { MakeOptional, UncapitalizeObjectKeys } from '../internals';
-import { DateView } from '../models';
 
-export interface StaticDatePickerSlotsComponent<TDate>
-  extends BaseDatePickerSlotsComponent<TDate>,
-    UseStaticPickerSlotsComponent<TDate, DateView> {}
+export interface StaticDatePickerSlots extends BaseDatePickerSlots, UseStaticPickerSlots {}
 
-export interface StaticDatePickerSlotsComponentsProps<TDate>
-  extends BaseDatePickerSlotsComponentsProps<TDate>,
-    UseStaticPickerSlotsComponentsProps<TDate, DateView> {}
+export interface StaticDatePickerSlotProps
+  extends BaseDatePickerSlotProps,
+    UseStaticPickerSlotProps {}
 
-export interface StaticDatePickerProps<TDate>
-  extends BaseDatePickerProps<TDate>,
+export interface StaticDatePickerProps
+  extends BaseDatePickerProps,
     MakeOptional<StaticOnlyPickerProps, 'displayStaticWrapperAs'> {
-  /**
-   * Overridable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: StaticDatePickerSlotsComponent<TDate>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: StaticDatePickerSlotsComponentsProps<TDate>;
   /**
    * Overridable component slots.
    * @default {}
    */
-  slots?: UncapitalizeObjectKeys<StaticDatePickerSlotsComponent<TDate>>;
+  slots?: StaticDatePickerSlots;
   /**
    * The props used for each component slot.
    * @default {}
    */
-  slotProps?: StaticDatePickerSlotsComponentsProps<TDate>;
+  slotProps?: StaticDatePickerSlotProps;
+  /**
+   * Years rendered per row.
+   * @default `4` when `displayStaticWrapperAs === 'desktop'`, `3` otherwise.
+   */
+  yearsPerRow?: 3 | 4;
 }

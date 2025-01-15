@@ -1,81 +1,35 @@
-import {
-  singleItemFieldValueManager,
-  singleItemValueManager,
-} from '../internals/utils/valueManagers';
-import { useField } from '../internals/hooks/useField';
-import {
-  UseDateFieldProps,
-  UseDateFieldDefaultizedProps,
-  UseDateFieldParams,
-} from './DateField.types';
-import { validateDate } from '../internals/hooks/validation/useDateValidation';
-import { applyDefaultDate } from '../internals/utils/date-utils';
-import { useUtils, useDefaultDates } from '../internals/hooks/useUtils';
+'use client';
+import { useField, useFieldInternalPropsWithDefaults } from '../internals/hooks/useField';
+import { UseDateFieldProps } from './DateField.types';
+import { useSplitFieldProps } from '../hooks';
+import { useDateManager } from '../managers';
+import { PickerValue } from '../internals/models';
 
-const useDefaultizedDateField = <TDate, AdditionalProps extends {}>(
-  props: UseDateFieldProps<TDate>,
-): AdditionalProps & UseDateFieldDefaultizedProps<TDate> => {
-  const utils = useUtils<TDate>();
-  const defaultDates = useDefaultDates<TDate>();
+export const useDateField = <
+  TEnableAccessibleFieldDOMStructure extends boolean,
+  TAllProps extends UseDateFieldProps<TEnableAccessibleFieldDOMStructure>,
+>(
+  props: TAllProps,
+) => {
+  const manager = useDateManager(props);
+  const { forwardedProps, internalProps } = useSplitFieldProps(props, 'date');
+  const internalPropsWithDefaults = useFieldInternalPropsWithDefaults({
+    manager,
+    internalProps,
+  });
 
-  return {
-    ...props,
-    disablePast: props.disablePast ?? false,
-    disableFuture: props.disableFuture ?? false,
-    format: props.format ?? utils.formats.keyboardDate,
-    minDate: applyDefaultDate(utils, props.minDate, defaultDates.minDate),
-    maxDate: applyDefaultDate(utils, props.maxDate, defaultDates.maxDate),
-  } as any;
-};
-
-export const useDateField = <TDate, TChildProps extends {}>({
-  props,
-  inputRef,
-}: UseDateFieldParams<TDate, TChildProps>) => {
-  const {
-    value,
-    defaultValue,
-    format,
-    onChange,
-    readOnly,
-    onError,
-    shouldDisableDate,
-    shouldDisableMonth,
-    shouldDisableYear,
-    minDate,
-    maxDate,
-    disableFuture,
-    disablePast,
-    selectedSections,
-    onSelectedSectionsChange,
-    unstableFieldRef,
-    ...other
-  } = useDefaultizedDateField<TDate, TChildProps>(props);
-
-  return useField({
-    inputRef,
-    forwardedProps: other as Omit<TChildProps, keyof UseDateFieldProps<TDate>>,
-    internalProps: {
-      value,
-      defaultValue,
-      format,
-      onChange,
-      readOnly,
-      onError,
-      shouldDisableDate,
-      shouldDisableMonth,
-      shouldDisableYear,
-      minDate,
-      maxDate,
-      disableFuture,
-      disablePast,
-      selectedSections,
-      onSelectedSectionsChange,
-      unstableFieldRef,
-    },
-    valueManager: singleItemValueManager,
-    fieldValueManager: singleItemFieldValueManager,
-    validator: validateDate,
-    valueType: 'date',
+  return useField<
+    PickerValue,
+    TEnableAccessibleFieldDOMStructure,
+    typeof forwardedProps,
+    typeof internalPropsWithDefaults
+  >({
+    forwardedProps,
+    internalProps: internalPropsWithDefaults,
+    valueManager: manager.internal_valueManager,
+    fieldValueManager: manager.internal_fieldValueManager,
+    validator: manager.validator,
+    valueType: manager.valueType,
+    getOpenPickerButtonAriaLabel: manager.internal_getOpenPickerButtonAriaLabel,
   });
 };

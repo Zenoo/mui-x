@@ -1,98 +1,48 @@
-import * as React from 'react';
-import { SlotComponentProps } from '@mui/base/utils';
-import TextField from '@mui/material/TextField';
-import { DateTimeValidationError, FieldSection } from '../models';
+import { MakeOptional } from '@mui/x-internals/types';
+import { DateTimeValidationError, BuiltInFieldTextFieldProps } from '../models';
 import { UseFieldInternalProps } from '../internals/hooks/useField';
-import { DefaultizedProps, MakeOptional } from '../internals/models/helpers';
+import { ExportedValidateDateTimeProps } from '../validation/validateDateTime';
+import { AmPmProps } from '../internals/models/props/time';
+import { PickerValue } from '../internals/models';
 import {
-  BaseDateValidationProps,
-  BaseTimeValidationProps,
-  DayValidationProps,
-  MonthValidationProps,
-  TimeValidationProps,
-  YearValidationProps,
-} from '../internals/hooks/validation/models';
-import { FieldsTextFieldProps, UncapitalizeObjectKeys } from '../internals';
+  ExportedPickerFieldUIProps,
+  PickerFieldUISlotProps,
+  PickerFieldUISlots,
+} from '../internals/components/PickerFieldUI';
 
-export interface UseDateTimeFieldParams<TDate, TChildProps extends {}> {
-  props: UseDateTimeFieldComponentProps<TDate, TChildProps>;
-  inputRef?: React.Ref<HTMLInputElement>;
-}
-
-export interface UseDateTimeFieldProps<TDate>
+export interface UseDateTimeFieldProps<TEnableAccessibleFieldDOMStructure extends boolean>
   extends MakeOptional<
-      UseFieldInternalProps<TDate | null, FieldSection, DateTimeValidationError>,
+      UseFieldInternalProps<
+        PickerValue,
+        TEnableAccessibleFieldDOMStructure,
+        DateTimeValidationError
+      >,
       'format'
     >,
-    DayValidationProps<TDate>,
-    MonthValidationProps<TDate>,
-    YearValidationProps<TDate>,
-    BaseDateValidationProps<TDate>,
-    TimeValidationProps<TDate>,
-    BaseTimeValidationProps {
-  /**
-   * 12h/24h view for hour selection clock.
-   * @default `utils.is12HourCycleInCurrentLocale()`
-   */
-  ampm?: boolean;
-  /**
-   * Minimal selectable moment of time with binding to date, to set min time in each day use `minTime`.
-   */
-  minDateTime?: TDate;
-  /**
-   * Maximal selectable moment of time with binding to date, to set max time in each day use `maxTime`.
-   */
-  maxDateTime?: TDate;
-}
+    ExportedValidateDateTimeProps,
+    ExportedPickerFieldUIProps,
+    AmPmProps {}
 
-export type UseDateTimeFieldDefaultizedProps<TDate> = DefaultizedProps<
-  UseDateTimeFieldProps<TDate>,
-  keyof BaseDateValidationProps<TDate> | keyof BaseTimeValidationProps | 'format'
->;
+export type DateTimeFieldProps<TEnableAccessibleFieldDOMStructure extends boolean = true> =
+  // The hook props
+  UseDateTimeFieldProps<TEnableAccessibleFieldDOMStructure> &
+    // The TextField props
+    Omit<
+      BuiltInFieldTextFieldProps<TEnableAccessibleFieldDOMStructure>,
+      keyof UseDateTimeFieldProps<TEnableAccessibleFieldDOMStructure>
+    > & {
+      /**
+       * Overridable component slots.
+       * @default {}
+       */
+      slots?: DateTimeFieldSlots;
+      /**
+       * The props used for each component slot.
+       * @default {}
+       */
+      slotProps?: DateTimeFieldSlotProps;
+    };
 
-export type UseDateTimeFieldComponentProps<TDate, TChildProps extends {}> = Omit<
-  TChildProps,
-  keyof UseDateTimeFieldProps<TDate>
-> &
-  UseDateTimeFieldProps<TDate>;
+export interface DateTimeFieldSlots extends PickerFieldUISlots {}
 
-export interface DateTimeFieldProps<TDate>
-  extends UseDateTimeFieldComponentProps<TDate, FieldsTextFieldProps> {
-  /**
-   * Overridable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: DateTimeFieldSlotsComponent;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: DateTimeFieldSlotsComponentsProps<TDate>;
-  /**
-   * Overridable component slots.
-   * @default {}
-   */
-  slots?: UncapitalizeObjectKeys<DateTimeFieldSlotsComponent>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   */
-  slotProps?: DateTimeFieldSlotsComponentsProps<TDate>;
-}
-
-export type DateTimeFieldOwnerState<TDate> = DateTimeFieldProps<TDate>;
-
-export interface DateTimeFieldSlotsComponent {
-  /**
-   * Form control with an input to render the value.
-   * Receives the same props as `@mui/material/TextField`.
-   * @default TextField from '@mui/material'
-   */
-  TextField?: React.ElementType;
-}
-
-export interface DateTimeFieldSlotsComponentsProps<TDate> {
-  textField?: SlotComponentProps<typeof TextField, {}, DateTimeFieldOwnerState<TDate>>;
-}
+export interface DateTimeFieldSlotProps extends PickerFieldUISlotProps {}

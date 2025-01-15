@@ -1,22 +1,18 @@
 import * as React from 'react';
 import { DateCalendar, DateCalendarProps } from '../DateCalendar';
-import { DateOrTimeView, DateView } from '../models';
+import { DateView } from '../models';
+import { DateOrTimeViewWithMeridiem } from '../internals/models';
+import { isDatePickerView } from '../internals/utils/date-utils';
 
-const isDatePickerView = (view: unknown): view is DateView =>
-  view === 'year' || view === 'month' || view === 'day';
-
-export interface DateViewRendererProps<TDate, TView extends DateOrTimeView>
-  extends Omit<
-    DateCalendarProps<TDate>,
-    'views' | 'openTo' | 'view' | 'onViewChange' | 'focusedView'
-  > {
+export interface DateViewRendererProps<TView extends DateOrTimeViewWithMeridiem>
+  extends Omit<DateCalendarProps, 'views' | 'openTo' | 'view' | 'onViewChange' | 'focusedView'> {
   view: TView;
   onViewChange?: (view: TView) => void;
   views: readonly TView[];
   focusedView: TView | null;
 }
 
-export const renderDateViewCalendar = <TDate extends unknown>({
+export const renderDateViewCalendar = ({
   view,
   onViewChange,
   views,
@@ -24,6 +20,7 @@ export const renderDateViewCalendar = <TDate extends unknown>({
   onFocusedViewChange,
   value,
   defaultValue,
+  referenceDate,
   onChange,
   className,
   classes,
@@ -38,10 +35,8 @@ export const renderDateViewCalendar = <TDate extends unknown>({
   onMonthChange,
   monthsPerRow,
   onYearChange,
+  yearsOrder,
   yearsPerRow,
-  defaultCalendarMonth,
-  components,
-  componentsProps,
   slots,
   slotProps,
   loading,
@@ -55,15 +50,17 @@ export const renderDateViewCalendar = <TDate extends unknown>({
   autoFocus,
   fixedWeekNumber,
   displayWeekNumber,
-}: DateViewRendererProps<TDate, any>) => (
+  timezone,
+}: DateViewRendererProps<DateView>) => (
   <DateCalendar
-    view={view as DateView}
+    view={view}
     onViewChange={onViewChange}
     views={views.filter(isDatePickerView)}
-    focusedView={focusedView as DateView | null}
+    focusedView={focusedView && isDatePickerView(focusedView) ? focusedView : null}
     onFocusedViewChange={onFocusedViewChange}
     value={value}
     defaultValue={defaultValue}
+    referenceDate={referenceDate}
     onChange={onChange}
     className={className}
     classes={classes}
@@ -78,10 +75,8 @@ export const renderDateViewCalendar = <TDate extends unknown>({
     onMonthChange={onMonthChange}
     monthsPerRow={monthsPerRow}
     onYearChange={onYearChange}
+    yearsOrder={yearsOrder}
     yearsPerRow={yearsPerRow}
-    defaultCalendarMonth={defaultCalendarMonth}
-    components={components}
-    componentsProps={componentsProps}
     slots={slots}
     slotProps={slotProps}
     loading={loading}
@@ -95,5 +90,6 @@ export const renderDateViewCalendar = <TDate extends unknown>({
     autoFocus={autoFocus}
     fixedWeekNumber={fixedWeekNumber}
     displayWeekNumber={displayWeekNumber}
+    timezone={timezone}
   />
 );

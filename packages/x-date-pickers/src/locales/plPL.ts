@@ -1,22 +1,34 @@
 import { PickersLocaleText } from './utils/pickersLocaleTextApi';
 import { getPickersLocalization } from './utils/getPickersLocalization';
+import { TimeViewWithMeridiem } from '../internals/models';
 
-const plPLPickers: Partial<PickersLocaleText<any>> = {
+const timeViews: Record<TimeViewWithMeridiem, string> = {
+  hours: 'godzin',
+  minutes: 'minut',
+  seconds: 'sekund',
+  meridiem: 'popołudnie',
+};
+
+const plPLPickers: Partial<PickersLocaleText> = {
   // Calendar navigation
   previousMonth: 'Poprzedni miesiąc',
   nextMonth: 'Następny miesiąc',
 
   // View navigation
-  openPreviousView: 'otwórz poprzedni widok',
-  openNextView: 'otwórz następny widok',
+  openPreviousView: 'Otwórz poprzedni widok',
+  openNextView: 'Otwórz następny widok',
   calendarViewSwitchingButtonAriaLabel: (view) =>
     view === 'year'
       ? 'otwarty jest widok roku, przełącz na widok kalendarza'
       : 'otwarty jest widok kalendarza, przełącz na widok roku',
 
-  // DateRange placeholders
+  // DateRange labels
   start: 'Początek',
   end: 'Koniec',
+  startDate: 'Data rozpoczęcia',
+  startTime: 'Czas rozpoczęcia',
+  endDate: 'Data zakończenia',
+  endTime: 'Czas zakończenia',
 
   // Action bar
   cancelButtonLabel: 'Anuluj',
@@ -31,13 +43,14 @@ const plPLPickers: Partial<PickersLocaleText<any>> = {
   dateRangePickerToolbarTitle: 'Wybierz zakres dat',
 
   // Clock labels
-  clockLabelText: (view, time, adapter) =>
-    `Select ${view}. ${
-      time === null ? 'Nie wybrano czasu' : `Wybrany czas to ${adapter.format(time, 'fullTime')}`
-    }`,
+  clockLabelText: (view, formattedTime) =>
+    `Wybierz ${timeViews[view]}. ${!formattedTime ? 'Nie wybrano czasu' : `Wybrany czas to ${formattedTime}`}`,
   hoursClockNumberText: (hours) => `${hours} godzin`,
   minutesClockNumberText: (minutes) => `${minutes} minut`,
   secondsClockNumberText: (seconds) => `${seconds} sekund`,
+
+  // Digital clock labels
+  selectViewText: (view) => `Wybierz ${timeViews[view]}`,
 
   // Calendar labels
   calendarWeekNumberHeaderLabel: 'Numer tygodnia',
@@ -46,14 +59,11 @@ const plPLPickers: Partial<PickersLocaleText<any>> = {
   calendarWeekNumberText: (weekNumber) => `${weekNumber}`,
 
   // Open picker labels
-  openDatePickerDialogue: (value, utils) =>
-    value != null && utils.isValid(value)
-      ? `Wybierz datę, obecnie wybrana data to ${utils.format(value, 'fullDate')}`
-      : 'Wybierz datę',
-  openTimePickerDialogue: (value, utils) =>
-    value !== null && utils.isValid(value)
-      ? `Wybierz czas, obecnie wybrany czas to ${utils.format(value, 'fullTime')}`
-      : 'Wybierz czas',
+  openDatePickerDialogue: (formattedDate) =>
+    formattedDate ? `Wybierz datę, obecnie wybrana data to ${formattedDate}` : 'Wybierz datę',
+  openTimePickerDialogue: (formattedTime) =>
+    formattedTime ? `Wybierz czas, obecnie wybrany czas to ${formattedTime}` : 'Wybierz czas',
+  fieldClearLabel: 'Wyczyść',
 
   // Table labels
   timeTableLabel: 'wybierz czas',
@@ -68,6 +78,19 @@ const plPLPickers: Partial<PickersLocaleText<any>> = {
   // fieldMinutesPlaceholder: () => 'mm',
   // fieldSecondsPlaceholder: () => 'ss',
   // fieldMeridiemPlaceholder: () => 'aa',
+
+  // View names
+  year: 'Rok',
+  month: 'Miesiąc',
+  day: 'Dzień',
+  weekDay: 'Dzień tygodnia',
+  hours: 'Godzin',
+  minutes: 'Minut',
+  seconds: 'Sekund',
+  // meridiem: 'Meridiem',
+
+  // Common
+  // empty: 'Empty',
 };
 
 export const plPL = getPickersLocalization(plPLPickers);

@@ -1,79 +1,374 @@
+'use client';
 import * as React from 'react';
-import { SeriesContext } from '../context/SeriesContextProvider';
-import { BarSeriesType } from '../models/seriesType';
-import { CartesianContext } from '../context/CartesianContextProvider';
-import { isBandScale } from '../hooks/useScale';
+import PropTypes from 'prop-types';
+import { useTransition } from '@react-spring/web';
+import { styled } from '@mui/material/styles';
+import { BarElement, barElementClasses, BarElementSlotProps, BarElementSlots } from './BarElement';
+import { AxisDefaultized } from '../models/axis';
+import { BarItemIdentifier } from '../models';
+import getColor from './getColor';
+import { useChartId, useDrawingArea, useXAxes, useYAxes } from '../hooks';
+import { AnimationData, CompletedBarData, MaskData } from './types';
+import { BarClipPath } from './BarClipPath';
+import { BarLabelItemProps, BarLabelSlotProps, BarLabelSlots } from './BarLabel/BarLabelItem';
+import { BarLabelPlot } from './BarLabel/BarLabelPlot';
+import { checkScaleErrors } from './checkScaleErrors';
+import { useBarSeries } from '../hooks/useSeries';
+import { useSkipAnimation } from '../context/AnimationProvider';
+import { SeriesProcessorResult } from '../internals/plugins/models/seriesConfig/seriesProcessor.types';
 
-export function BarPlot() {
-  const seriesData = React.useContext(SeriesContext).bar;
-  const axisData = React.useContext(CartesianContext);
-
-  if (seriesData === undefined) {
-    return null;
+/**
+ * Solution of the equations
+ * W = barWidth * N + offset * (N-1)
+ * offset / (offset + barWidth) = r
+ * @param bandWidth The width available to place bars.
+ * @param numberOfGroups The number of bars to place in that space.
+ * @param gapRatio The ratio of the gap between bars over the bar width.
+ * @returns The bar width and the offset between bars.
+ */
+function getBandSize({
+  bandWidth: W,
+  numberOfGroups: N,
+  gapRatio: r,
+}: {
+  bandWidth: number;
+  numberOfGroups: number;
+  gapRatio: number;
+}) {
+  if (r === 0) {
+    return {
+      barWidth: W / N,
+      offset: 0,
+    };
   }
-  const { series, seriesOrder, stackingGroups } = seriesData;
-  const { xAxis, yAxis } = axisData;
+  const barWidth = W / (N + (N - 1) * r);
+  const offset = r * barWidth;
+  return {
+    barWidth,
+    offset,
+  };
+}
 
-  const seriesPerAxis: { [key: string]: BarSeriesType[] } = {};
+export interface BarPlotSlots extends BarElementSlots, BarLabelSlots {}
 
-  seriesOrder.forEach((seriesId) => {
-    const xAxisKey = series[seriesId].xAxisKey; // ?? DEFAULT_X_AXIS_KEY;
-    const yAxisKey = series[seriesId].yAxisKey; // ?? DEFAULT_Y_AXIS_KEY;
+export interface BarPlotSlotProps extends BarElementSlotProps, BarLabelSlotProps {}
 
-    const key = `${xAxisKey}-${yAxisKey}`;
+export interface BarPlotProps extends Pick<BarLabelItemProps, 'barLabel'> {
+  /**
+   * If `true`, animations are skipped.
+   * @default undefined
+   */
+  skipAnimation?: boolean;
+  /**
+   * Callback fired when a bar item is clicked.
+   * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
+   * @param {BarItemIdentifier} barItemIdentifier The bar item identifier.
+   */
+  onItemClick?: (
+    event: React.MouseEvent<SVGElement, MouseEvent>,
+    barItemIdentifier: BarItemIdentifier,
+  ) => void;
+  /**
+   * Defines the border radius of the bar element.
+   */
+  borderRadius?: number;
+  /**
+   * The props used for each component slot.
+   * @default {}
+   */
+  slotProps?: BarPlotSlotProps;
+  /**
+   * Overridable component slots.
+   * @default {}
+   */
+  slots?: BarPlotSlots;
+}
 
-    if (seriesPerAxis[key] === undefined) {
-      seriesPerAxis[key] = [series[seriesId]];
-    } else {
-      seriesPerAxis[key].push(series[seriesId]);
-    }
+const useAggregatedData = (): {
+  completedData: CompletedBarData[];
+  masksData: MaskData[];
+} => {
+  const seriesData =
+    useBarSeries() ??
+    ({ series: {}, stackingGroups: [], seriesOrder: [] } as SeriesProcessorResult<'bar'>);
+
+  const drawingArea = useDrawingArea();
+  const chartId = useChartId();
+
+  const { series, stackingGroups } = seriesData;
+  const { xAxis, xAxisIds } = useXAxes();
+  const { yAxis, yAxisIds } = useYAxes();
+  const defaultXAxisId = xAxisIds[0];
+  const defaultYAxisId = yAxisIds[0];
+
+  const masks: Record<string, MaskData> = {};
+
+  const data = stackingGroups.flatMap(({ ids: groupIds }, groupIndex) => {
+    const xMin = drawingArea.left;
+    const xMax = drawingArea.left + drawingArea.width;
+
+    const yMin = drawingArea.top;
+    const yMax = drawingArea.top + drawingArea.height;
+
+    return groupIds.flatMap((seriesId) => {
+      const xAxisId = series[seriesId].xAxisId ?? defaultXAxisId;
+      const yAxisId = series[seriesId].yAxisId ?? defaultYAxisId;
+
+      const xAxisConfig = xAxis[xAxisId];
+      const yAxisConfig = yAxis[yAxisId];
+
+      const verticalLayout = series[seriesId].layout === 'vertical';
+
+      checkScaleErrors(verticalLayout, seriesId, xAxisId, xAxis, yAxisId, yAxis);
+
+      const baseScaleConfig = (
+        verticalLayout ? xAxisConfig : yAxisConfig
+      ) as AxisDefaultized<'band'>;
+
+      const xScale = xAxisConfig.scale;
+      const yScale = yAxisConfig.scale;
+
+      const colorGetter = getColor(series[seriesId], xAxis[xAxisId], yAxis[yAxisId]);
+      const bandWidth = baseScaleConfig.scale.bandwidth();
+
+      const { barWidth, offset } = getBandSize({
+        bandWidth,
+        numberOfGroups: stackingGroups.length,
+        gapRatio: baseScaleConfig.barGapRatio,
+      });
+      const barOffset = groupIndex * (barWidth + offset);
+
+      const { stackedData } = series[seriesId];
+
+      return stackedData
+        .map((values, dataIndex: number) => {
+          const valueCoordinates = values.map((v) => (verticalLayout ? yScale(v)! : xScale(v)!));
+
+          const minValueCoord = Math.round(Math.min(...valueCoordinates));
+          const maxValueCoord = Math.round(Math.max(...valueCoordinates));
+
+          const stackId = series[seriesId].stack;
+
+          const result = {
+            seriesId,
+            dataIndex,
+            layout: series[seriesId].layout,
+            x: verticalLayout
+              ? xScale(xAxis[xAxisId].data?.[dataIndex])! + barOffset
+              : minValueCoord,
+            y: verticalLayout
+              ? minValueCoord
+              : yScale(yAxis[yAxisId].data?.[dataIndex])! + barOffset,
+            xOrigin: xScale(0)!,
+            yOrigin: yScale(0)!,
+            height: verticalLayout ? maxValueCoord - minValueCoord : barWidth,
+            width: verticalLayout ? barWidth : maxValueCoord - minValueCoord,
+            color: colorGetter(dataIndex),
+            value: series[seriesId].data[dataIndex],
+            maskId: `${chartId}_${stackId || seriesId}_${groupIndex}_${dataIndex}`,
+          };
+
+          if (
+            result.x > xMax ||
+            result.x + result.width < xMin ||
+            result.y > yMax ||
+            result.y + result.height < yMin
+          ) {
+            return null;
+          }
+
+          if (!masks[result.maskId]) {
+            masks[result.maskId] = {
+              id: result.maskId,
+              width: 0,
+              height: 0,
+              hasNegative: false,
+              hasPositive: false,
+              layout: result.layout,
+              xOrigin: xScale(0)!,
+              yOrigin: yScale(0)!,
+              x: 0,
+              y: 0,
+            };
+          }
+
+          const mask = masks[result.maskId];
+          mask.width = result.layout === 'vertical' ? result.width : mask.width + result.width;
+          mask.height = result.layout === 'vertical' ? mask.height + result.height : result.height;
+          mask.x = Math.min(mask.x === 0 ? Infinity : mask.x, result.x);
+          mask.y = Math.min(mask.y === 0 ? Infinity : mask.y, result.y);
+          mask.hasNegative = mask.hasNegative || (result.value ?? 0) < 0;
+          mask.hasPositive = mask.hasPositive || (result.value ?? 0) > 0;
+
+          return result;
+        })
+        .filter((rectangle) => rectangle !== null);
+    });
+  });
+
+  return {
+    completedData: data,
+    masksData: Object.values(masks),
+  };
+};
+
+const leaveStyle = ({ layout, yOrigin, x, width, y, xOrigin, height }: AnimationData) => ({
+  ...(layout === 'vertical'
+    ? {
+        y: yOrigin,
+        x,
+        height: 0,
+        width,
+      }
+    : {
+        y,
+        x: xOrigin,
+        height,
+        width: 0,
+      }),
+});
+
+const enterStyle = ({ x, width, y, height }: AnimationData) => ({
+  y,
+  x,
+  height,
+  width,
+});
+
+const BarPlotRoot = styled('g', {
+  name: 'MuiBarPlot',
+  slot: 'Root',
+  overridesResolver: (_, styles) => styles.root,
+})({
+  [`& .${barElementClasses.root}`]: {
+    transition: 'opacity 0.2s ease-in, fill 0.2s ease-in',
+  },
+});
+
+/**
+ * Demos:
+ *
+ * - [Bars](https://mui.com/x/react-charts/bars/)
+ * - [Bar demonstration](https://mui.com/x/react-charts/bar-demo/)
+ * - [Stacking](https://mui.com/x/react-charts/stacking/)
+ *
+ * API:
+ *
+ * - [BarPlot API](https://mui.com/x/api/charts/bar-plot/)
+ */
+function BarPlot(props: BarPlotProps) {
+  const { completedData, masksData } = useAggregatedData();
+  const { skipAnimation: inSkipAnimation, onItemClick, borderRadius, barLabel, ...other } = props;
+  const skipAnimation = useSkipAnimation(inSkipAnimation);
+
+  const withoutBorderRadius = !borderRadius || borderRadius <= 0;
+
+  const transition = useTransition(completedData, {
+    keys: (bar) => `${bar.seriesId}-${bar.dataIndex}`,
+    from: skipAnimation ? undefined : leaveStyle,
+    leave: leaveStyle,
+    enter: enterStyle,
+    update: enterStyle,
+    immediate: skipAnimation,
+  });
+
+  const maskTransition = useTransition(withoutBorderRadius ? [] : masksData, {
+    keys: (v) => v.id,
+    from: skipAnimation ? undefined : leaveStyle,
+    leave: leaveStyle,
+    enter: enterStyle,
+    update: enterStyle,
+    immediate: skipAnimation,
   });
 
   return (
-    <React.Fragment>
-      {Object.keys(seriesPerAxis).flatMap((key) => {
-        const [xAxisKey, yAxisKey] = key.split('-');
-
-        const xScale = xAxis[xAxisKey].scale;
-        const yScale = yAxis[yAxisKey].scale;
-
-        if (!isBandScale(xScale)) {
-          throw new Error(
-            `Axis with id "${xAxisKey}" shoud be of type "band" to display the bar series ${stackingGroups}`,
+    <BarPlotRoot>
+      {!withoutBorderRadius &&
+        maskTransition((style, { id, hasPositive, hasNegative, layout }) => {
+          return (
+            <BarClipPath
+              maskId={id}
+              borderRadius={borderRadius}
+              hasNegative={hasNegative}
+              hasPositive={hasPositive}
+              layout={layout}
+              style={style}
+            />
           );
+        })}
+      {transition((style, { seriesId, dataIndex, color, maskId }) => {
+        const barElement = (
+          <BarElement
+            id={seriesId}
+            dataIndex={dataIndex}
+            color={color}
+            {...other}
+            onClick={
+              onItemClick &&
+              ((event) => {
+                onItemClick(event, { type: 'bar', seriesId, dataIndex });
+              })
+            }
+            style={style}
+          />
+        );
+
+        if (withoutBorderRadius) {
+          return barElement;
         }
 
-        if (xAxis[xAxisKey].data === undefined) {
-          throw new Error(`Axis with id "${xAxisKey}" shoud have data property`);
-        }
-
-        // Currently assuming all bars are vertical
-        const bandWidth = xScale.bandwidth();
-        const barWidth = (0.9 * bandWidth) / stackingGroups.length;
-        const offset = 0.05 * bandWidth;
-
-        return stackingGroups.flatMap((groupIds, groupIndex) => {
-          return groupIds.flatMap((seriesId) => {
-            // @ts-ignore TODO: fix when adding a correct API for customisation
-            const { stackedData, color } = series[seriesId];
-
-            return stackedData.map(([baseline, value], dataIndex: number) => {
-              return (
-                <rect
-                  key={`${seriesId}-${dataIndex}`}
-                  // @ts-ignore I don't get why this warning
-                  x={xScale(xAxis[xAxisKey].data[dataIndex]) + groupIndex * barWidth + offset}
-                  y={yScale(value)}
-                  height={yScale(baseline) - yScale(value)}
-                  width={barWidth}
-                  fill={color}
-                  rx="5px"
-                />
-              );
-            });
-          });
-        });
+        return <g clipPath={`url(#${maskId})`}>{barElement}</g>;
       })}
-    </React.Fragment>
+      {barLabel && (
+        <BarLabelPlot
+          bars={completedData}
+          skipAnimation={skipAnimation}
+          barLabel={barLabel}
+          {...other}
+        />
+      )}
+    </BarPlotRoot>
   );
 }
+
+BarPlot.propTypes = {
+  // ----------------------------- Warning --------------------------------
+  // | These PropTypes are generated from the TypeScript type definitions |
+  // | To update them edit the TypeScript types and run "pnpm proptypes"  |
+  // ----------------------------------------------------------------------
+  /**
+   * If provided, the function will be used to format the label of the bar.
+   * It can be set to 'value' to display the current value.
+   * @param {BarItem} item The item to format.
+   * @param {BarLabelContext} context data about the bar.
+   * @returns {string} The formatted label.
+   */
+  barLabel: PropTypes.oneOfType([PropTypes.oneOf(['value']), PropTypes.func]),
+  /**
+   * Defines the border radius of the bar element.
+   */
+  borderRadius: PropTypes.number,
+  /**
+   * Callback fired when a bar item is clicked.
+   * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
+   * @param {BarItemIdentifier} barItemIdentifier The bar item identifier.
+   */
+  onItemClick: PropTypes.func,
+  /**
+   * If `true`, animations are skipped.
+   * @default undefined
+   */
+  skipAnimation: PropTypes.bool,
+  /**
+   * The props used for each component slot.
+   * @default {}
+   */
+  slotProps: PropTypes.object,
+  /**
+   * Overridable component slots.
+   * @default {}
+   */
+  slots: PropTypes.object,
+} as any;
+
+export { BarPlot };

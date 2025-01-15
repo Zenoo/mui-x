@@ -1,16 +1,10 @@
-import { DateOrTimeView } from '../../../models';
+import { SxProps } from '@mui/system';
+import { Theme } from '@mui/material/styles';
 
-export interface BaseTabsProps<TView extends DateOrTimeView> {
+export interface ExportedBaseTabsProps {
+  className?: string;
   /**
-   * Currently visible picker view.
+   * The system prop that allows defining system overrides as well as additional CSS styles.
    */
-  view: TView;
-  /**
-   * Callback called when a tab is clicked
-   * @template TView
-   * @param {TView} view The view to open
-   */
-  onViewChange: (view: TView) => void;
+  sx?: SxProps<Theme>;
 }
-
-export interface ExportedBaseTabsProps {}

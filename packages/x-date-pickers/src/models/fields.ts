@@ -1,6 +1,18 @@
 import * as React from 'react';
-import type { BaseFieldProps } from '../internals/models/fields';
+import { TextFieldProps } from '@mui/material/TextField';
+import type { ExportedPickersSectionListProps } from '../PickersSectionList';
+import type { UseFieldInternalProps, UseFieldResponse } from '../internals/hooks/useField';
+import type { PickersTextFieldProps } from '../PickersTextField';
+import {
+  BaseForwardedSingleInputFieldProps,
+  FieldRangeSection,
+  PickerRangeValue,
+  PickerValidValue,
+} from '../internals/models';
+import { PickerOwnerState } from './pickers';
+import type { ExportedPickerFieldUIProps } from '../internals/components/PickerFieldUI';
 
+// Update PickersComponentAgnosticLocaleText -> viewNames when adding new entries
 export type FieldSectionType =
   | 'year'
   | 'month'
@@ -9,7 +21,10 @@ export type FieldSectionType =
   | 'hours'
   | 'minutes'
   | 'seconds'
-  | 'meridiem';
+  | 'meridiem'
+  | 'empty';
+
+export type FieldSectionContentType = 'digit' | 'digit-with-letter' | 'letter';
 
 export interface FieldSection {
   /**
@@ -23,6 +38,11 @@ export interface FieldSection {
    */
   format: string;
   /**
+   * Maximum length of the value, only defined for "digit" sections.
+   * Will be used to determine how many leading zeros should be added to the value.
+   */
+  maxLength: number | null;
+  /**
    * Placeholder rendered when the value of this section is empty.
    */
   placeholder: string;
@@ -34,12 +54,17 @@ export interface FieldSection {
    * Type of content of the section.
    * Will determine if we should apply a digit-based editing or a letter-based editing.
    */
-  contentType: 'digit' | 'letter';
+  contentType: FieldSectionContentType;
   /**
-   * If `true`, the value of this section is supposed to have leading zeroes.
+   * If `true`, the value of this section is supposed to have leading zeroes when parsed by the date library.
    * For example, the value `1` should be rendered as "01" instead of "1".
    */
-  hasLeadingZeros: boolean;
+  hasLeadingZerosInFormat: boolean;
+  /**
+   * If `true`, the value of this section is supposed to have leading zeroes when rendered in the input.
+   * For example, the value `1` should be rendered as "01" instead of "1".
+   */
+  hasLeadingZerosInInput: boolean;
   /**
    * If `true`, the section value has been modified since the last time the sections were generated from a valid date.
    * When we can generate a valid date from the section, we don't directly pass it to `onChange`,
@@ -50,24 +75,6 @@ export interface FieldSection {
    * To avoid losing that information, we transfer the values of the modified sections from the newly generated date to the original date.
    */
   modified: boolean;
-  /**
-   * Start index of the section in the format
-   */
-  start: number;
-  /**
-   * End index of the section in the format
-   */
-  end: number;
-  /**
-   * Start index of the section value in the input.
-   * Takes into account invisible unicode characters such as \u2069 but does not include them
-   */
-  startInInput: number;
-  /**
-   * End index of the section value in the input.
-   * Takes into account invisible unicode characters such as \u2069 but does not include them
-   */
-  endInInput: number;
   /**
    * Separator displayed before the value of the section in the input.
    * If it contains escaped characters, then it must not have the escaping characters.
@@ -82,12 +89,22 @@ export interface FieldSection {
   endSeparator: string;
 }
 
-export interface FieldRef<TSection extends FieldSection> {
+// If `PickerValidDate` contains `any`, then `TValue extends PickerRangeValue` will return true, so we have to handle this edge case first.
+type IsAny<T> = boolean extends (T extends never ? true : false) ? true : false;
+
+export type InferFieldSection<TValue extends PickerValidValue> =
+  IsAny<TValue> extends true
+    ? FieldSection
+    : TValue extends PickerRangeValue
+      ? FieldRangeSection
+      : FieldSection;
+
+export interface FieldRef<TValue extends PickerValidValue> {
   /**
    * Returns the sections of the current value.
-   * @returns {TSection[]} The sections of the current value.
+   * @returns {InferFieldSection<TValue>[]} The sections of the current value.
    */
-  getSections: () => TSection[];
+  getSections: () => InferFieldSection<TValue>[];
   /**
    * Returns the index of the active section (the first focused section).
    * If no section is active, returns `null`.
@@ -99,35 +116,89 @@ export interface FieldRef<TSection extends FieldSection> {
    * @param {FieldSelectedSections} selectedSections The sections to select.
    */
   setSelectedSections: (selectedSections: FieldSelectedSections) => void;
+  /**
+   * Focuses the field.
+   * @param {FieldSelectedSections | FieldSectionType} newSelectedSection The section to select once focused.
+   */
+  focusField: (newSelectedSection?: number | FieldSectionType) => void;
+  /**
+   * Returns `true` if the focused is on the field input.
+   * @returns {boolean} `true` if the field is focused.
+   */
+  isFieldFocused: () => boolean;
 }
 
-export type FieldSelectedSections =
-  | number
-  | FieldSectionType
-  | null
-  | 'all'
-  | { startIndex: number; endIndex: number };
+export type FieldSelectedSections = number | FieldSectionType | null | 'all';
+
+export interface FieldOwnerState extends PickerOwnerState {
+  /**
+   * `true` if the field is disabled, `false` otherwise.
+   */
+  isFieldDisabled: boolean;
+  /**
+   * `true` if the field is read-only, `false` otherwise.
+   */
+  isFieldReadOnly: boolean;
+  /**
+   * `true` if the field is required, `false` otherwise.
+   */
+  isFieldRequired: boolean;
+  /**
+   * The direction of the field.
+   * Is equal to "ltr" when the field is in left-to-right direction.
+   * Is equal to "rtl" when the field is in right-to-left direction.
+   */
+  fieldDirection: 'ltr' | 'rtl';
+}
 
 /**
- * Props the single input field can receive when used inside a picker.
- * Only contains what the MUI component are passing to the field, not what users can pass using the `props.slotProps.field`.
+ * Props the prop `slotProps.field` of a picker can receive.
  */
-export interface BaseSingleInputFieldProps<TValue, TSection extends FieldSection, TError>
-  extends BaseFieldProps<TValue, TSection, TError> {
-  label?: React.ReactNode;
-  id?: string;
-  inputRef?: React.Ref<HTMLInputElement>;
-  onKeyDown?: React.KeyboardEventHandler;
-  onBlur?: React.FocusEventHandler;
-  focused?: boolean;
-  InputProps?: {
-    ref?: React.Ref<any>;
-    endAdornment?: React.ReactNode;
-    startAdornment?: React.ReactNode;
+export type PickerFieldSlotProps<
+  TValue extends PickerValidValue,
+  TEnableAccessibleFieldDOMStructure extends boolean,
+> = ExportedPickerFieldUIProps &
+  Pick<
+    UseFieldInternalProps<TValue, TEnableAccessibleFieldDOMStructure, unknown>,
+    'shouldRespectLeadingZeros' | 'readOnly'
+  > &
+  React.HTMLAttributes<HTMLDivElement> & {
+    ref?: React.Ref<HTMLDivElement>;
   };
-  inputProps?: {
-    'aria-label'?: string;
-  };
-  slots?: {};
-  slotProps?: {};
-}
+
+/**
+ * Props the text field receives when used inside a single input picker.
+ * Only contains what the MUI components are passing to the text field, not what users can pass using the `props.slotProps.field` and `props.slotProps.textField`.
+ */
+export type BaseSingleInputPickersTextFieldProps<
+  TEnableAccessibleFieldDOMStructure extends boolean,
+> = Omit<
+  UseFieldResponse<TEnableAccessibleFieldDOMStructure, BaseForwardedSingleInputFieldProps>,
+  | 'slots'
+  | 'slotProps'
+  | 'clearable'
+  | 'onClear'
+  | 'openPickerButtonPosition'
+  | 'clearButtonPosition'
+  | 'openPickerAriaLabel'
+>;
+
+/**
+ * Props the built-in text field component can receive.
+ */
+export type BuiltInFieldTextFieldProps<TEnableAccessibleFieldDOMStructure extends boolean> =
+  TEnableAccessibleFieldDOMStructure extends false
+    ? Omit<
+        TextFieldProps,
+        | 'autoComplete'
+        | 'error'
+        | 'maxRows'
+        | 'minRows'
+        | 'multiline'
+        | 'placeholder'
+        | 'rows'
+        | 'select'
+        | 'SelectProps'
+        | 'type'
+      >
+    : Partial<Omit<PickersTextFieldProps, keyof ExportedPickersSectionListProps>>;

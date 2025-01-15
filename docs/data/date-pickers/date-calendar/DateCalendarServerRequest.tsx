@@ -33,11 +33,11 @@ function fakeFetch(date: Dayjs, { signal }: { signal: AbortSignal }) {
 
 const initialValue = dayjs('2022-04-17');
 
-function ServerDay(props: PickersDayProps<Dayjs> & { highlightedDays?: number[] }) {
+function ServerDay(props: PickersDayProps & { highlightedDays?: number[] }) {
   const { highlightedDays = [], day, outsideCurrentMonth, ...other } = props;
 
   const isSelected =
-    !props.outsideCurrentMonth && highlightedDays.indexOf(props.day.date()) > 0;
+    !props.outsideCurrentMonth && highlightedDays.indexOf(props.day.date()) >= 0;
 
   return (
     <Badge

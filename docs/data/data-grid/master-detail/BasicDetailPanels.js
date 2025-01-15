@@ -1,5 +1,4 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -62,7 +61,7 @@ function DetailPanelContent({ row: rowProp }) {
                 field: 'total',
                 headerName: 'Total',
                 type: 'number',
-                valueGetter: ({ row }) => row.quantity * row.unitPrice,
+                valueGetter: (value, row) => row.quantity * row.unitPrice,
               },
             ]}
             rows={rowProp.products}
@@ -75,10 +74,6 @@ function DetailPanelContent({ row: rowProp }) {
   );
 }
 
-DetailPanelContent.propTypes = {
-  row: PropTypes.object.isRequired,
-};
-
 const columns = [
   { field: 'id', headerName: 'Order ID' },
   { field: 'customer', headerName: 'Customer', width: 200 },
@@ -88,12 +83,11 @@ const columns = [
     field: 'total',
     type: 'number',
     headerName: 'Total',
-    valueGetter: ({ row }) => {
+    valueGetter: (value, row) => {
       const subtotal = row.products.reduce(
         (acc, product) => product.unitPrice * product.quantity,
         0,
       );
-
       const taxes = subtotal * 0.05;
       return subtotal + taxes;
     },
@@ -181,7 +175,6 @@ export default function BasicDetailPanels() {
       <DataGridPro
         columns={columns}
         rows={rows}
-        rowThreshold={0}
         getDetailPanelHeight={getDetailPanelHeight}
         getDetailPanelContent={getDetailPanelContent}
       />

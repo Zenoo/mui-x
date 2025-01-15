@@ -1,47 +1,33 @@
+import { MakeOptional } from '@mui/x-internals/types';
 import {
   BaseTimePickerProps,
-  BaseTimePickerSlotsComponent,
-  BaseTimePickerSlotsComponentsProps,
+  BaseTimePickerSlots,
+  BaseTimePickerSlotProps,
 } from '../TimePicker/shared';
 import {
   StaticOnlyPickerProps,
-  UseStaticPickerSlotsComponent,
-  UseStaticPickerSlotsComponentsProps,
+  UseStaticPickerSlots,
+  UseStaticPickerSlotProps,
 } from '../internals/hooks/useStaticPicker';
-import { MakeOptional, UncapitalizeObjectKeys } from '../internals';
 import { TimeView } from '../models';
 
-export interface StaticTimePickerSlotsComponent<TDate>
-  extends BaseTimePickerSlotsComponent<TDate>,
-    UseStaticPickerSlotsComponent<TDate, TimeView> {}
+export interface StaticTimePickerSlots extends BaseTimePickerSlots, UseStaticPickerSlots {}
 
-export interface StaticTimePickerSlotsComponentsProps<TDate>
-  extends BaseTimePickerSlotsComponentsProps,
-    UseStaticPickerSlotsComponentsProps<TDate, TimeView> {}
+export interface StaticTimePickerSlotProps
+  extends BaseTimePickerSlotProps,
+    UseStaticPickerSlotProps {}
 
-export interface StaticTimePickerProps<TDate>
-  extends BaseTimePickerProps<TDate>,
+export interface StaticTimePickerProps
+  extends BaseTimePickerProps<TimeView>,
     MakeOptional<StaticOnlyPickerProps, 'displayStaticWrapperAs'> {
-  /**
-   * Overridable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: StaticTimePickerSlotsComponent<TDate>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: StaticTimePickerSlotsComponentsProps<TDate>;
   /**
    * Overridable component slots.
    * @default {}
    */
-  slots?: UncapitalizeObjectKeys<StaticTimePickerSlotsComponent<TDate>>;
+  slots?: StaticTimePickerSlots;
   /**
    * The props used for each component slot.
    * @default {}
    */
-  slotProps?: StaticTimePickerSlotsComponentsProps<TDate>;
+  slotProps?: StaticTimePickerSlotProps;
 }

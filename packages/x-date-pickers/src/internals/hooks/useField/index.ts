@@ -2,15 +2,14 @@ export { useField } from './useField';
 export type {
   FieldValueManager,
   UseFieldInternalProps,
-  UseFieldForwardedProps,
   UseFieldParams,
   UseFieldResponse,
   FieldChangeHandler,
   FieldChangeHandlerContext,
-  FieldRef,
 } from './useField.types';
 export {
-  splitFormatIntoSections,
-  addPositionPropertiesToSections,
-  createDateStrForInputFromSections,
+  createDateStrForV7HiddenInputFromSections,
+  createDateStrForV6InputFromSections,
 } from './useField.utils';
+export { useFieldInternalPropsWithDefaults } from './useFieldInternalPropsWithDefaults';
+export type { PickerFieldPrivateContextValue } from './useFieldInternalPropsWithDefaults';

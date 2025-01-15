@@ -1,6 +1,10 @@
 import * as React from 'react';
-import { DataGrid, GridRenderCellParams, GridToolbar } from '@mui/x-data-grid';
-import Box from '@mui/material/Box';
+import {
+  DataGrid,
+  GridRenderCellParams,
+  GridToolbar,
+  GridColDef,
+} from '@mui/x-data-grid';
 import Link from '@mui/material/Link';
 import {
   randomInt,
@@ -28,24 +32,24 @@ function ExpandableCell({ value }: GridRenderCellParams) {
   const [expanded, setExpanded] = React.useState(false);
 
   return (
-    <Box>
+    <div>
       {expanded ? value : value.slice(0, 200)}&nbsp;
       {value.length > 200 && (
         // eslint-disable-next-line jsx-a11y/anchor-is-valid
         <Link
           type="button"
           component="button"
-          sx={{ fontSize: 'inherit' }}
+          sx={{ fontSize: 'inherit', letterSpacing: 'inherit' }}
           onClick={() => setExpanded(!expanded)}
         >
           {expanded ? 'view less' : 'view more'}
         </Link>
       )}
-    </Box>
+    </div>
   );
 }
 
-const columns = [
+const columns: GridColDef[] = [
   { field: 'id' },
   { field: 'username' },
   { field: 'age', type: 'number' },

@@ -1,2 +1,3 @@
-export { CartesianContextProvider } from './CartesianContextProvider';
-export { DrawingProvider } from './DrawingProvider';
+export * from './HighlightedProvider';
+export { ChartDataProvider } from './ChartDataProvider';
+export type { ChartDataProviderProps } from './ChartDataProvider';

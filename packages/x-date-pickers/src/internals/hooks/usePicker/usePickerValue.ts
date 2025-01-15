@@ -1,533 +1,319 @@
 import * as React from 'react';
-import { unstable_useControlled as useControlled } from '@mui/utils';
 import useEventCallback from '@mui/utils/useEventCallback';
 import { useOpenState } from '../useOpenState';
 import { useLocalizationContext, useUtils } from '../useUtils';
-import { FieldChangeHandlerContext, UseFieldInternalProps } from '../useField';
-import { InferError, useValidation, Validator } from '../validation/useValidation';
-import { UseFieldValidationProps } from '../useField/useField.types';
-import { WrapperVariant } from '../../models/common';
-import { MuiPickersAdapter } from '../../models/muiPickersAdapter';
-import { FieldSection, FieldSelectedSections } from '../../../models';
-
-export interface PickerValueManager<TValue, TDate, TError> {
-  /**
-   * Determines if two values are equal.
-   * @template TDate, TValue
-   * @param {MuiPickersAdapter<TDate>} utils The adapter.
-   * @param {TValue} valueLeft The first value to compare.
-   * @param {TValue} valueRight The second value to compare.
-   * @returns {boolean} A boolean indicating if the two values are equal.
-   */
-  areValuesEqual: (
-    utils: MuiPickersAdapter<TDate>,
-    valueLeft: TValue,
-    valueRight: TValue,
-  ) => boolean;
-  /**
-   * Value to set when clicking the "Clear" button.
-   */
-  emptyValue: TValue;
-  /**
-   * Method returning the value to set when clicking the "Today" button
-   * @template TDate, TValue
-   * @param {MuiPickersAdapter<TDate>} utils The adapter.
-   * @returns {TValue} The value to set when clicking the "Today" button.
-   */
-  getTodayValue: (utils: MuiPickersAdapter<TDate>) => TValue;
-  /**
-   * Method parsing the input value to replace all invalid dates by `null`.
-   * @template TDate, TValue
-   * @param {MuiPickersAdapter<TDate>} utils The adapter.
-   * @param {TValue} value The value to parse.
-   * @returns {TValue} The value without invalid date.
-   */
-  cleanValue: (utils: MuiPickersAdapter<TDate>, value: TValue) => TValue;
-  /**
-   * Generates the new value, given the previous value and the new proposed value.
-   * @template TDate, TValue
-   * @param {MuiPickersAdapter<TDate>} utils The adapter.
-   * @param {TValue} lastValidDateValue The last valid value.
-   * @param {TValue} value The proposed value.
-   * @returns {TValue} The new value.
-   */
-  valueReducer?: (
-    utils: MuiPickersAdapter<TDate>,
-    lastValidDateValue: TValue,
-    value: TValue,
-  ) => TValue;
-  /**
-   * Compare two errors to know if they are equal.
-   * @template TError
-   * @param {TError} error The new error
-   * @param {TError | null} prevError The previous error
-   * @returns {boolean} `true` if the new error is different from the previous one.
-   */
-  isSameError: (error: TError, prevError: TError | null) => boolean;
-  /**
-   * The value identifying no error, used to initialise the error state.
-   */
-  defaultErrorState: TError;
-}
-
-export interface PickerChangeHandlerContext<TError> {
-  validationError: TError;
-}
-
-export type PickerChangeHandler<TValue, TError> = (
-  value: TValue,
-  context: PickerChangeHandlerContext<TError>,
-) => void;
-
-export type PickerSelectionState = 'partial' | 'shallow' | 'finish';
-
-interface UsePickerValueState<TValue> {
-  /**
-   * Date internally used on the picker and displayed in the input.
-   * It is updated whenever the user modifies a step.
-   */
-  draft: TValue;
-  /**
-   * Last full date provided by the user
-   * It is not updated when validating a step of a multistep picker (e.g. validating the date of a date time picker)
-   */
-  committed: TValue;
-  /**
-   * Date that will be used if the picker tries to reset its value
-   */
-  resetFallback: TValue;
-}
-
-type PickerValueActionType =
-  /**
-   * Set the draft, committed and accepted dates to the action value
-   * Closes the picker
-   */
-  | 'acceptAndClose'
-  /**
-   * Set the draft, committed and accepted dates to the action value
-   */
-  | 'setAll'
-  /**
-   * Set the draft and committed date to the action value
-   */
-  | 'setCommitted'
-  /**
-   * Set the draft date to the action value
-   */
-  | 'setDraft';
-
-interface UsePickerValueAction<DraftValue, TError> {
-  action: PickerValueActionType;
-  value: DraftValue;
-  /**
-   * If `true`, do not fire the `onChange` callback
-   * @default false
-   */
-  skipOnChangeCall?: boolean;
-  /**
-   * Context passed from a deeper component (a field or a calendar).
-   */
-  contextFromField?: FieldChangeHandlerContext<TError>;
-}
-
-/**
- * Props used to handle the value that are common to all pickers.
- */
-export interface UsePickerValueBaseProps<TValue, TError> {
-  /**
-   * The selected value.
-   * Used when the component is controlled.
-   */
-  value?: TValue;
-  /**
-   * The default value.
-   * Used when the component is not controlled.
-   */
-  defaultValue?: TValue;
-  /**
-   * Callback fired when the value changes.
-   * @template TValue The value type. Will be either the same type as `value` or `null`. Can be in `[start, end]` format in case of range value.
-   * @template TError The validation error type. Will be either `string` or a `null`. Can be in `[start, end]` format in case of range value.
-   * @param {TValue} value The new value.
-   * @param {FieldChangeHandlerContext<TError>} context The context containing the validation result of the current value.
-   */
-  onChange?: PickerChangeHandler<TValue, TError>;
-  /**
-   * Callback fired when the value is accepted.
-   * @template TValue The value type. Will be either the same type as `value` or `null`. Can be in `[start, end]` format in case of range value.
-   * @param {TValue} value The value that was just accepted.
-   */
-  onAccept?: (value: TValue) => void;
-  /**
-   * Callback fired when the error associated to the current value changes.
-   * If the error has a non-null value, then the `TextField` will be rendered in `error` state.
-   *
-   * @template TValue The value type. Will be either the same type as `value` or `null`. Can be in `[start, end]` format in case of range value.
-   * @template TError The validation error type. Will be either `string` or a `null`. Can be in `[start, end]` format in case of range value.
-   * @param {TError} error The new error describing why the current value is not valid.
-   * @param {TValue} value The value associated to the error.
-   */
-  onError?: (error: TError, value: TValue) => void;
-}
-
-/**
- * Props used to handle the value of non-static pickers.
- */
-export interface UsePickerValueNonStaticProps<TValue, TSection extends FieldSection>
-  extends Pick<
-    UseFieldInternalProps<TValue, TSection, unknown>,
-    'selectedSections' | 'onSelectedSectionsChange'
-  > {
-  /**
-   * If `true`, the popover or modal will close after submitting the full date.
-   * @default `true` for desktop, `false` for mobile (based on the chosen wrapper and `desktopModeMediaQuery` prop).
-   */
-  closeOnSelect?: boolean;
-  /**
-   * Control the popup or dialog open state.
-   * @default false
-   */
-  open?: boolean;
-  /**
-   * Callback fired when the popup requests to be closed.
-   * Use in controlled mode (see `open`).
-   */
-  onClose?: () => void;
-  /**
-   * Callback fired when the popup requests to be opened.
-   * Use in controlled mode (see `open`).
-   */
-  onOpen?: () => void;
-}
-
-/**
- * Props used to handle the value of the pickers.
- */
-export interface UsePickerValueProps<TValue, TSection extends FieldSection, TError>
-  extends UsePickerValueBaseProps<TValue, TError>,
-    UsePickerValueNonStaticProps<TValue, TSection> {}
-
-export interface UsePickerValueParams<
-  TValue,
-  TDate,
-  TSection extends FieldSection,
-  TExternalProps extends UsePickerValueProps<TValue, TSection, any>,
-> {
-  props: TExternalProps;
-  valueManager: PickerValueManager<TValue, TDate, InferError<TExternalProps>>;
-  wrapperVariant: WrapperVariant;
-  validator: Validator<
-    TValue,
-    TDate,
-    InferError<TExternalProps>,
-    UseFieldValidationProps<TValue, TExternalProps>
-  >;
-}
-
-export interface UsePickerValueActions {
-  onAccept: () => void;
-  onClear: () => void;
-  onDismiss: () => void;
-  onCancel: () => void;
-  onSetToday: () => void;
-  onOpen: () => void;
-  onClose: () => void;
-}
-
-type UsePickerValueFieldResponse<TValue, TSection extends FieldSection, TError> = Required<
-  Pick<
-    UseFieldInternalProps<TValue, TSection, TError>,
-    'value' | 'onChange' | 'selectedSections' | 'onSelectedSectionsChange'
-  >
->;
-
-/**
- * Props passed to `usePickerViews`.
- */
-export interface UsePickerValueViewsResponse<TValue> {
-  value: TValue;
-  onChange: (value: TValue, selectionState?: PickerSelectionState) => void;
-  open: boolean;
-  onClose: () => void;
-  onSelectedSectionsChange: (newValue: FieldSelectedSections) => void;
-}
-
-/**
- * Props passed to `usePickerLayoutProps`.
- */
-export interface UsePickerValueLayoutResponse<TValue> extends UsePickerValueActions {
-  value: TValue;
-  onChange: (newValue: TValue) => void;
-  isValid: (value: TValue) => boolean;
-}
-
-export interface UsePickerValueResponse<TValue, TSection extends FieldSection, TError> {
-  open: boolean;
-  actions: UsePickerValueActions;
-  viewProps: UsePickerValueViewsResponse<TValue>;
-  fieldProps: UsePickerValueFieldResponse<TValue, TSection, TError>;
-  layoutProps: UsePickerValueLayoutResponse<TValue>;
-}
+import { useValidation } from '../../../validation';
+import { PickerChangeHandlerContext, InferError } from '../../../models';
+import {
+  UsePickerValueProps,
+  UsePickerValueParams,
+  UsePickerValueResponse,
+  UsePickerValueState,
+  UsePickerValueViewsResponse,
+  PickerSelectionState,
+  UsePickerValueContextValue,
+  UsePickerValueProviderParams,
+  UsePickerValueActionsContextValue,
+  UsePickerValuePrivateContextValue,
+  SetValueActionOptions,
+} from './usePickerValue.types';
+import { useValueWithTimezone } from '../useValueWithTimezone';
+import { PickerValidValue } from '../../models';
 
 /**
  * Manage the value lifecycle of all the pickers.
  */
 export const usePickerValue = <
-  TValue,
-  TDate,
-  TSection extends FieldSection,
-  TExternalProps extends UsePickerValueProps<TValue, TSection, any>,
+  TValue extends PickerValidValue,
+  TExternalProps extends UsePickerValueProps<TValue, any>,
 >({
   props,
   valueManager,
-  wrapperVariant,
+  valueType,
   validator,
-}: UsePickerValueParams<TValue, TDate, TSection, TExternalProps>): UsePickerValueResponse<
+}: UsePickerValueParams<TValue, TExternalProps>): UsePickerValueResponse<
   TValue,
-  TSection,
   InferError<TExternalProps>
 > => {
   type TError = InferError<TExternalProps>;
 
   const {
-    onAccept: onAcceptProp,
+    onAccept,
     onChange,
-    value: inValue,
-    defaultValue,
-    closeOnSelect = wrapperVariant === 'desktop',
-    selectedSections: selectedSectionsProp,
-    onSelectedSectionsChange,
+    value: inValueWithoutRenderTimezone,
+    defaultValue: inDefaultValue,
+    closeOnSelect = false,
+    timezone: timezoneProp,
+    referenceDate,
   } = props;
 
-  const utils = useUtils<TDate>();
-  const adapter = useLocalizationContext<TDate>();
+  const { current: defaultValue } = React.useRef(inDefaultValue);
+  const { current: isControlled } = React.useRef(inValueWithoutRenderTimezone !== undefined);
+  const [previousTimezoneProp, setPreviousTimezoneProp] = React.useState(timezoneProp);
 
-  const [value, setValue] = useControlled({
-    controlled: inValue,
-    default: defaultValue ?? valueManager.emptyValue,
-    name: 'usePickerValue',
-    state: 'value',
+  /* eslint-disable react-hooks/rules-of-hooks, react-hooks/exhaustive-deps */
+  if (process.env.NODE_ENV !== 'production') {
+    React.useEffect(() => {
+      if (isControlled !== (inValueWithoutRenderTimezone !== undefined)) {
+        console.error(
+          [
+            `MUI X: A component is changing the ${
+              isControlled ? '' : 'un'
+            }controlled value of a picker to be ${isControlled ? 'un' : ''}controlled.`,
+            'Elements should not switch from uncontrolled to controlled (or vice versa).',
+            `Decide between using a controlled or uncontrolled value` +
+              'for the lifetime of the component.',
+            "The nature of the state is determined during the first render. It's considered controlled if the value is not `undefined`.",
+            'More info: https://fb.me/react-controlled-components',
+          ].join('\n'),
+        );
+      }
+    }, [inValueWithoutRenderTimezone]);
+
+    React.useEffect(() => {
+      if (!isControlled && defaultValue !== inDefaultValue) {
+        console.error(
+          [
+            `MUI X: A component is changing the defaultValue of an uncontrolled picker after being initialized. ` +
+              `To suppress this warning opt to use a controlled value.`,
+          ].join('\n'),
+        );
+      }
+    }, [JSON.stringify(defaultValue)]);
+  }
+  /* eslint-enable react-hooks/rules-of-hooks, react-hooks/exhaustive-deps */
+
+  const utils = useUtils();
+  const adapter = useLocalizationContext();
+  const { open, setOpen } = useOpenState(props);
+
+  const {
+    timezone,
+    value: inValueWithTimezoneToRender,
+    handleValueChange,
+  } = useValueWithTimezone({
+    timezone: timezoneProp,
+    value: inValueWithoutRenderTimezone,
+    defaultValue,
+    referenceDate,
+    onChange,
+    valueManager,
   });
 
-  const [selectedSections, setSelectedSections] = useControlled({
-    controlled: selectedSectionsProp,
-    default: null,
-    name: 'usePickerValue',
-    state: 'selectedSections',
+  const [dateState, setDateState] = React.useState<UsePickerValueState<TValue>>(() => {
+    let initialValue: TValue;
+    if (inValueWithTimezoneToRender !== undefined) {
+      initialValue = inValueWithTimezoneToRender;
+    } else if (defaultValue !== undefined) {
+      initialValue = defaultValue;
+    } else {
+      initialValue = valueManager.emptyValue;
+    }
+
+    return {
+      draft: initialValue,
+      lastPublishedValue: initialValue,
+      lastCommittedValue: initialValue,
+      lastControlledValue: inValueWithoutRenderTimezone,
+      hasBeenModifiedSinceMount: false,
+    };
   });
 
-  const { isOpen, setIsOpen } = useOpenState(props);
+  const timezoneFromDraftValue = valueManager.getTimezone(utils, dateState.draft);
+  if (previousTimezoneProp !== timezoneProp) {
+    setPreviousTimezoneProp(timezoneProp);
 
-  const [dateState, setDateState] = React.useState<UsePickerValueState<TValue>>(() => ({
-    committed: value,
-    draft: value,
-    resetFallback: value,
-  }));
-
-  useValidation(
-    { ...props, value },
-    validator,
-    valueManager.isSameError,
-    valueManager.defaultErrorState,
-  );
-
-  const setDate = useEventCallback((params: UsePickerValueAction<TValue, TError>) => {
-    setDateState((prev) => {
-      switch (params.action) {
-        case 'setAll':
-        case 'acceptAndClose': {
-          return { draft: params.value, committed: params.value, resetFallback: params.value };
-        }
-        case 'setCommitted': {
-          return { ...prev, draft: params.value, committed: params.value };
-        }
-        case 'setDraft': {
-          return { ...prev, draft: params.value };
-        }
-        default: {
-          return prev;
-        }
-      }
-    });
-
-    if (
-      !params.skipOnChangeCall &&
-      !valueManager.areValuesEqual(utils, dateState.committed, params.value)
-    ) {
-      setValue(params.value);
-
-      if (onChange) {
-        const context: PickerChangeHandlerContext<TError> = {
-          validationError:
-            params.contextFromField == null
-              ? validator({
-                  adapter,
-                  value: params.value,
-                  props: { ...props, value: params.value },
-                })
-              : params.contextFromField.validationError,
-        };
-
-        onChange(params.value, context);
-      }
+    if (timezoneProp && timezoneFromDraftValue && timezoneProp !== timezoneFromDraftValue) {
+      setDateState((prev) => ({
+        ...prev,
+        draft: valueManager.setTimezone(utils, timezoneProp, prev.draft),
+      }));
     }
-
-    if (params.action === 'acceptAndClose') {
-      setIsOpen(false);
-      if (
-        onAcceptProp &&
-        !valueManager.areValuesEqual(utils, dateState.resetFallback, params.value)
-      ) {
-        onAcceptProp(params.value);
-      }
-    }
-  });
-
-  React.useEffect(() => {
-    if (isOpen) {
-      // Update all dates in state to equal the current prop value
-      setDate({ action: 'setAll', value, skipOnChangeCall: true });
-    }
-  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Set the draft and committed date to equal the new prop value.
-  if (!valueManager.areValuesEqual(utils, dateState.committed, value)) {
-    setDate({ action: 'setCommitted', value, skipOnChangeCall: true });
   }
 
-  const handleClear = useEventCallback(() => {
-    // Reset all date in state to the empty value and close picker.
-    setDate({
-      value: valueManager.emptyValue,
-      action: 'acceptAndClose',
-    });
+  const { getValidationErrorForNewValue } = useValidation({
+    props,
+    validator,
+    timezone,
+    value: dateState.draft,
+    onError: props.onError,
   });
 
-  const handleAccept = useEventCallback(() => {
-    // Set all date in state to equal the current draft value and close picker.
-    setDate({
-      value: dateState.draft,
-      action: 'acceptAndClose',
-    });
-  });
+  const setValue = useEventCallback((newValue: TValue, options?: SetValueActionOptions<TError>) => {
+    const {
+      changeImportance = 'accept',
+      skipPublicationIfPristine = false,
+      validationError,
+      shortcut,
+    } = options ?? {};
 
-  const handleDismiss = useEventCallback(() => {
-    // Set all dates in state to equal the last committed date.
-    // e.g. Reset the state to the last committed value.
-    setDate({ value: dateState.committed, action: 'acceptAndClose' });
-  });
+    let shouldPublish: boolean;
+    let shouldCommit: boolean;
+    if (!skipPublicationIfPristine && !isControlled && !dateState.hasBeenModifiedSinceMount) {
+      // If the value is not controlled and the value has never been modified before,
+      // Then clicking on any value (including the one equal to `defaultValue`) should call `onChange` and `onAccept`
+      shouldPublish = true;
+      shouldCommit = changeImportance === 'accept';
+    } else {
+      shouldPublish = !valueManager.areValuesEqual(utils, newValue, dateState.lastPublishedValue);
+      shouldCommit =
+        changeImportance === 'accept' &&
+        !valueManager.areValuesEqual(utils, newValue, dateState.lastCommittedValue);
+    }
 
-  const handleCancel = useEventCallback(() => {
-    // Set all dates in state to equal the last accepted date and close picker.
-    // e.g. Reset the state to the last accepted value
-    setDate({ value: dateState.resetFallback, action: 'acceptAndClose' });
-  });
+    setDateState((prev) => ({
+      ...prev,
+      draft: newValue,
+      lastPublishedValue: shouldPublish ? newValue : prev.lastPublishedValue,
+      lastCommittedValue: shouldCommit ? newValue : prev.lastCommittedValue,
+      hasBeenModifiedSinceMount: true,
+    }));
 
-  const handleSetToday = useEventCallback(() => {
-    // Set all dates in state to equal today and close picker.
-    setDate({ value: valueManager.getTodayValue(utils), action: 'acceptAndClose' });
-  });
+    let cachedContext: PickerChangeHandlerContext<TError> | null = null;
+    const getContext = (): PickerChangeHandlerContext<TError> => {
+      if (!cachedContext) {
+        cachedContext = {
+          validationError:
+            validationError == null ? getValidationErrorForNewValue(newValue) : validationError,
+        };
 
-  const handleOpen = useEventCallback(() => setIsOpen(true));
-
-  const handleClose = useEventCallback(() => setIsOpen(false));
-
-  const handleChange = useEventCallback(
-    (newDate: TValue, selectionState: PickerSelectionState = 'partial') => {
-      switch (selectionState) {
-        case 'shallow': {
-          // Update the `draft` state but do not fire `onChange`
-          return setDate({ action: 'setDraft', value: newDate, skipOnChangeCall: true });
-        }
-
-        case 'partial': {
-          // Update the `draft` state and fire `onChange`
-          return setDate({ action: 'setDraft', value: newDate });
-        }
-
-        case 'finish': {
-          if (closeOnSelect) {
-            // Set all dates in state to equal the new date and close picker.
-            return setDate({ value: newDate, action: 'acceptAndClose' });
-          }
-
-          // Updates the `committed` state and fire `onChange`
-          return setDate({ value: newDate, action: 'setCommitted' });
-        }
-
-        default: {
-          throw new Error('MUI: Invalid selectionState passed to `onDateChange`');
+        if (shortcut) {
+          cachedContext.shortcut = shortcut;
         }
       }
+
+      return cachedContext;
+    };
+
+    if (shouldPublish) {
+      handleValueChange(newValue, getContext());
+    }
+
+    if (shouldCommit && onAccept) {
+      onAccept(newValue, getContext());
+    }
+
+    if (changeImportance === 'accept') {
+      setOpen(false);
+    }
+  });
+
+  if (dateState.lastControlledValue !== inValueWithoutRenderTimezone) {
+    const isUpdateComingFromPicker = valueManager.areValuesEqual(
+      utils,
+      dateState.draft,
+      inValueWithTimezoneToRender,
+    );
+
+    setDateState((prev) => ({
+      ...prev,
+      lastControlledValue: inValueWithoutRenderTimezone,
+      ...(isUpdateComingFromPicker
+        ? {}
+        : {
+            lastCommittedValue: inValueWithTimezoneToRender,
+            lastPublishedValue: inValueWithTimezoneToRender,
+            draft: inValueWithTimezoneToRender,
+            hasBeenModifiedSinceMount: true,
+          }),
+    }));
+  }
+
+  const isValid = (testedValue: TValue) => {
+    const error = validator({
+      adapter,
+      value: testedValue,
+      timezone,
+      props,
+    });
+
+    return !valueManager.hasError(error);
+  };
+
+  const clearValue = useEventCallback(() => setValue(valueManager.emptyValue));
+
+  const setValueToToday = useEventCallback(() =>
+    setValue(valueManager.getTodayValue(utils, timezone, valueType)),
+  );
+
+  const acceptValueChanges = useEventCallback(() => setValue(dateState.lastPublishedValue));
+
+  const cancelValueChanges = useEventCallback(() =>
+    setValue(dateState.lastCommittedValue, { skipPublicationIfPristine: true }),
+  );
+
+  const dismissViews = useEventCallback(() => {
+    setValue(dateState.lastPublishedValue, {
+      skipPublicationIfPristine: true,
+    });
+  });
+
+  const setValueFromView = useEventCallback(
+    (newValue: TValue, selectionState: PickerSelectionState = 'partial') => {
+      // TODO: Expose a new method (private?) like `setView` that only updates the draft value.
+      if (selectionState === 'shallow') {
+        setDateState((prev) => ({
+          ...prev,
+          draft: newValue,
+          hasBeenModifiedSinceMount: true,
+        }));
+      }
+
+      setValue(newValue, {
+        changeImportance: selectionState === 'finish' && closeOnSelect ? 'accept' : 'set',
+      });
     },
   );
 
-  const handleChangeAndCommit = useEventCallback(
-    (newValue: TValue, contextFromField?: FieldChangeHandlerContext<TError>) =>
-      setDate({ action: 'setCommitted', value: newValue, contextFromField }),
-  );
-
-  const handleFieldSelectedSectionsChange = useEventCallback(
-    (newSelectedSections: FieldSelectedSections) => {
-      setSelectedSections(newSelectedSections);
-      onSelectedSectionsChange?.(newSelectedSections);
-    },
-  );
-
-  const actions: UsePickerValueActions = {
-    onClear: handleClear,
-    onAccept: handleAccept,
-    onDismiss: handleDismiss,
-    onCancel: handleCancel,
-    onSetToday: handleSetToday,
-    onOpen: handleOpen,
-    onClose: handleClose,
-  };
-
-  const fieldResponse: UsePickerValueFieldResponse<TValue, TSection, TError> = {
-    value: dateState.draft,
-    onChange: handleChangeAndCommit,
-    selectedSections,
-    onSelectedSectionsChange: handleFieldSelectedSectionsChange,
-  };
-
-  const viewValue = React.useMemo(
+  const valueWithoutError = React.useMemo(
     () => valueManager.cleanValue(utils, dateState.draft),
     [utils, valueManager, dateState.draft],
   );
 
   const viewResponse: UsePickerValueViewsResponse<TValue> = {
-    value: viewValue,
-    onChange: handleChange,
-    onClose: handleClose,
-    open: isOpen,
-    onSelectedSectionsChange: handleFieldSelectedSectionsChange,
+    value: valueWithoutError,
+    onChange: setValueFromView,
+    open,
+    setOpen,
   };
 
-  const isValid = (testedValue: TValue) => {
-    const validationResponse = validator({
-      adapter,
-      value: testedValue,
-      props: { ...props, value: testedValue },
-    });
-    return Array.isArray(testedValue)
-      ? (validationResponse as any[]).every((v) => v === null)
-      : validationResponse === null;
-  };
+  const actionsContextValue = React.useMemo<UsePickerValueActionsContextValue<TValue, TError>>(
+    () => ({
+      setValue,
+      setOpen,
+      clearValue,
+      setValueToToday,
+      acceptValueChanges,
+      cancelValueChanges,
+    }),
+    [setValue, setOpen, clearValue, setValueToToday, acceptValueChanges, cancelValueChanges],
+  );
 
-  const layoutResponse: UsePickerValueLayoutResponse<TValue> = {
-    ...actions,
-    value: viewValue,
-    onChange: handleChangeAndCommit,
-    isValid,
+  const contextValue = React.useMemo<UsePickerValueContextValue<TValue, TError>>(
+    () => ({
+      ...actionsContextValue,
+      value: dateState.draft,
+      timezone,
+      open,
+    }),
+    [actionsContextValue, timezone, open, dateState.draft],
+  );
+
+  const privateContextValue = React.useMemo<UsePickerValuePrivateContextValue>(
+    () => ({ dismissViews }),
+    [dismissViews],
+  );
+
+  const providerParams: UsePickerValueProviderParams<TValue, TError> = {
+    value: dateState.draft,
+    contextValue,
+    actionsContextValue,
+    privateContextValue,
+    isValidContextValue: isValid,
   };
 
   return {
-    open: isOpen,
-    fieldProps: fieldResponse,
     viewProps: viewResponse,
-    layoutProps: layoutResponse,
-    actions,
+    provider: providerParams,
   };
 };

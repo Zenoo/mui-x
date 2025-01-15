@@ -1,6 +1,6 @@
 ---
-product: date-pickers
-title: Date and Time pickers - Custom layout
+productId: x-date-pickers
+title: Date and Time Pickers - Custom layout
 components: PickersActionBar, PickersLayout
 githubLabel: 'component: pickers'
 packageName: '@mui/x-date-pickers'
@@ -8,7 +8,11 @@ packageName: '@mui/x-date-pickers'
 
 # Custom layout
 
-<p class="description">The Date and Time Pickers let you reorganize the layout</p>
+<p class="description">The Date and Time Pickers let you reorganize the layout.</p>
+
+:::success
+See [Common concepts—Slots and subcomponents](/x/common-concepts/custom-components/) to learn how to use slots.
+:::
 
 ## Default layout structure
 
@@ -36,7 +40,7 @@ Here is a demonstration with the 3 main blocks outlined with color borders.
 
 A `<PickersLayoutRoot />` wraps all the subcomponents to provide the structure.
 By default it renders a `div` with `display: grid`.
-Such that all subcomponents are placed in a 3 by 3 [CSS grid](https://developer.mozilla.org/fr/docs/Web/CSS/CSS_Grid_Layout).
+Such that all subcomponents are placed in a 3 by 3 [CSS grid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout).
 
 ```jsx
 <PickersLayoutRoot>
@@ -82,14 +86,17 @@ import {
 } from '@mui/x-date-pickers/PickersLayout';
 
 function MyCustomLayout(props) {
-  const { toolbar, tabs, content, actionBar } = usePickerLayout(props);
+  const { toolbar, tabs, content, actionBar, ownerState } = usePickerLayout(props);
 
   // Put the action bar before the content
   return (
-    <PickersLayoutRoot className={pickersLayoutClasses.root} ownerState={props}>
+    <PickersLayoutRoot className={pickersLayoutClasses.root} ownerState={ownerState}>
       {toolbar}
       {actionBar}
-      <PickersLayoutContentWrapper className={pickersLayoutClasses.contentWrapper}>
+      <PickersLayoutContentWrapper
+        className={pickersLayoutClasses.contentWrapper}
+        ownerState={ownerState}
+      >
         {tabs}
         {content}
       </PickersLayoutContentWrapper>

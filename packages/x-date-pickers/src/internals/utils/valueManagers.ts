@@ -1,63 +1,65 @@
 import type { PickerValueManager } from '../hooks/usePicker';
-import {
-  DateValidationError,
-  TimeValidationError,
-  DateTimeValidationError,
-  FieldSection,
-} from '../../models';
+import { DateValidationError, TimeValidationError, DateTimeValidationError } from '../../models';
 import type { FieldValueManager } from '../hooks/useField';
-import { areDatesEqual, replaceInvalidDateByNull } from './date-utils';
+import { areDatesEqual, getTodayDate, replaceInvalidDateByNull } from './date-utils';
+import { getDefaultReferenceDate } from './getDefaultReferenceDate';
 import {
-  addPositionPropertiesToSections,
-  createDateStrForInputFromSections,
+  createDateStrForV7HiddenInputFromSections,
+  createDateStrForV6InputFromSections,
 } from '../hooks/useField/useField.utils';
+import { PickerValue } from '../models';
 
 export type SingleItemPickerValueManager<
-  TValue = any,
-  TDate = any,
   TError extends DateValidationError | TimeValidationError | DateTimeValidationError = any,
-> = PickerValueManager<TValue, TDate, TError>;
+> = PickerValueManager<PickerValue, TError>;
 
 export const singleItemValueManager: SingleItemPickerValueManager = {
   emptyValue: null,
-  getTodayValue: (utils) => utils.date()!,
+  getTodayValue: getTodayDate,
+  getInitialReferenceValue: ({ value, referenceDate, ...params }) => {
+    if (params.utils.isValid(value)) {
+      return value;
+    }
+
+    if (referenceDate != null) {
+      return referenceDate;
+    }
+
+    return getDefaultReferenceDate(params);
+  },
   cleanValue: replaceInvalidDateByNull,
   areValuesEqual: areDatesEqual,
   isSameError: (a, b) => a === b,
+  hasError: (error) => error != null,
   defaultErrorState: null,
+  getTimezone: (utils, value) => (utils.isValid(value) ? utils.getTimezone(value) : null),
+  setTimezone: (utils, timezone, value) =>
+    value == null ? null : utils.setTimezone(value, timezone),
 };
 
-export const singleItemFieldValueManager: FieldValueManager<
-  any,
-  any,
-  FieldSection,
-  DateValidationError | TimeValidationError | DateTimeValidationError
-> = {
+export const singleItemFieldValueManager: FieldValueManager<PickerValue> = {
   updateReferenceValue: (utils, value, prevReferenceValue) =>
-    value == null || !utils.isValid(value) ? prevReferenceValue : value,
-  getSectionsFromValue: (utils, date, prevSections, isRTL, getSectionsFromDate) => {
+    !utils.isValid(value) ? prevReferenceValue : value,
+  getSectionsFromValue: (utils, date, prevSections, getSectionsFromDate) => {
     const shouldReUsePrevDateSections = !utils.isValid(date) && !!prevSections;
 
     if (shouldReUsePrevDateSections) {
       return prevSections;
     }
 
-    return addPositionPropertiesToSections(getSectionsFromDate(date), isRTL);
+    return getSectionsFromDate(date!);
   },
-  getValueStrFromSections: createDateStrForInputFromSections,
-  getActiveDateSections: (sections) => sections,
+  getV7HiddenInputValueFromSections: createDateStrForV7HiddenInputFromSections,
+  getV6InputValueFromSections: createDateStrForV6InputFromSections,
   getActiveDateManager: (utils, state) => ({
-    activeDate: state.value,
-    referenceActiveDate: state.referenceValue,
-    getNewValueFromNewActiveDate: (newActiveDate) => ({
+    date: state.value,
+    referenceDate: state.referenceValue,
+    getSections: (sections) => sections,
+    getNewValuesFromNewActiveDate: (newActiveDate) => ({
       value: newActiveDate,
-      referenceValue:
-        newActiveDate == null || !utils.isValid(newActiveDate)
-          ? state.referenceValue
-          : newActiveDate,
+      referenceValue: utils.isValid(newActiveDate) ? newActiveDate : state.referenceValue,
     }),
   }),
   parseValueStr: (valueStr, referenceValue, parseDate) =>
     parseDate(valueStr.trim(), referenceValue),
-  hasError: (error) => error != null,
 };

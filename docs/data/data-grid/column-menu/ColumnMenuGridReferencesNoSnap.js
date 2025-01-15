@@ -1,5 +1,4 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
 import { DataGridPremium } from '@mui/x-data-grid-premium';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -32,15 +31,17 @@ function PlanIcon(props) {
     return null;
   }
   return (
-    <a href={planProps.href} target="_blank" rel="noreferrer">
-      <span className={planProps.className} title={planProps.title} />
+    <a
+      href={planProps.href}
+      target="_blank"
+      rel="noopener"
+      aria-label={planProps.title}
+      title={planProps.title}
+    >
+      <span className={planProps.className} />
     </a>
   );
 }
-
-PlanIcon.propTypes = {
-  plan: PropTypes.string,
-};
 
 function ComponentTag(props) {
   if (!props.value) {
@@ -70,11 +71,6 @@ function ComponentTag(props) {
     </Stack>
   );
 }
-
-ComponentTag.propTypes = {
-  plan: PropTypes.string,
-  value: PropTypes.string,
-};
 
 const columns = [
   {
@@ -141,14 +137,8 @@ const rows = [
 
 export default function ColumnMenuGridReferencesNoSnap() {
   return (
-    <div style={{ width: '100%' }}>
-      <DataGridPremium
-        columns={columns}
-        rows={rows}
-        disableColumnMenu
-        autoHeight
-        hideFooter
-      />
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+      <DataGridPremium columns={columns} rows={rows} disableColumnMenu hideFooter />
     </div>
   );
 }

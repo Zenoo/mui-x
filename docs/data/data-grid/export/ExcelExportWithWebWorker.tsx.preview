@@ -5,10 +5,10 @@
 </Snackbar>
 <DataGridPremium
   {...data}
-  loading={data.rows.length === 0}
+  loading={loading}
   rowHeight={38}
   checkboxSelection
-  components={{ Toolbar: CustomToolbar }}
+  slots={{ toolbar: CustomToolbar }}
   onExcelExportStateChange={(newState) =>
     setInProgress(newState === 'pending')
   }

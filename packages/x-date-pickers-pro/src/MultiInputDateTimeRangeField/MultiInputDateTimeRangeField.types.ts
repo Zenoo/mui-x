@@ -1,100 +1,89 @@
 import * as React from 'react';
-import { FieldRef } from '@mui/x-date-pickers/models';
-import { SlotComponentProps } from '@mui/base/utils';
-import Typography from '@mui/material/Typography';
-import Stack, { StackProps } from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
-import { UncapitalizeObjectKeys } from '@mui/x-date-pickers/internals';
-import {
-  UseDateTimeRangeFieldDefaultizedProps,
-  UseDateTimeRangeFieldProps,
-} from '../internal/models/dateTimeRange';
-import { RangePosition } from '../internal/models/range';
-import { RangeFieldSection } from '../internal/models/fields';
-import { UseMultiInputRangeFieldParams } from '../internal/hooks/useMultiInputRangeField/useMultiInputRangeField.types';
+import type { TypographyProps } from '@mui/material/Typography';
+import type { StackProps } from '@mui/material/Stack';
+import type { TextFieldProps } from '@mui/material/TextField';
+import { FieldOwnerState } from '@mui/x-date-pickers/models';
+import { SlotComponentPropsFromProps } from '@mui/x-internals/types';
+import { PickersTextFieldProps } from '@mui/x-date-pickers/PickersTextField';
+import { UseDateTimeRangeFieldProps } from '../internals/models/dateTimeRange';
+import { UseMultiInputRangeFieldParams } from '../internals/hooks/useMultiInputRangeField/useMultiInputRangeField.types';
+import { MultiInputFieldRefs, MultiInputRangeFieldClasses, RangePosition } from '../models';
 
 export type UseMultiInputDateTimeRangeFieldParams<
-  TDate,
+  TEnableAccessibleFieldDOMStructure extends boolean,
   TTextFieldSlotProps extends {},
-> = UseMultiInputRangeFieldParams<UseMultiInputDateTimeRangeFieldProps<TDate>, TTextFieldSlotProps>;
+> = UseMultiInputRangeFieldParams<
+  UseMultiInputDateTimeRangeFieldProps<TEnableAccessibleFieldDOMStructure>,
+  TTextFieldSlotProps
+>;
 
-export interface UseMultiInputDateTimeRangeFieldProps<TDate>
-  extends Omit<UseDateTimeRangeFieldProps<TDate>, 'unstableFieldRef'> {
-  unstableStartFieldRef?: React.Ref<FieldRef<RangeFieldSection>>;
-  unstableEndFieldRef?: React.Ref<FieldRef<RangeFieldSection>>;
-}
+export interface UseMultiInputDateTimeRangeFieldProps<
+  TEnableAccessibleFieldDOMStructure extends boolean,
+> extends Omit<
+      UseDateTimeRangeFieldProps<TEnableAccessibleFieldDOMStructure>,
+      'unstableFieldRef' | 'clearable' | 'onClear'
+    >,
+    MultiInputFieldRefs {}
 
-export type UseMultiInputDateTimeRangeFieldComponentProps<TDate, TChildProps extends {}> = Omit<
+export type UseMultiInputDateTimeRangeFieldComponentProps<
+  TEnableAccessibleFieldDOMStructure extends boolean,
+  TChildProps extends {},
+> = Omit<
   TChildProps,
-  keyof UseMultiInputDateTimeRangeFieldProps<TDate>
+  keyof UseMultiInputDateTimeRangeFieldProps<TEnableAccessibleFieldDOMStructure>
 > &
-  UseMultiInputDateTimeRangeFieldProps<TDate>;
+  UseMultiInputDateTimeRangeFieldProps<TEnableAccessibleFieldDOMStructure>;
 
-export interface MultiInputDateTimeRangeFieldProps<TDate>
-  extends UseMultiInputDateTimeRangeFieldComponentProps<TDate, Omit<StackProps, 'position'>> {
+export interface MultiInputDateTimeRangeFieldProps<
+  TEnableAccessibleFieldDOMStructure extends boolean = true,
+> extends UseMultiInputDateTimeRangeFieldComponentProps<
+    TEnableAccessibleFieldDOMStructure,
+    Omit<StackProps, 'position'>
+  > {
   autoFocus?: boolean;
   /**
-   * Overridable components.
-   * @default {}
-   * @deprecated Please use `slots`.
+   * Override or extend the styles applied to the component.
    */
-  components?: MultiInputDateTimeRangeFieldSlotsComponent;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: MultiInputDateTimeRangeFieldSlotsComponentsProps<TDate>;
+  classes?: Partial<MultiInputRangeFieldClasses>;
   /**
    * Overridable component slots.
    * @default {}
    */
-  slots?: UncapitalizeObjectKeys<MultiInputDateTimeRangeFieldSlotsComponent>;
+  slots?: MultiInputDateTimeRangeFieldSlots;
   /**
    * The props used for each component slot.
    * @default {}
    */
-  slotProps?: MultiInputDateTimeRangeFieldSlotsComponentsProps<TDate>;
+  slotProps?: MultiInputDateTimeRangeFieldSlotProps;
 }
 
-export type MultiInputDateTimeRangeFieldOwnerState<TDate> =
-  MultiInputDateTimeRangeFieldProps<TDate>;
-
-export interface MultiInputDateTimeRangeFieldSlotsComponent {
+export interface MultiInputDateTimeRangeFieldSlots {
   /**
    * Element rendered at the root.
    * @default MultiInputDateTimeRangeFieldRoot
    */
-  Root?: React.ElementType;
+  root?: React.ElementType;
   /**
    * Form control with an input to render a date and time.
    * It is rendered twice: once for the start date time and once for the end date time.
-   * Receives the same props as `@mui/material/TextField`.
-   * @default TextField from '@mui/material'
+   * @default TextField from '@mui/material' or PickersTextField if `enableAccessibleFieldDOMStructure` is `true`.
    */
-  TextField?: React.ElementType;
+  textField?: React.ElementType;
   /**
    * Element rendered between the two inputs.
    * @default MultiInputDateTimeRangeFieldSeparator
    */
-  Separator?: React.ElementType;
+  separator?: React.ElementType;
 }
 
-export interface MultiInputDateTimeRangeFieldSlotsComponentsProps<TDate> {
-  root?: SlotComponentProps<typeof Stack, {}, MultiInputDateTimeRangeFieldOwnerState<TDate>>;
-  textField?: SlotComponentProps<
-    typeof TextField,
+export interface MultiInputDateTimeRangeFieldSlotProps {
+  root?: SlotComponentPropsFromProps<StackProps, {}, FieldOwnerState>;
+  textField?: SlotComponentPropsFromProps<
+    PickersTextFieldProps | TextFieldProps,
     {},
-    MultiInputDateTimeRangeFieldOwnerState<TDate> & { position: RangePosition }
+    FieldOwnerState & {
+      position: RangePosition;
+    }
   >;
-  separator?: SlotComponentProps<
-    typeof Typography,
-    {},
-    MultiInputDateTimeRangeFieldOwnerState<TDate>
-  >;
+  separator?: SlotComponentPropsFromProps<TypographyProps, {}, FieldOwnerState>;
 }
-
-export type UseMultiInputDateTimeRangeFieldDefaultizedProps<
-  TDate,
-  AdditionalProps extends {},
-> = UseDateTimeRangeFieldDefaultizedProps<TDate> & AdditionalProps;

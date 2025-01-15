@@ -5,6 +5,7 @@ import Stack from '@mui/material/Stack';
 import {
   DataGridPro,
   GridInitialState,
+  GridSlotProps,
   GridToolbarContainer,
   GridToolbarDensitySelector,
   GridToolbarFilterButton,
@@ -13,11 +14,13 @@ import {
 } from '@mui/x-data-grid-pro';
 import { useDemoData } from '@mui/x-data-grid-generator';
 
-function GridCustomToolbar({
-  syncState,
-}: {
-  syncState: (stateToSave: GridInitialState) => void;
-}) {
+declare module '@mui/x-data-grid' {
+  interface ToolbarPropsOverrides {
+    syncState: (stateToSave: GridInitialState) => void;
+  }
+}
+
+function GridCustomToolbar({ syncState }: GridSlotProps['toolbar']) {
   const rootProps = useGridRootProps();
   const apiRef = useGridApiContext();
 
@@ -51,7 +54,6 @@ export default function RestoreStateInitialState() {
 
   const syncState = React.useCallback((newInitialState: GridInitialState) => {
     setSavedState((prev) => ({
-      ...prev,
       count: prev.count + 1,
       initialState: newInitialState,
     }));

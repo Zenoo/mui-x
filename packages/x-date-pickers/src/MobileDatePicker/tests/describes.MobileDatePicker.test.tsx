@@ -1,18 +1,23 @@
-import { screen, userEvent } from '@mui/monorepo/test/utils';
-import { describeValidation } from '@mui/x-date-pickers/tests/describeValidation';
-import { describeValue } from '@mui/x-date-pickers/tests/describeValue';
+import * as React from 'react';
+import { screen, fireEvent } from '@mui/internal-test-utils';
 import {
   createPickerRenderer,
   adapterToUse,
-  expectInputValue,
+  expectFieldValueV7,
   openPicker,
-  expectInputPlaceholder,
-  getTextbox,
-} from 'test/utils/pickers-utils';
+  describeValidation,
+  describeValue,
+  describePicker,
+  getFieldInputRoot,
+} from 'test/utils/pickers';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
+import { PickerValue } from '@mui/x-date-pickers/internals';
+import { describeConformance } from 'test/utils/describeConformance';
 
 describe('<MobileDatePicker /> - Describes', () => {
   const { render, clock } = createPickerRenderer({ clock: 'fake' });
+
+  describePicker(MobileDatePicker, { render, fieldType: 'single-input', variant: 'mobile' });
 
   describeValidation(MobileDatePicker, () => ({
     render,
@@ -21,38 +26,53 @@ describe('<MobileDatePicker /> - Describes', () => {
     componentFamily: 'picker',
   }));
 
-  describeValue(MobileDatePicker, () => ({
+  describeConformance(<MobileDatePicker />, () => ({
+    classes: {} as any,
+    render,
+    muiName: 'MuiMobileDatePicker',
+    refInstanceof: window.HTMLDivElement,
+    skip: [
+      'componentProp',
+      'componentsProp',
+      'themeDefaultProps',
+      'themeStyleOverrides',
+      'themeVariants',
+      'mergeClassName',
+      'propsSpread',
+    ],
+  }));
+
+  describeValue<PickerValue, 'picker'>(MobileDatePicker, () => ({
     render,
     componentFamily: 'picker',
     type: 'date',
     variant: 'mobile',
-    values: [adapterToUse.date(new Date(2018, 0, 1)), adapterToUse.date(new Date(2018, 0, 2))],
+    values: [adapterToUse.date('2018-01-01'), adapterToUse.date('2018-01-02')],
     emptyValue: null,
     clock,
     assertRenderedValue: (expectedValue: any) => {
-      const input = getTextbox();
-      if (!expectedValue) {
-        expectInputPlaceholder(input, 'MM/DD/YYYY');
-      }
-      expectInputValue(
-        input,
-        expectedValue ? adapterToUse.format(expectedValue, 'keyboardDate') : '',
-        true,
-      );
+      const fieldRoot = getFieldInputRoot();
+
+      const expectedValueStr = expectedValue
+        ? adapterToUse.format(expectedValue, 'keyboardDate')
+        : 'MM/DD/YYYY';
+
+      expectFieldValueV7(fieldRoot, expectedValueStr);
     },
-    setNewValue: (value, { isOpened, applySameValue } = {}) => {
+    setNewValue: (value, { isOpened, applySameValue }) => {
       if (!isOpened) {
-        openPicker({ type: 'date', variant: 'mobile' });
+        openPicker({ type: 'date' });
       }
 
-      const newValue = applySameValue ? value : adapterToUse.addDays(value, 1);
-      userEvent.mousePress(
+      const newValue = applySameValue ? value! : adapterToUse.addDays(value!, 1);
+      fireEvent.click(
         screen.getByRole('gridcell', { name: adapterToUse.getDate(newValue).toString() }),
       );
 
       // Close the picker to return to the initial state
       if (!isOpened) {
-        userEvent.keyPress(document.activeElement!, { key: 'Escape' });
+        // eslint-disable-next-line material-ui/disallow-active-element-as-key-event-target
+        fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
         clock.runToLast();
       }
 

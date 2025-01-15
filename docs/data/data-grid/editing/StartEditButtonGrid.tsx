@@ -9,6 +9,7 @@ import {
   GridCellModes,
   GridEventListener,
   GridCellModesModel,
+  GridSlotProps,
 } from '@mui/x-data-grid';
 import {
   randomCreatedDate,
@@ -21,14 +22,16 @@ interface SelectedCellParams {
   field: string;
 }
 
-interface EditToolbarProps {
-  selectedCellParams?: SelectedCellParams;
-  cellModesModel: GridCellModesModel;
-  setCellModesModel: (value: GridCellModesModel) => void;
-  cellMode: 'view' | 'edit';
+declare module '@mui/x-data-grid' {
+  interface ToolbarPropsOverrides {
+    selectedCellParams: SelectedCellParams | null;
+    cellModesModel: GridCellModesModel;
+    setCellModesModel: (value: GridCellModesModel) => void;
+    cellMode: 'view' | 'edit';
+  }
 }
 
-function EditToolbar(props: EditToolbarProps) {
+function EditToolbar(props: GridSlotProps['toolbar']) {
   const { selectedCellParams, cellMode, cellModesModel, setCellModesModel } = props;
 
   const handleSaveOrEdit = () => {
@@ -130,6 +133,13 @@ export default function StartEditButtonGrid() {
     [cellMode],
   );
 
+  const handleCellEditStop = React.useCallback<GridEventListener<'cellEditStop'>>(
+    (params, event) => {
+      event.defaultMuiPrevented = true;
+    },
+    [],
+  );
+
   return (
     <div style={{ height: 400, width: '100%' }}>
       <DataGrid
@@ -137,15 +147,13 @@ export default function StartEditButtonGrid() {
         columns={columns}
         onCellKeyDown={handleCellKeyDown}
         cellModesModel={cellModesModel}
+        onCellEditStop={handleCellEditStop}
         onCellModesModelChange={(model) => setCellModesModel(model)}
-        slots={{
-          toolbar: EditToolbar,
-        }}
+        slots={{ toolbar: EditToolbar }}
         slotProps={{
           toolbar: {
             cellMode,
             selectedCellParams,
-            setSelectedCellParams,
             cellModesModel,
             setCellModesModel,
           },
@@ -160,7 +168,14 @@ export default function StartEditButtonGrid() {
 
 const columns: GridColDef[] = [
   { field: 'name', headerName: 'Name', width: 180, editable: true },
-  { field: 'age', headerName: 'Age', type: 'number', editable: true },
+  {
+    field: 'age',
+    headerName: 'Age',
+    type: 'number',
+    editable: true,
+    align: 'left',
+    headerAlign: 'left',
+  },
   {
     field: 'dateCreated',
     headerName: 'Date Created',

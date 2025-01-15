@@ -4,19 +4,18 @@ import TextField, { TextFieldProps } from '@mui/material/TextField';
 import {
   GridFilterInputValueProps,
   DataGrid,
-  GridFilterItem,
   GridFilterModel,
   GridFilterOperator,
+  useGridRootProps,
 } from '@mui/x-data-grid';
 import { useDemoData } from '@mui/x-data-grid-generator';
 import SyncIcon from '@mui/icons-material/Sync';
 
-const SUBMIT_FILTER_STROKE_TIME = 500;
-
 function InputNumberInterval(props: GridFilterInputValueProps) {
+  const rootProps = useGridRootProps();
   const { item, applyValue, focusElementRef = null } = props;
 
-  const filterTimeout = React.useRef<any>();
+  const filterTimeout = React.useRef<ReturnType<typeof setTimeout>>(undefined);
   const [filterValueState, setFilterValueState] = React.useState<[string, string]>(
     item.value ?? '',
   );
@@ -41,7 +40,7 @@ function InputNumberInterval(props: GridFilterInputValueProps) {
     filterTimeout.current = setTimeout(() => {
       setIsApplying(false);
       applyValue({ ...item, value: [lowerBound, upperBound] });
-    }, SUBMIT_FILTER_STROKE_TIME);
+    }, rootProps.filterDebounceMs);
   };
 
   const handleUpperFilterChange: TextFieldProps['onChange'] = (event) => {
@@ -88,19 +87,18 @@ function InputNumberInterval(props: GridFilterInputValueProps) {
   );
 }
 
-const quantityOnlyOperators: GridFilterOperator[] = [
+const quantityOnlyOperators: GridFilterOperator<any, number>[] = [
   {
     label: 'Between',
     value: 'between',
-    getApplyFilterFn: (filterItem: GridFilterItem) => {
+    getApplyFilterFn: (filterItem) => {
       if (!Array.isArray(filterItem.value) || filterItem.value.length !== 2) {
         return null;
       }
       if (filterItem.value[0] == null || filterItem.value[1] == null) {
         return null;
       }
-
-      return ({ value }) => {
+      return (value) => {
         return (
           value !== null &&
           filterItem.value[0] <= value &&
@@ -113,7 +111,7 @@ const quantityOnlyOperators: GridFilterOperator[] = [
 ];
 
 export default function CustomMultiValueOperator() {
-  const { data } = useDemoData({ dataSet: 'Commodity', rowLength: 100 });
+  const { data, loading } = useDemoData({ dataSet: 'Commodity', rowLength: 100 });
 
   const [filterModel, setFilterModel] = React.useState<GridFilterModel>({
     items: [
@@ -146,6 +144,7 @@ export default function CustomMultiValueOperator() {
     <div style={{ height: 400, width: '100%' }}>
       <DataGrid
         {...data}
+        loading={loading}
         columns={columns}
         filterModel={filterModel}
         onFilterModelChange={(model) => setFilterModel(model)}
