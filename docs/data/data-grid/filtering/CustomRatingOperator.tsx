@@ -4,11 +4,18 @@ import Rating, { RatingProps } from '@mui/material/Rating';
 import {
   GridFilterInputValueProps,
   DataGrid,
-  GridFilterItem,
   GridFilterOperator,
   GridToolbarFilterButton,
 } from '@mui/x-data-grid';
 import { useDemoData } from '@mui/x-data-grid-generator';
+
+function Toolbar() {
+  return (
+    <div>
+      <GridToolbarFilterButton />
+    </div>
+  );
+}
 
 function RatingInputValue(props: GridFilterInputValueProps) {
   const { item, applyValue, focusElementRef } = props;
@@ -38,7 +45,6 @@ function RatingInputValue(props: GridFilterInputValueProps) {
     >
       <Rating
         name="custom-rating-filter-operator"
-        placeholder="Filter value"
         value={Number(item.value)}
         onChange={handleFilterChange}
         precision={0.5}
@@ -48,17 +54,16 @@ function RatingInputValue(props: GridFilterInputValueProps) {
   );
 }
 
-const ratingOnlyOperators: GridFilterOperator[] = [
+const ratingOnlyOperators: GridFilterOperator<any, number>[] = [
   {
     label: 'Above',
     value: 'above',
-    getApplyFilterFn: (filterItem: GridFilterItem) => {
+    getApplyFilterFn: (filterItem) => {
       if (!filterItem.field || !filterItem.value || !filterItem.operator) {
         return null;
       }
-
-      return (params): boolean => {
-        return Number(params.value) >= Number(filterItem.value);
+      return (value) => {
+        return Number(value) >= Number(filterItem.value);
       };
     },
     InputComponent: RatingInputValue,
@@ -70,7 +75,7 @@ const ratingOnlyOperators: GridFilterOperator[] = [
 const VISIBLE_FIELDS = ['name', 'rating', 'country', 'dateCreated', 'isAdmin'];
 
 export default function CustomRatingOperator() {
-  const { data } = useDemoData({
+  const { data, loading } = useDemoData({
     dataSet: 'Employee',
     visibleFields: VISIBLE_FIELDS,
     rowLength: 100,
@@ -93,9 +98,10 @@ export default function CustomRatingOperator() {
     <div style={{ height: 400, width: '100%' }}>
       <DataGrid
         {...data}
+        loading={loading}
         columns={columns}
         slots={{
-          toolbar: GridToolbarFilterButton,
+          toolbar: Toolbar,
         }}
         initialState={{
           ...data.initialState,

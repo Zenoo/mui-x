@@ -1,53 +1,46 @@
+import { MakeOptional } from '@mui/x-internals/types';
 import {
-  UseDesktopPickerSlotsComponent,
-  ExportedUseDesktopPickerSlotsComponentsProps,
+  UseDesktopPickerSlots,
+  ExportedUseDesktopPickerSlotProps,
   DesktopOnlyPickerProps,
 } from '../internals/hooks/useDesktopPicker';
 import {
   BaseDatePickerProps,
-  BaseDatePickerSlotsComponent,
-  BaseDatePickerSlotsComponentsProps,
+  BaseDatePickerSlots,
+  BaseDatePickerSlotProps,
 } from '../DatePicker/shared';
-import { MakeOptional } from '../internals/models/helpers';
-import { DateView } from '../models';
-import { UncapitalizeObjectKeys } from '../internals/utils/slots-migration';
+import { ExportedYearCalendarProps } from '../YearCalendar/YearCalendar.types';
 
-export interface DesktopDatePickerSlotsComponent<TDate>
-  extends BaseDatePickerSlotsComponent<TDate>,
-    MakeOptional<UseDesktopPickerSlotsComponent<TDate, DateView>, 'Field' | 'OpenPickerIcon'> {}
+export interface DesktopDatePickerSlots
+  extends BaseDatePickerSlots,
+    MakeOptional<UseDesktopPickerSlots, 'field' | 'openPickerIcon'> {}
 
-export interface DesktopDatePickerSlotsComponentsProps<TDate>
-  extends BaseDatePickerSlotsComponentsProps<TDate>,
-    ExportedUseDesktopPickerSlotsComponentsProps<TDate, DateView> {}
+export interface DesktopDatePickerSlotProps<TEnableAccessibleFieldDOMStructure extends boolean>
+  extends BaseDatePickerSlotProps,
+    ExportedUseDesktopPickerSlotProps<TEnableAccessibleFieldDOMStructure> {}
 
-export interface DesktopDatePickerProps<TDate>
-  extends BaseDatePickerProps<TDate>,
-    DesktopOnlyPickerProps<TDate> {
+export interface DesktopDatePickerProps<TEnableAccessibleFieldDOMStructure extends boolean = true>
+  extends BaseDatePickerProps,
+    DesktopOnlyPickerProps,
+    ExportedYearCalendarProps {
+  /**
+   * Overridable component slots.
+   * @default {}
+   */
+  slots?: DesktopDatePickerSlots;
+  /**
+   * The props used for each component slot.
+   * @default {}
+   */
+  slotProps?: DesktopDatePickerSlotProps<TEnableAccessibleFieldDOMStructure>;
   /**
    * Years rendered per row.
    * @default 4
    */
   yearsPerRow?: 3 | 4;
   /**
-   * Overridable components.
-   * @default {}
-   * @deprecated Please use `slots`.
+   * If `true`, the Picker will close after submitting the full date.
+   * @default true
    */
-  components?: DesktopDatePickerSlotsComponent<TDate>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: DesktopDatePickerSlotsComponentsProps<TDate>;
-  /**
-   * Overridable component slots.
-   * @default {}
-   */
-  slots?: UncapitalizeObjectKeys<DesktopDatePickerSlotsComponent<TDate>>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   */
-  slotProps?: DesktopDatePickerSlotsComponentsProps<TDate>;
+  closeOnSelect?: boolean;
 }

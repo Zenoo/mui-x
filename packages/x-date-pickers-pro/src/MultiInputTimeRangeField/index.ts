@@ -1,7 +1,16 @@
 export { MultiInputTimeRangeField } from './MultiInputTimeRangeField';
-export { useMultiInputTimeRangeField as unstable_useMultiInputTimeRangeField } from '../internal/hooks/useMultiInputRangeField/useMultiInputTimeRangeField';
+export type { MultiInputTimeRangeFieldProps } from './MultiInputTimeRangeField';
+
+export {
+  multiInputTimeRangeFieldClasses,
+  getMultiInputTimeRangeFieldUtilityClass,
+} from './multiInputTimeRangeFieldClasses';
 export type {
-  UseMultiInputTimeRangeFieldProps,
-  UseMultiInputTimeRangeFieldComponentProps,
-  MultiInputTimeRangeFieldProps,
-} from './MultiInputTimeRangeField.types';
+  MultiInputTimeRangeFieldClassKey,
+  MultiInputTimeRangeFieldClasses,
+} from './multiInputTimeRangeFieldClasses';
+
+export type {
+  MultiInputRangeFieldSlots as MultiInputTimeRangeFieldSlots,
+  MultiInputRangeFieldSlotProps as MultiInputTimeRangeFieldSlotProps,
+} from '../internals/utils/createMultiInputRangeField';

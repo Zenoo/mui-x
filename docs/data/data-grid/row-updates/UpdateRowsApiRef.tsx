@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DataGridPro, useGridApiRef } from '@mui/x-data-grid-pro';
+import { DataGridPro, useGridApiRef, GridColDef } from '@mui/x-data-grid-pro';
 import {
   randomInt,
   randomUserName,
@@ -9,7 +9,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 
-const columns = [
+const columns: GridColDef[] = [
   { field: 'id' },
   { field: 'username', width: 150 },
   { field: 'age', width: 80, type: 'number' },
@@ -32,29 +32,29 @@ export default function UpdateRowsApiRef() {
   const apiRef = useGridApiRef();
 
   const handleUpdateRow = () => {
-    const rowIds = apiRef.current.getAllRowIds();
+    const rowIds = apiRef.current?.getAllRowIds() || [];
     const rowId = randomArrayItem(rowIds);
 
-    apiRef.current.updateRows([{ id: rowId, username: randomUserName() }]);
+    apiRef.current?.updateRows([{ id: rowId, username: randomUserName() }]);
   };
 
   const handleUpdateAllRows = () => {
-    const rowIds = apiRef.current.getAllRowIds();
+    const rowIds = apiRef.current?.getAllRowIds() || [];
 
-    apiRef.current.updateRows(
+    apiRef.current?.updateRows(
       rowIds.map((rowId) => ({ id: rowId, username: randomUserName() })),
     );
   };
 
   const handleDeleteRow = () => {
-    const rowIds = apiRef.current.getAllRowIds();
+    const rowIds = apiRef.current?.getAllRowIds() || [];
     const rowId = randomArrayItem(rowIds);
 
-    apiRef.current.updateRows([{ id: rowId, _action: 'delete' }]);
+    apiRef.current?.updateRows([{ id: rowId, _action: 'delete' }]);
   };
 
   const handleAddRow = () => {
-    apiRef.current.updateRows([createRandomRow()]);
+    apiRef.current?.updateRows([createRandomRow()]);
   };
 
   return (

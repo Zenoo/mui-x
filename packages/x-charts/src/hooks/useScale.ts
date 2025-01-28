@@ -1,52 +1,33 @@
-import {
-  scaleBand,
-  scaleLog,
-  scalePoint,
-  scalePow,
-  scaleSqrt,
-  scaleTime,
-  scaleUtc,
-  scaleLinear,
-} from 'd3-scale';
-import type {
-  ScaleBand,
-  ScaleLogarithmic,
-  ScalePoint,
-  ScalePower,
-  ScaleTime,
-  ScaleLinear,
-} from 'd3-scale';
-import { ScaleName } from '../models/axis';
+'use client';
+import { isBandScale } from '../internals/isBandScale';
+import { AxisScaleConfig, D3Scale, ScaleName } from '../models/axis';
+import { useXAxis, useYAxis } from './useAxis';
 
-export type D3Scale =
-  | ScaleBand<any>
-  | ScaleLogarithmic<any, any>
-  | ScalePoint<any>
-  | ScalePower<any, any>
-  | ScaleTime<any, any>
-  | ScaleLinear<any, any>;
-
-export function getScale(scaleName: ScaleName | undefined): D3Scale {
-  switch (scaleName) {
-    case 'band':
-      return scaleBand();
-    case 'log':
-      return scaleLog();
-    case 'point':
-      return scalePoint();
-    case 'pow':
-      return scalePow();
-    case 'sqrt':
-      return scaleSqrt();
-    case 'time':
-      return scaleTime();
-    case 'utc':
-      return scaleUtc();
-    default:
-      return scaleLinear();
+/**
+ * For a given scale return a function that map value to their position.
+ * Useful when dealing with specific scale such as band.
+ * @param scale The scale to use
+ * @returns (value: any) => number
+ */
+export function getValueToPositionMapper(scale: D3Scale) {
+  if (isBandScale(scale)) {
+    return (value: any) => (scale(value) ?? 0) + scale.bandwidth() / 2;
   }
+  return (value: any) => scale(value) as number;
 }
 
-export function isBandScale(scale: D3Scale): scale is ScaleBand<any> | ScalePoint<any> {
-  return (scale as ScaleBand<any> | ScalePoint<any>).bandwidth !== undefined;
+export function useXScale<S extends ScaleName>(
+  identifier?: number | string,
+): AxisScaleConfig[S]['scale'] {
+  const axis = useXAxis(identifier);
+
+  return axis.scale;
+}
+
+export function useYScale<S extends ScaleName>(
+  identifier?: number | string,
+): AxisScaleConfig[S]['scale'] {
+  const axis = useYAxis(identifier);
+
+  return axis.scale;
 }

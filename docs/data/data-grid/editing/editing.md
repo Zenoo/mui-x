@@ -1,28 +1,65 @@
 # Data Grid - Editing
 
-<p class="description">The data grid has built-in support for cell and row editing.</p>
+<p class="description">The Data Grid has built-in support for cell and row editing.</p>
+
+## Full-featured CRUD
+
+The Data Grid is not only a data visualization tool. It offers built-in editing features for you to manage your data set.
+The following demo shows a full-featured CRUD (Create, Read, Update, Delete) typically found in enterprise applications.
+
+:::info
+You will find the details of the editing API in the next sections.
+:::
+
+{{"demo": "FullFeaturedCrudGrid.js", "bg": "inline", "defaultCodeOpen": false}}
 
 ## Making a column editable
 
-You can make a column editable by enabling the `editable` property in its [column definition](/x/api/data-grid/grid-col-def/):
+You can make a column editable by enabling the `editable` property in its [column definition](/x/api/data-grid/grid-col-def/).
+
+This lets the user edit any cell from the specified columns.
+For example, with the code snippet below, users can edit cells in the `name` column, but not in the `id` column.
 
 ```tsx
-<DataGrid columns={[{ field: 'name', editable: true }]} />
+<DataGrid columns={[{ field: 'id' }, { field: 'name', editable: true }]} />
 ```
 
-This lets the user edit any cell from the specified column.
-By default, only one cell at a time can have its `editMode` prop set to `"edit"`.
-To let your users edit all cells in a given row simultaneously, set the `editMode` prop to `"row"`.
-For more information, see [the section on row editing](#row-editing).
-
 The following demo shows an example of how to make all columns editable.
-Play with it by double-clicking or pressing <kbd class="key">Enter</kbd> in any cell from this column:
+Play with it by double-clicking or pressing <kbd class="key">Enter</kbd> on any cell.
 
 {{"demo": "BasicEditingGrid.js", "bg": "inline", "defaultCodeOpen": false}}
 
+## Row editing
+
+By default, only one cell can be editable at a time.
+But you can let your user edit all cells in a row simultaneously.
+
+To enable this behavior, set the `editMode` prop on the Data Grid to `"row"`. Note that you still need to set the `editable` property in each column definition to specify which of them are editable; the same basic rules for cell editing also apply to row editing.
+
+```tsx
+<DataGrid editMode="row" columns={[{ field: 'name', editable: true }]} />
+```
+
+The following demo illustrates how row editing works.
+The user can [start](#start-editing) and [stop](#stop-editing) editing a row using the same actions as those provided for cell editing (for example double-clicking a cell).
+
+{{"demo": "BasicRowEditingGrid.js", "bg": "inline", "defaultCodeOpen": false}}
+
+:::warning
+By design, when changing the value of a cell all `preProcessEditCellProps` callbacks from other columns are also called.
+This lets you apply conditional validation where the value of a cell impacts the validation status of another cell in the same row.
+If you only want to run validation when the value has changed, check if the `hasChanged` param is `true`.
+
+For more details on how to use `preProcessEditCellProps`, please check the editing [validation](#validation) section.
+:::
+
+## Switching between edit and view modes
+
+Each cell and row has two modes: `edit` and `view`. When in `edit` mode, users can directly change the content of a cell or a row.
+
 ### Start editing
 
-Users can start editing a cell (or row if `editMode="row"`) with any of the following actions:
+When a cell is in `view` mode, users can start editing a cell (or row if `editMode="row"`) with any of the following actions:
 
 - Double-clicking a cell
 - Pressing <kbd class="key">Enter</kbd>, <kbd class="key">Backspace</kbd> or <kbd class="key">Delete</kbd>—note that the latter two options both delete any existing content
@@ -39,9 +76,13 @@ Users can start editing a cell (or row if `editMode="row"`) with any of the foll
   apiRef.current.startRowEditMode({ id: 1 });
   ```
 
+:::info
+You can also enter edit mode with a single click by following [this recipe](/x/react-data-grid/recipes-editing/#single-click-editing).
+:::
+
 ### Stop editing
 
-When a cell is in edit mode, the user can stop editing with any of the following interactions:
+When a cell is in `edit` mode, the user can stop editing with any of the following interactions:
 
 - Pressing <kbd class="key">Escape</kbd>—this also reverts any changes made
 - Pressing <kbd class="key">Tab</kbd>—this also saves any changes made
@@ -92,7 +133,7 @@ You can use the `valueParser` property in the column definition to modify the va
 ```tsx
 const columns: GridColDef[] = [
   {
-    valueParser: (value: any, params: GridCellParams) => {
+    valueParser: (value, row, column, apiRef) => {
       return value.toLowerCase();
     },
   },
@@ -102,14 +143,14 @@ const columns: GridColDef[] = [
 You can use the `valueSetter` property of the column definition to customize how the row is updated with a new value.
 This lets you insert a value from a nested object.
 It is called with an object containing the new cell value to be saved as well as the row that the cell belongs to.
-If you are already using a `valueGetter` to extract the value from a nested object, then the `valueSetter` will probably also be necessary.
+If you are already using a `valueGetter` to extract the value from a nested object, then the `valueSetter` is probably also necessary.
 
 ```tsx
 const columns: GridColDef[] = [
   {
-    valueSetter: (params: GridValueSetterParams) => {
-      const [firstName, lastName] = params.value!.toString().split(' ');
-      return { ...params.row, firstName, lastName };
+    valueSetter: (value, row) => {
+      const [firstName, lastName] = value!.toString().split(' ');
+      return { ...row, firstName, lastName };
     },
   },
 ];
@@ -119,80 +160,6 @@ In the following demo, both the `valueParser` and the `valueSetter` are defined 
 The `valueParser` capitalizes the value entered, and the `valueSetter` splits the value and saves it correctly into the row model:
 
 {{"demo": "ValueParserSetterGrid.js", "bg": "inline", "defaultCodeOpen": false}}
-
-## Events
-
-The mouse and keyboard interactions that [start](#start-editing) and [stop](#stop-editing) cell editing do so by triggering the `'cellEditStart'` and `'cellEditStop'` [events](/x/react-data-grid/events/), respectively.
-For row editing, the events are `'rowEditStart'` and `'rowEditStop'`.
-You can control how these events are handled to customize editing behavior.
-
-For convenience, you can also listen to these events using their respective props:
-
-- `onCellEditStart`
-- `onCellEditStop`
-- `onRowEditStart`
-- `onRowEditStop`
-
-These events and props are called with an object containing the row ID and column field of the cell that is being edited.
-The object also contains a `reason` param that specifies which type of interaction caused the event to be fired—for instance, `'cellDoubleClick'` when a double-click initiates edit mode.
-
-The following demo shows how to prevent the user from exiting edit mode when clicking outside of a cell.
-To do this, the `onCellEditStop` prop is used to check if the `reason` is `'cellFocusOut'`.
-If that condition is true, it [disables](/x/react-data-grid/events/#disabling-the-default-behavior) the default event behavior.
-In this context, the user can only stop editing a cell by pressing <kbd class="key">Enter</kbd>, <kbd class="key">Escape</kbd> or <kbd class="key">Tab</kbd>.
-
-{{"demo": "DisableStopEditModeOnFocusOut.js", "bg": "inline"}}
-
-## Controlled mode
-
-Each cell and row has two modes: `edit` and `view`.
-You can control the active mode using the props `cellModesModel` and `rowModesModel` (only works if `editMode="row"`).
-
-The `cellModesModel` prop accepts an object containing the `mode` (and additional options) for a given column field, in a given row, as in the following example.
-The options accepted are the same available in [`apiRef.current.startCellEditMode`](#start-editing) and [`apiRef.current.stopCellEditMode`](#stop-editing).
-
-```tsx
-// Changes the mode of field=name from row with id=1 to "edit"
-<DataGrid
-  cellModesModel={{ 1: { name: { mode: GridCellModes.Edit } } }}
-/>
-
-// Changes the mode of field=name from row with id=1 to "view", ignoring modifications made
-<DataGrid
-  cellModesModel={{ 1: { name: { mode: GridCellModes.View, ignoreModifications: true } } }}
-/>
-```
-
-For row editing, the `rowModesModel` props work in a similar manner.
-The options accepted are the same available in [`apiRef.current.startRowEditMode`](#start-editing) and [`apiRef.current.stopRowEditMode`](#stop-editing).
-
-```tsx
-// Changes the mode of the row with id=1 to "edit"
-<DataGrid
-  editMode="row"
-  rowModesModel={{ 1: { mode: GridRowModes.Edit } }}
-/>
-
-// Changes the mode of the row with id=1 to "view", ignoring modifications made
-<DataGrid
-  editMode="row"
-  rowModesModel={{ 1: { mode: GridRowModes.View, ignoreModifications: true } }}
-/>
-```
-
-Additionally, the callback props `onCellModesModelChange` and `onRowModesModelChange` (only works if `editMode="row"`) are available.
-Use them to update the respective prop.
-
-In the demo below, `cellModesModel` is used to control the mode of selected cell using the external buttons.
-For an example using row editing check the [full-featured CRUD component](#full-featured-crud-component).
-
-{{"demo": "StartEditButtonGrid.js", "bg": "inline", "defaultCodeOpen": false}}
-
-:::warning
-The options passed to both model props only take effect when `mode` changes.
-Updating the params of a cell or row, but keeping the same `mode`, makes the cell or row to stay in the same mode.
-Also, removing one field or row ID from the object will not cause the missing cell or row to go to `"view"` mode.
-:::
 
 ## Validation
 
@@ -233,199 +200,55 @@ While the promise is not resolved, the edit component will receive an `isProcess
 
 {{"demo": "ValidateServerNameGrid.js", "bg": "inline", "defaultCodeOpen": false}}
 
-## Persistence
+## Controlled model
 
-The `processRowUpdate` prop is called when the user performs an action to [stop editing](#stop-editing).
-Use this prop to send the new values to the server and save them into a database or other storage method.
-The prop is called with two arguments:
+You can control the active mode using the props `cellModesModel` and `rowModesModel` (only works if `editMode="row"`).
 
-1. the updated row with the new values after passing through the `valueSetter`
-2. the values of the row before the cell or row was edited
-
-Once the row is saved, `processRowUpdate` must return the row object that will be used to update the internal state.
-The value returned is used as an argument to a call to `apiRef.current.updateRows`.
-
-If you need to cancel the save process while calling `processRowUpdate`—for instance, when a database validation fails, or the user wants to reject the changes—there are two options:
-
-1. Reject the promise so that the internal state is not updated and the cell remains in edit mode
-2. Resolve the promise with the second argument—the original value(s)—so that the internal state is not updated, but the cell exits edit mode
-
-The following demo implements the first option: rejecting the promise.
-Instead of [validating](#validation) while typing, it validates in the server.
-If the new name is empty, then the promise responsible for saving the row will be rejected and the cell will remain in edit mode.
-Additionally, `onProcessRowUpdateError` is called to display the error message.
-The demo also shows that `processRowUpdate` can be used to pre-process the row model that will be saved into the internal state.
-To exit edit mode, press <kbd class="key">Escape</kbd> or enter a valid name.
-
-{{"demo": "ServerSidePersistence.js", "bg": "inline", "defaultCodeOpen": false}}
-
-### Ask for confirmation before saving
-
-The second option—resolving the promise with the second argument—lets the user cancel the save process by rejecting the changes and exiting edit mode.
-In this case, `processRowUpdate` is resolved with the second argument—the original value(s) of the cell or row.
-
-The following demo shows how this approach can be used to ask for confirmation before sending the data to the server.
-If the user accepts the change, the internal state is updated with the values.
-But if the changes are rejected, the internal state remains unchanged, and the cell is reverted back to its original value.
-The demo also employs validation to prevent entering an empty name.
-
-{{"demo": "AskConfirmationBeforeSave.js", "bg": "inline", "defaultCodeOpen": false}}
-
-## Create your own edit component
-
-Each of the built-in column types provides a component to edit the value of the cells.
-To customize column types, or override the existing components, you can provide a new edit component through the `renderEditCell` property in the column definition.
-This property works like the `renderCell` property, which is rendered while cells are in view mode.
+The `cellModesModel` prop accepts an object containing the `mode` (and additional options) for a given column field, in a given row, as in the following example.
+The options accepted are the same available in [`apiRef.current.startCellEditMode()`](#start-editing) and [`apiRef.current.stopCellEditMode()`](#stop-editing).
 
 ```tsx
-function CustomEditComponent(props: GridRenderEditCellParams) {
-  return <input type="text" value={params.value} onValueChange={...} />;
-}
+// Changes the mode of field=name from row with id=1 to "edit"
+<DataGrid
+  cellModesModel={{ 1: { name: { mode: GridCellModes.Edit } } }}
+/>
 
-const columns: GridColDef[] = [
-  {
-    field: 'firstName',
-    renderEditCell: (params: GridRenderEditCellParams) => (
-      <CustomEditComponent {...params} />
-    ),
-  },
-];
+// Changes the mode of field=name from row with id=1 to "view", ignoring modifications made
+<DataGrid
+  cellModesModel={{ 1: { name: { mode: GridCellModes.View, ignoreModifications: true } } }}
+/>
 ```
 
-The `renderEditCell` property receives all params from `GridRenderEditCellParams`, which extends `GridCellParams`.
-Additionally, the props added during [pre-processing](#validation) are also available in the params.
-These are the most important params to consider:
-
-- `value`: contains the current value of the cell in edit mode, overriding the value from `GridCellParams`
-- `error`: the error added during validation
-- `isProcessingProps`: whether `preProcessEditCellProps` is being executed or not
-
-Once a new value is entered into the input, it must be sent to the data grid.
-To do this, pass the row ID, the column field, and the new cell value to a call to `apiRef.current.setEditCellValue`.
-The new value will be parsed and validated, and the `value` prop will reflect the changes in the next render.
+For row editing, the `rowModesModel` props work in a similar manner.
+The options accepted are the same available in [`apiRef.current.startRowEditMode()`](#start-editing) and [`apiRef.current.stopRowEditMode()`](#stop-editing).
 
 ```tsx
-function CustomEditComponent(props: GridRenderEditCellParams) {
-  const { id, value, field } = props;
-  const apiRef = useGridApiContext();
+// Changes the mode of the row with id=1 to "edit"
+<DataGrid
+  editMode="row"
+  rowModesModel={{ 1: { mode: GridRowModes.Edit } }}
+/>
 
-  const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = event.target.value; // The new value entered by the user
-    apiRef.current.setEditCellValue({ id, field, value: newValue });
-  };
-
-  return <input type="text" value={value} onChange={handleValueChange} />;
-}
+// Changes the mode of the row with id=1 to "view", ignoring modifications made
+<DataGrid
+  editMode="row"
+  rowModesModel={{ 1: { mode: GridRowModes.View, ignoreModifications: true } }}
+/>
 ```
 
-The following demo implements a custom edit component, based on the [`Rating`](https://mui.com/material-ui/react-rating/) component from `@mui/material`, for the **Rating** column.
+Additionally, the callback props `onCellModesModelChange()` and `onRowModesModelChange()` (only works if `editMode="row"`) are available.
+Use them to update the respective prop.
 
-{{"demo": "CustomEditComponent.js", "bg": "inline", "defaultCodeOpen": false}}
+In the demo below, `cellModesModel` is used to control the mode of selected cell using the external buttons.
+For an example using row editing check the [full-featured CRUD component](#full-featured-crud-component).
 
-### With debounce
-
-By default, each call to `apiRef.current.setEditCellValue` triggers a new render.
-If the edit component requires the user to type a new value, re-rendering the data grid too often will drastically reduce performance.
-One way to avoid this is to debounce the API calls.
-You can use `apiRef.current.setEditCellValue` to handle debouncing by setting the `debounceMs` param to a positive integer that defines a set time period in milliseconds.
-No matter how many times the API method is called, the data grid will only be re-rendered after that period of time has passed.
-
-```tsx
-apiRef.current.setEditCellValue({ id, field, value: newValue, debounceMs: 200 });
-```
-
-When the data grid is only set to re-render after a given period of time has passed, the `value` prop will not be updated on each `apiRef.current.setEditCellValue` call.
-To avoid a frozen UI, the edit component can keep the current value in an internal state and sync it once `value` changes.
-Modify the edit component to enable this feature:
-
-```diff
- function CustomEditComponent(props: GridRenderEditCellParams) {
--  const { id, value, field } = props;
-+  const { id, value: valueProp, field } = props;
-+  const [value, setValue] = React.useState(valueProp);
-   const apiRef = useGridApiContext();
-
-   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-     const newValue = event.target.value; // The new value entered by the user
--    apiRef.current.setEditCellValue({ id, field, value: newValue });
-+    apiRef.current.setEditCellValue({ id, field, value: newValue, debounceMs: 200 });
-+    setValue(newValue);
-   };
-
-+  React.useEffect(() => {
-+    setValue(valueProp);
-+  }, [valueProp]);
-+
-   return <input type="text" value={value} onChange={handleChange} />;
- }
-```
-
-### With auto-stop
-
-An edit component has "auto-stop" behavior when it stops edit mode as soon as the value is changed.
-To picture better, imagine an edit component with a combo, created following the normal [steps](#create-your-own-edit-component).
-By default, it would require two clicks to change the value of the cell: one click inside the cell to select a new value, and another click outside the cell to save.
-This second click can be avoided if the first click also stops the edit mode.
-To create an edit component with auto-stop, call `apiRef.current.stopCellEditMode` after setting the new value.
-Since `apiRef.current.setEditCellValue` may do additional processing, you must wait for it to resolve before stopping the edit mode.
-Also, it is a good practice to check if `apiRef.current.setEditCellValue` has returned `true`.
-It will be `false` if `preProcessEditProps` set an error during [validation](#validation).
-
-```tsx
-const handleChange = async (event: SelectChangeEvent) => {
-  const isValid = await apiRef.current.setEditCellValue({
-    id,
-    field,
-    value: event.target.value,
-  });
-
-  if (isValid) {
-    apiRef.current.stopCellEditMode({ id, field });
-  }
-};
-```
-
-The following demo implements an edit component with auto-stop, based on a native [`Select`](/material-ui/react-select/) component for the **Role** column.
-
-{{"demo": "AutoStopEditComponent.js", "bg": "inline", "defaultCodeOpen": false}}
+{{"demo": "StartEditButtonGrid.js", "bg": "inline", "defaultCodeOpen": false}}
 
 :::warning
-Avoid using edit components with auto-stop in columns that use long-running `preProcessEditCellProps` because the UI will freeze while waiting for `apiRef.current.setEditCellValue`.
-Instead, use the provided interactions to exit edit mode.
+The options passed to both model props only take effect when `mode` changes.
+Updating the params of a cell or row, but keeping the same `mode`, makes the cell or row to stay in the same mode.
+Also, removing one field or row ID from the object will not cause the missing cell or row to go to `"view"` mode.
 :::
-
-## Row editing
-
-Row editing lets the user edit all cells in a row simultaneously.
-The same basic rules for cell editing also apply to row editing.
-To enable it, change the `editMode` prop to `"row"`, then follow the same guidelines as those for cell editing to set the `editable` property in the definition of the columns that the user can edit.
-
-```tsx
-<DataGrid editMode="row" columns={[{ field: 'name', editable: true }]} />
-```
-
-The following demo illustrates how row editing works.
-The user can [start](#start-editing) and [stop](#stop-editing) editing a row using the same actions as those provided for cell editing (e.g. double-clicking a cell).
-
-{{"demo": "BasicRowEditingGrid.js", "bg": "inline", "defaultCodeOpen": false}}
-
-:::warning
-By design, when changing the value of a cell all `preProcessEditCellProps` callbacks from other columns are also called.
-This lets you apply conditional validation where the value of a cell impacts the validation status of another cell in the same row.
-If you only want to run validation when the value has changed, check if the `hasChanged` param is `true`.
-:::
-
-### Full-featured CRUD component
-
-Row editing makes it possible to create a full-featured CRUD (Create, Read, Update, Delete) component similar to those found in enterprise applications.
-In the following demo, the typical ways to start and stop editing are all disabled.
-Instead, use the buttons available in each row or in the toolbar.
-
-{{"demo": "FullFeaturedCrudGrid.js", "bg": "inline", "defaultCodeOpen": false}}
-
-## Advanced use cases
-
-See [Editing recipes](/x/react-data-grid/recipes-editing/) for more advanced use cases.
 
 ## apiRef
 

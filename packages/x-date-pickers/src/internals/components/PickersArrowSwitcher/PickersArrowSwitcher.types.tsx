@@ -1,34 +1,30 @@
 import * as React from 'react';
-import { SlotComponentProps } from '@mui/base/utils';
+import { SlotComponentProps } from '@mui/utils';
 import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
 import { PickersArrowSwitcherClasses } from './pickersArrowSwitcherClasses';
-import { UncapitalizeObjectKeys } from '../../utils/slots-migration';
+import { PickerOwnerState } from '../../../models';
 
 export interface ExportedPickersArrowSwitcherProps {
-  /**
-   * Overridable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: PickersArrowSwitcherSlotsComponent;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: PickersArrowSwitcherSlotsComponentsProps;
   /**
    * Overridable component slots.
    * @default {}
    */
-  slots?: UncapitalizeObjectKeys<PickersArrowSwitcherSlotsComponent>;
+  slots?: PickersArrowSwitcherSlots;
   /**
    * The props used for each component slot.
    * @default {}
    */
-  slotProps?: PickersArrowSwitcherSlotsComponentsProps;
+  slotProps?: PickersArrowSwitcherSlotProps;
+  /**
+   * Override or extend the styles applied to the component.
+   */
   classes?: Partial<PickersArrowSwitcherClasses>;
+  /**
+   * Format used to display the date.
+   * @default `${adapter.formats.month} ${adapter.formats.year}`
+   */
+  format?: string;
 }
 
 export interface PickersArrowSwitcherProps
@@ -43,58 +39,60 @@ export interface PickersArrowSwitcherProps
   isNextHidden?: boolean;
   onGoToNext: () => void;
   nextLabel: string;
+  labelId?: string;
 }
 
-export type PickersArrowSwitcherOwnerState = PickersArrowSwitcherProps;
+export interface PickersArrowSwitcherOwnerState extends PickerOwnerState {
+  /**
+   * If `true`, this button should be hidden.
+   */
+  isButtonHidden: boolean;
+}
 
-export interface PickersArrowSwitcherComponentsPropsOverrides {}
+export interface PickersArrowSwitcherSlotPropsOverrides {}
 
-export interface PickersArrowSwitcherSlotsComponent {
+export interface PickersArrowSwitcherSlots {
   /**
    * Button allowing to switch to the left view.
    * @default IconButton
    */
-  PreviousIconButton?: React.ElementType;
+  previousIconButton?: React.ElementType;
   /**
    * Button allowing to switch to the right view.
    * @default IconButton
    */
-  NextIconButton?: React.ElementType;
+  nextIconButton?: React.ElementType;
   /**
    * Icon displayed in the left view switch button.
    * @default ArrowLeft
    */
-  LeftArrowIcon?: React.ElementType;
+  leftArrowIcon?: React.ElementType;
   /**
    * Icon displayed in the right view switch button.
    * @default ArrowRight
    */
-  RightArrowIcon?: React.ElementType;
+  rightArrowIcon?: React.ElementType;
 }
 
-export interface PickersArrowSwitcherButtonSlotOwnerState extends PickersArrowSwitcherOwnerState {
-  hidden?: boolean;
-}
-
-export interface PickersArrowSwitcherSlotsComponentsProps {
+export interface PickersArrowSwitcherSlotProps {
   previousIconButton?: SlotComponentProps<
     typeof IconButton,
-    PickersArrowSwitcherComponentsPropsOverrides,
-    PickersArrowSwitcherButtonSlotOwnerState
+    PickersArrowSwitcherSlotPropsOverrides,
+    PickersArrowSwitcherOwnerState
   >;
   nextIconButton?: SlotComponentProps<
     typeof IconButton,
-    PickersArrowSwitcherComponentsPropsOverrides,
-    PickersArrowSwitcherButtonSlotOwnerState
+    PickersArrowSwitcherSlotPropsOverrides,
+    PickersArrowSwitcherOwnerState
   >;
   leftArrowIcon?: SlotComponentProps<
     typeof SvgIcon,
-    PickersArrowSwitcherComponentsPropsOverrides,
-    undefined
+    PickersArrowSwitcherSlotPropsOverrides,
+    PickerOwnerState
   >;
   rightArrowIcon?: SlotComponentProps<
     typeof SvgIcon,
-    PickersArrowSwitcherComponentsPropsOverrides,
-    undefined
+    PickersArrowSwitcherSlotPropsOverrides,
+    PickerOwnerState
   >;
 }

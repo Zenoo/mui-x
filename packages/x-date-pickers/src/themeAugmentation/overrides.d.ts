@@ -1,10 +1,10 @@
 import {
   DateCalendarClassKey,
   DayCalendarClassKey,
-  PickersCalendarHeaderClassKey,
   PickersFadeTransitionGroupClassKey,
   PickersSlideTransitionClassKey,
 } from '../DateCalendar';
+import { PickersCalendarHeaderClassKey } from '../PickersCalendarHeader';
 import { DayCalendarSkeletonClassKey } from '../DayCalendarSkeleton';
 import {
   ClockClassKey,
@@ -12,20 +12,31 @@ import {
   TimeClockClassKey,
   ClockPointerClassKey,
 } from '../TimeClock';
-import { MonthCalendarClassKey, PickersMonthClassKey } from '../MonthCalendar';
+import { MonthCalendarClassKey } from '../MonthCalendar';
 import { PickersDayClassKey } from '../PickersDay';
-import { PickersYearClassKey, YearCalendarClassKey } from '../YearCalendar';
+import { YearCalendarClassKey } from '../YearCalendar';
 import { PickersLayoutClassKey } from '../PickersLayout';
 import { DatePickerToolbarClassKey } from '../DatePicker';
 import { TimePickerToolbarClassKey } from '../TimePicker';
 import { DateTimePickerToolbarClassKey, DateTimePickerTabsClassKey } from '../DateTimePicker';
+import { PickersArrowSwitcherClassKey } from '../internals/components/PickersArrowSwitcher';
+import { PickersToolbarClassKey } from '../internals/components/pickersToolbarClasses';
+import { PickerPopperClassKey } from '../internals/components/PickerPopper';
+import { PickersToolbarButtonClassKey } from '../internals/components/pickersToolbarButtonClasses';
+import { PickersToolbarTextClassKey } from '../internals/components/pickersToolbarTextClasses';
+import { DigitalClockClassKey } from '../DigitalClock';
 import {
-  PickersArrowSwitcherClassKey,
-  PickersPopperClassKey,
-  PickersToolbarButtonClassKey,
-  PickersToolbarClassKey,
-  PickersToolbarTextClassKey,
-} from '../internals';
+  MultiSectionDigitalClockClassKey,
+  MultiSectionDigitalClockSectionClassKey,
+} from '../MultiSectionDigitalClock';
+import {
+  PickersTextFieldClassKey,
+  PickersInputClassKey,
+  PickersOutlinedInputClassKey,
+  PickersFilledInputClassKey,
+  PickersInputBaseClassKey,
+} from '../PickersTextField';
+import { PickersSectionListClassKey } from '../PickersSectionList';
 
 // prettier-ignore
 export interface PickersComponentNameToClassKey {
@@ -33,47 +44,36 @@ export interface PickersComponentNameToClassKey {
   MuiClockNumber: ClockNumberClassKey;
   MuiClockPointer: ClockPointerClassKey;
   MuiDateCalendar: DateCalendarClassKey;
-  MuiDateField: never;
   MuiDatePickerToolbar: DatePickerToolbarClassKey;
   MuiDateTimePickerTabs: DateTimePickerTabsClassKey;
   MuiDateTimePickerToolbar: DateTimePickerToolbarClassKey;
   MuiDayCalendar: DayCalendarClassKey;
   MuiDayCalendarSkeleton: DayCalendarSkeletonClassKey;
-  MuiLocalizationProvider: never;
+  MuiDigitalClock: DigitalClockClassKey;
   MuiMonthCalendar: MonthCalendarClassKey;
+  MuiMultiSectionDigitalClock: MultiSectionDigitalClockClassKey;
+  MuiMultiSectionDigitalClockSection: MultiSectionDigitalClockSectionClassKey;
   MuiPickersArrowSwitcher: PickersArrowSwitcherClassKey;
   MuiPickersCalendarHeader: PickersCalendarHeaderClassKey;
   MuiPickersDay: PickersDayClassKey;
   MuiPickersFadeTransitionGroup: PickersFadeTransitionGroupClassKey;
-  MuiPickersMonth: PickersMonthClassKey;
-  MuiPickersPopper: PickersPopperClassKey;
+  MuiPickersLayout: PickersLayoutClassKey;
+  MuiPickerPopper: PickerPopperClassKey;
   MuiPickersSlideTransition: PickersSlideTransitionClassKey;
   MuiPickersToolbar: PickersToolbarClassKey;
   MuiPickersToolbarButton: PickersToolbarButtonClassKey;
   MuiPickersToolbarText: PickersToolbarTextClassKey;
-  MuiPickersLayout: PickersLayoutClassKey;
-  MuiPickersYear: PickersYearClassKey;
   MuiTimeClock: TimeClockClassKey;
   MuiTimePickerToolbar: TimePickerToolbarClassKey;
   MuiYearCalendar: YearCalendarClassKey;
 
-  // Date Pickers
-  MuiDatePicker: never;
-  MuiDesktopDatePicker: never;
-  MuiMobileDatePicker: never;
-  MuiStaticDatePicker: never;
-
-  // Time Pickers
-  MuiTimePicker: never;
-  MuiDesktopTimePicker: never;
-  MuiMobileTimePicker: never;
-  MuiStaticTimePicker: never;
-  
-  // Date Time Pickers
-  MuiDateTimePicker: never;
-  MuiDesktopDateTimePicker: never;
-  MuiMobileDateTimePicker: never;
-  MuiStaticDateTimePicker: never;
+  // V7 Picker's TextField
+  MuiPickersTextField: PickersTextFieldClassKey;
+  MuiPickersInputBase: PickersInputBaseClassKey
+  MuiPickersInput: PickersInputClassKey
+  MuiPickersFilledInput: PickersFilledInputClassKey
+  MuiPickersOutlinedInput: PickersOutlinedInputClassKey
+  MuiPickersSectionList: PickersSectionListClassKey
 }
 
 declare module '@mui/material/styles' {

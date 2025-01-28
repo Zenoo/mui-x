@@ -21,17 +21,17 @@ export default function ScrollPlayground() {
     colIndex: 0,
   });
 
-  const { data } = useDemoData({
+  const { data, loading } = useDemoData({
     dataSet: 'Commodity',
     rowLength: 100,
   });
 
   React.useEffect(() => {
     const { rowIndex, colIndex } = coordinates;
-    apiRef.current.scrollToIndexes(coordinates);
+    apiRef.current?.scrollToIndexes(coordinates);
     const id = gridExpandedSortedRowIdsSelector(apiRef)[rowIndex];
     const column = gridVisibleColumnDefinitionsSelector(apiRef)[colIndex];
-    apiRef.current.setCellFocus(id, column.field);
+    apiRef.current?.setCellFocus(id, column.field);
   }, [apiRef, coordinates]);
 
   const handleClick = (position) => () => {
@@ -58,11 +58,9 @@ export default function ScrollPlayground() {
     const rowIndex = gridExpandedSortedRowIdsSelector(apiRef).findIndex(
       (id) => id === params.id,
     );
-
     const colIndex = gridVisibleColumnDefinitionsSelector(apiRef).findIndex(
       (column) => column.field === params.field,
     );
-
     setCoordinates({ rowIndex, colIndex });
   };
 
@@ -102,6 +100,7 @@ export default function ScrollPlayground() {
           apiRef={apiRef}
           onCellClick={handleCellClick}
           hideFooter
+          loading={loading}
           {...data}
         />
       </Box>

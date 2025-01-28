@@ -1,31 +1,35 @@
 import { PickersLocaleText } from './utils/pickersLocaleTextApi';
 import { getPickersLocalization } from './utils/getPickersLocalization';
-
-// This object is not Partial<PickersLocaleText> because it is the default values
+import { TimeViewWithMeridiem } from '../internals/models';
 
 // maps TimeView to its translation
-const timeViews = {
+const timeViews: Record<TimeViewWithMeridiem, string> = {
   hours: 'Hodiny',
   minutes: 'Minuty',
   seconds: 'Sekundy',
+  meridiem: 'Odpoledne',
 };
 
-const csCZPickers: Partial<PickersLocaleText<any>> = {
+const csCZPickers: Partial<PickersLocaleText> = {
   // Calendar navigation
-  previousMonth: 'Další měsíc',
-  nextMonth: 'Předchozí month',
+  previousMonth: 'Předchozí měsíc',
+  nextMonth: 'Další měsíc',
 
   // View navigation
-  openPreviousView: 'otevřít předchozí zobrazení',
-  openNextView: 'otevřít další zobrazení',
+  openPreviousView: 'Otevřít předchozí zobrazení',
+  openNextView: 'Otevřít další zobrazení',
   calendarViewSwitchingButtonAriaLabel: (view) =>
     view === 'year'
       ? 'roční zobrazení otevřeno, přepněte do zobrazení kalendáře'
       : 'zobrazení kalendáře otevřeno, přepněte do zobrazení roku',
 
-  // DateRange placeholders
+  // DateRange labels
   start: 'Začátek',
   end: 'Konec',
+  startDate: 'Datum začátku',
+  startTime: 'Čas začátku',
+  endDate: 'Datum konce',
+  endTime: 'Čas konce',
 
   // Action bar
   cancelButtonLabel: 'Zrušit',
@@ -40,13 +44,14 @@ const csCZPickers: Partial<PickersLocaleText<any>> = {
   dateRangePickerToolbarTitle: 'Vyberete rozmezí dat',
 
   // Clock labels
-  clockLabelText: (view, time, adapter) =>
-    `${timeViews[view] ?? view} vybrány. ${
-      time === null ? 'Není vybrán čas' : `Vybraný čas je ${adapter.format(time, 'fullTime')}`
-    }`,
+  clockLabelText: (view, formattedTime) =>
+    `${timeViews[view] ?? view} vybrány. ${!formattedTime ? 'Není vybrán čas' : `Vybraný čas je ${formattedTime}`}`,
   hoursClockNumberText: (hours) => `${hours} hodin`,
   minutesClockNumberText: (minutes) => `${minutes} minut`,
   secondsClockNumberText: (seconds) => `${seconds} sekund`,
+
+  // Digital clock labels
+  selectViewText: (view) => `Vyberte ${timeViews[view]}`,
 
   // Calendar labels
   calendarWeekNumberHeaderLabel: 'Týden v roce',
@@ -55,14 +60,11 @@ const csCZPickers: Partial<PickersLocaleText<any>> = {
   calendarWeekNumberText: (weekNumber) => `${weekNumber}`,
 
   // Open picker labels
-  openDatePickerDialogue: (value, utils) =>
-    value !== null && utils.isValid(value)
-      ? `Vybrané datum, vybrané datum je ${utils.format(value, 'fullDate')}`
-      : 'Vyberte datum',
-  openTimePickerDialogue: (value, utils) =>
-    value !== null && utils.isValid(value)
-      ? `Vybrané čas, vybraný čas je ${utils.format(value, 'fullTime')}`
-      : 'Vyberte čas',
+  openDatePickerDialogue: (formattedDate) =>
+    formattedDate ? `Vyberte datum, vybrané datum je ${formattedDate}` : 'Vyberte datum',
+  openTimePickerDialogue: (formattedTime) =>
+    formattedTime ? `Vyberte čas, vybraný čas je ${formattedTime}` : 'Vyberte čas',
+  fieldClearLabel: 'Vymazat',
 
   // Table labels
   timeTableLabel: 'vyberte čas',
@@ -72,11 +74,24 @@ const csCZPickers: Partial<PickersLocaleText<any>> = {
   fieldYearPlaceholder: (params) => 'Y'.repeat(params.digitAmount),
   fieldMonthPlaceholder: (params) => (params.contentType === 'letter' ? 'MMMM' : 'MM'),
   fieldDayPlaceholder: () => 'DD',
-  // fieldWeekDayPlaceholder: params => params.contentType === 'letter' ? 'EEEE' : 'EE',
+  fieldWeekDayPlaceholder: (params) => (params.contentType === 'letter' ? 'EEEE' : 'EE'),
   fieldHoursPlaceholder: () => 'hh',
   fieldMinutesPlaceholder: () => 'mm',
   fieldSecondsPlaceholder: () => 'ss',
   fieldMeridiemPlaceholder: () => 'aa',
+
+  // View names
+  year: 'Rok',
+  month: 'Měsíc',
+  day: 'Den',
+  weekDay: 'Pracovní den',
+  hours: 'Hodiny',
+  minutes: 'Minuty',
+  seconds: 'Sekundy',
+  meridiem: 'Odpoledne',
+
+  // Common
+  empty: 'Prázdný',
 };
 
 export const csCZ = getPickersLocalization(csCZPickers);

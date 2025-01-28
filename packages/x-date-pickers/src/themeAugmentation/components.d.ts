@@ -19,11 +19,13 @@ export interface PickerComponents<Theme = unknown> {
   };
   MuiDateField?: {
     defaultProps?: ComponentsProps['MuiDateField'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiDateField'];
   };
   MuiDatePickerToolbar?: {
     defaultProps?: ComponentsProps['MuiDatePickerToolbar'];
     styleOverrides?: ComponentsOverrides<Theme>['MuiDatePickerToolbar'];
+  };
+  MuiDateTimeField?: {
+    defaultProps?: ComponentsProps['MuiDateTimeField'];
   };
   MuiDateTimePickerTabs?: {
     defaultProps?: ComponentsProps['MuiDateTimePickerTabs'];
@@ -41,13 +43,24 @@ export interface PickerComponents<Theme = unknown> {
     defaultProps?: ComponentsProps['MuiDayCalendarSkeleton'];
     styleOverrides?: ComponentsOverrides<Theme>['MuiDayCalendarSkeleton'];
   };
+  MuiDigitalClock?: {
+    defaultProps?: ComponentsProps['MuiDigitalClock'];
+    styleOverrides?: ComponentsOverrides<Theme>['MuiDigitalClock'];
+  };
   MuiLocalizationProvider?: {
     defaultProps?: ComponentsProps['MuiLocalizationProvider'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiLocalizationProvider'];
   };
   MuiMonthCalendar?: {
     defaultProps?: ComponentsProps['MuiMonthCalendar'];
     styleOverrides?: ComponentsOverrides<Theme>['MuiMonthCalendar'];
+  };
+  MuiMultiSectionDigitalClock?: {
+    defaultProps?: ComponentsProps['MuiMultiSectionDigitalClock'];
+    styleOverrides?: ComponentsOverrides<Theme>['MuiMultiSectionDigitalClock'];
+  };
+  MuiMultiSectionDigitalClockSection?: {
+    defaultProps?: ComponentsProps['MuiMultiSectionDigitalClockSection'];
+    styleOverrides?: ComponentsOverrides<Theme>['MuiMultiSectionDigitalClockSection'];
   };
   MuiPickersArrowSwitcher?: {
     defaultProps?: ComponentsProps['MuiPickersArrowSwitcher'];
@@ -65,13 +78,9 @@ export interface PickerComponents<Theme = unknown> {
     defaultProps?: ComponentsProps['MuiPickersFadeTransitionGroup'];
     styleOverrides?: ComponentsOverrides<Theme>['MuiPickersFadeTransitionGroup'];
   };
-  MuiPickersMonth?: {
-    defaultProps?: ComponentsProps['MuiPickersMonth'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiPickersMonth'];
-  };
-  MuiPickersPopper?: {
-    defaultProps?: ComponentsProps['MuiPickersPopper'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiPickersPopper'];
+  MuiPickerPopper?: {
+    defaultProps?: ComponentsProps['MuiPickerPopper'];
+    styleOverrides?: ComponentsOverrides<Theme>['MuiPickerPopper'];
   };
   MuiPickersSlideTransition?: {
     defaultProps?: ComponentsProps['MuiPickersSlideTransition'];
@@ -93,13 +102,12 @@ export interface PickerComponents<Theme = unknown> {
     defaultProps?: ComponentsProps['MuiPickersLayout'];
     styleOverrides?: ComponentsOverrides<Theme>['MuiPickersLayout'];
   };
-  MuiPickersYear?: {
-    defaultProps?: ComponentsProps['MuiPickersYear'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiPickersYear'];
-  };
   MuiTimeClock?: {
     defaultProps?: ComponentsProps['MuiTimeClock'];
     styleOverrides?: ComponentsOverrides<Theme>['MuiTimeClock'];
+  };
+  MuiTimeField?: {
+    defaultProps?: ComponentsProps['MuiTimeField'];
   };
   MuiTimePickerToolbar?: {
     defaultProps?: ComponentsProps['MuiTimePickerToolbar'];
@@ -113,55 +121,69 @@ export interface PickerComponents<Theme = unknown> {
   // Date Pickers
   MuiDatePicker?: {
     defaultProps?: ComponentsProps['MuiDatePicker'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiDatePicker'];
   };
   MuiDesktopDatePicker?: {
     defaultProps?: ComponentsProps['MuiDesktopDatePicker'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiDesktopDatePicker'];
   };
   MuiMobileDatePicker?: {
     defaultProps?: ComponentsProps['MuiMobileDatePicker'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiMobileDatePicker'];
   };
   MuiStaticDatePicker?: {
     defaultProps?: ComponentsProps['MuiStaticDatePicker'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiStaticDatePicker'];
   };
 
   // Time Pickers
   MuiTimePicker?: {
     defaultProps?: ComponentsProps['MuiTimePicker'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiTimePicker'];
   };
   MuiDesktopTimePicker?: {
     defaultProps?: ComponentsProps['MuiDesktopTimePicker'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiDesktopTimePicker'];
   };
   MuiMobileTimePicker?: {
     defaultProps?: ComponentsProps['MuiMobileTimePicker'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiMobileTimePicker'];
   };
   MuiStaticTimePicker?: {
     defaultProps?: ComponentsProps['MuiStaticTimePicker'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiStaticTimePicker'];
   };
 
   // Date Time Pickers
   MuiDateTimePicker?: {
     defaultProps?: ComponentsProps['MuiDateTimePicker'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiDateTimePicker'];
   };
   MuiDesktopDateTimePicker?: {
     defaultProps?: ComponentsProps['MuiDesktopDateTimePicker'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiDesktopDateTimePicker'];
   };
   MuiMobileDateTimePicker?: {
     defaultProps?: ComponentsProps['MuiMobileDateTimePicker'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiMobileDateTimePicker'];
   };
   MuiStaticDateTimePicker?: {
     defaultProps?: ComponentsProps['MuiStaticDateTimePicker'];
-    styleOverrides?: ComponentsOverrides<Theme>['MuiStaticDateTimePicker'];
+  };
+
+  // PickersTextField
+  MuiPickersTextField?: {
+    defaultProps?: ComponentsProps['MuiPickersTextField'];
+    styleOverrides?: ComponentsOverrides<Theme>['MuiPickersTextField'];
+  };
+  MuiPickersInputBase?: {
+    defaultProps?: ComponentsProps['MuiPickersInputBase'];
+    styleOverrides?: ComponentsOverrides<Theme>['MuiPickersInputBase'];
+  };
+  MuiPickersInput?: {
+    defaultProps?: ComponentsProps['MuiPickersInput'];
+    styleOverrides?: ComponentsOverrides<Theme>['MuiPickersInput'];
+  };
+  MuiPickersFilledInput?: {
+    defaultProps?: ComponentsProps['MuiPickersFilledInput'];
+    styleOverrides?: ComponentsOverrides<Theme>['MuiPickersFilledInput'];
+  };
+  MuiPickersOutlinedInput?: {
+    defaultProps?: ComponentsProps['MuiPickersOutlinedInput'];
+    styleOverrides?: ComponentsOverrides<Theme>['MuiPickersOutlinedInput'];
+  };
+  MuiPickersSectionList?: {
+    defaultProps?: ComponentsProps['MuiPickersSectionList'];
+    styleOverrides?: ComponentsOverrides<Theme>['MuiPickersSectionList'];
   };
 }
 

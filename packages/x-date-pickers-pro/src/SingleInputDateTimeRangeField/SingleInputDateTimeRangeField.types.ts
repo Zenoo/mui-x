@@ -1,74 +1,36 @@
-import * as React from 'react';
-import { SlotComponentProps } from '@mui/base/utils';
-import TextField from '@mui/material/TextField';
-import { FieldsTextFieldProps } from '@mui/x-date-pickers/internals/models/fields';
-import { UncapitalizeObjectKeys } from '@mui/x-date-pickers/internals';
 import {
-  UseDateTimeRangeFieldDefaultizedProps,
-  UseDateTimeRangeFieldProps,
-} from '../internal/models';
+  ExportedPickerFieldUIProps,
+  PickerFieldUISlots,
+  PickerFieldUISlotProps,
+} from '@mui/x-date-pickers/internals';
+import { BuiltInFieldTextFieldProps } from '@mui/x-date-pickers/models';
+import { DateTimeRangeManagerFieldInternalProps } from '../managers/useDateTimeRangeManager';
 
-export interface UseSingleInputDateTimeRangeFieldParams<TDate, TChildProps extends {}> {
-  props: UseSingleInputDateTimeRangeFieldComponentProps<TDate, TChildProps>;
-  inputRef?: React.Ref<HTMLInputElement>;
-}
+export interface UseSingleInputDateTimeRangeFieldProps<
+  TEnableAccessibleFieldDOMStructure extends boolean,
+> extends DateTimeRangeManagerFieldInternalProps<TEnableAccessibleFieldDOMStructure>,
+    // TODO v8: Remove once the range fields open with a button.
+    Omit<ExportedPickerFieldUIProps, 'openPickerButtonPosition'> {}
 
-export interface UseSingleInputDateTimeRangeFieldProps<TDate>
-  extends UseDateTimeRangeFieldProps<TDate> {}
-
-export type UseSingleInputDateTimeRangeFieldDefaultizedProps<
-  TDate,
-  AdditionalProps extends {},
-> = UseDateTimeRangeFieldDefaultizedProps<TDate> & AdditionalProps;
-
-export type UseSingleInputDateTimeRangeFieldComponentProps<TDate, TChildProps extends {}> = Omit<
-  TChildProps,
-  keyof UseSingleInputDateTimeRangeFieldProps<TDate>
+export type SingleInputDateTimeRangeFieldProps<
+  TEnableAccessibleFieldDOMStructure extends boolean = true,
+> = Omit<
+  BuiltInFieldTextFieldProps<TEnableAccessibleFieldDOMStructure>,
+  keyof UseSingleInputDateTimeRangeFieldProps<TEnableAccessibleFieldDOMStructure>
 > &
-  UseSingleInputDateTimeRangeFieldProps<TDate>;
+  UseSingleInputDateTimeRangeFieldProps<TEnableAccessibleFieldDOMStructure> & {
+    /**
+     * Overridable component slots.
+     * @default {}
+     */
+    slots?: SingleInputDateTimeRangeFieldSlots;
+    /**
+     * The props used for each component slot.
+     * @default {}
+     */
+    slotProps?: SingleInputDateTimeRangeFieldSlotProps;
+  };
 
-export interface SingleInputDateTimeRangeFieldProps<TDate>
-  extends UseSingleInputDateTimeRangeFieldComponentProps<TDate, FieldsTextFieldProps> {
-  /**
-   * Overridable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: SingleInputDateTimeRangeFieldSlotsComponent;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: SingleInputDateTimeRangeFieldSlotsComponentsProps<TDate>;
-  /**
-   * Overridable component slots.
-   * @default {}
-   */
-  slots?: UncapitalizeObjectKeys<SingleInputDateTimeRangeFieldSlotsComponent>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   */
-  slotProps?: SingleInputDateTimeRangeFieldSlotsComponentsProps<TDate>;
-}
+export interface SingleInputDateTimeRangeFieldSlots extends PickerFieldUISlots {}
 
-export type SingleInputDateTimeRangeFieldOwnerState<TDate> =
-  SingleInputDateTimeRangeFieldProps<TDate>;
-
-export interface SingleInputDateTimeRangeFieldSlotsComponent {
-  /**
-   * Form control with an input to render the value.
-   * Receives the same props as `@mui/material/TextField`.
-   * @default TextField from '@mui/material'
-   */
-  TextField?: React.ElementType;
-}
-
-export interface SingleInputDateTimeRangeFieldSlotsComponentsProps<TDate> {
-  textField?: SlotComponentProps<
-    typeof TextField,
-    {},
-    SingleInputDateTimeRangeFieldOwnerState<TDate>
-  >;
-}
+export interface SingleInputDateTimeRangeFieldSlotProps extends PickerFieldUISlotProps {}

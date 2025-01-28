@@ -1,9 +1,9 @@
-const playwright = require('playwright');
+const { chromium } = require('@playwright/test');
 const webpack = require('webpack');
 
 const CI = Boolean(process.env.CI);
 
-process.env.CHROME_BIN = playwright.chromium.executablePath();
+process.env.CHROME_BIN ||= chromium.executablePath();
 
 // Karma configuration
 module.exports = function setKarmaConfig(config) {
@@ -20,7 +20,7 @@ module.exports = function setKarmaConfig(config) {
         timeout: (process.env.CIRCLECI === 'true' ? 5 : 2) * 1000,
       },
     },
-    frameworks: ['mocha', 'webpack'],
+    frameworks: (process.env.PARALLEL === 'true' ? ['parallel'] : []).concat(['mocha', 'webpack']),
     files: [
       {
         pattern: 'test/karma.tests.js',
@@ -28,8 +28,19 @@ module.exports = function setKarmaConfig(config) {
         served: true,
         included: true,
       },
+      {
+        pattern: 'test/karma.datagrid.tests.js',
+        watched: true,
+        served: true,
+        included: true,
+      },
     ],
-    plugins: ['karma-mocha', 'karma-chrome-launcher', 'karma-sourcemap-loader', 'karma-webpack'],
+    plugins: (process.env.PARALLEL === 'true' ? ['karma-parallel'] : []).concat([
+      'karma-mocha',
+      'karma-chrome-launcher',
+      'karma-sourcemap-loader',
+      'karma-webpack',
+    ]),
     /**
      * possible values:
      * - config.LOG_DISABLE
@@ -42,6 +53,7 @@ module.exports = function setKarmaConfig(config) {
     port: 9876,
     preprocessors: {
       'test/karma.tests.js': ['webpack', 'sourcemap'],
+      'test/karma.datagrid.tests.js': ['webpack', 'sourcemap'],
     },
     reporters: ['dots'],
     webpack: {
@@ -49,7 +61,7 @@ module.exports = function setKarmaConfig(config) {
       devtool: CI ? 'inline-source-map' : 'eval-source-map',
       target: 'web',
       optimization: {
-        nodeEnv: false, // https://twitter.com/wsokra/status/1378643098893443072
+        nodeEnv: false, // https://x.com/wsokra/status/1378643098893443072
       },
       plugins: [
         new webpack.DefinePlugin({
@@ -65,7 +77,7 @@ module.exports = function setKarmaConfig(config) {
           {
             test: /\.(js|ts|tsx)$/,
             loader: 'babel-loader',
-            exclude: /node_modules\/(?!@mui\/monorepo)/,
+            exclude: /node_modules\/.*\/node_modules\/(?!@mui\/monorepo)/,
           },
         ],
       },
@@ -75,6 +87,7 @@ module.exports = function setKarmaConfig(config) {
           fs: false, // Some tests import fs,
           stream: require.resolve('stream-browserify'), // util > inherits breaks with `false`
           path: false,
+          child_process: false,
         },
       },
     },
@@ -91,7 +104,7 @@ module.exports = function setKarmaConfig(config) {
           // to mimic "desktop" environment more correctly we force blink to have `pointer: fine` support
           // this allows correct pickers behavior, where their rendering depends on this condition
           // https://github.com/microsoft/playwright/issues/7769#issuecomment-1205106311
-          '--blink-settings=primaryPointerType=4',
+          '--blink-settings=primaryPointerType=4,primaryHoverType=2',
           // increasing default `800x600` size to certain window sizing cases to consider browser as "mobile"
           // i.e.: date time pickers do check height > 667
           '--window-size=1000,800',

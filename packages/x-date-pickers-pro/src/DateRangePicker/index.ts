@@ -1,8 +1,9 @@
 export { DateRangePicker } from './DateRangePicker';
 export type {
   DateRangePickerProps,
-  DateRangePickerSlotsComponents,
-  DateRangePickerSlotsComponentsProps,
+  DateRangePickerSlots,
+  DateRangePickerSlotProps,
+  DateRangePickerFieldProps,
 } from './DateRangePicker.types';
 
 export { DateRangePickerToolbar } from './DateRangePickerToolbar';

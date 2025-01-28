@@ -1,19 +1,21 @@
-# Migration from v5 to v6
+---
+productId: x-data-grid
+---
 
-<!-- #default-branch-switch -->
+# Migration from v5 to v6
 
 <p class="description">This guide describes the changes needed to migrate the Data Grid from v5 to v6.</p>
 
 ## Introduction
 
-To get started, check out [the blog post about the release of MUI X v6](https://mui.com/blog/mui-x-v6/).
+To get started, check out [the blog post about the release of MUI X v6](https://mui.com/blog/mui-x-v6/).
 
 ## Start using the new release
 
-In `package.json`, change the version of the data grid package to `latest` or `^6.0.0`.
+In `package.json`, change the version of the Data Grid package to `^6.0.0`.
 
 ```diff
--"@mui/x-data-grid": "5.X.X",
+-"@mui/x-data-grid": "^5.0.0",
 +"@mui/x-data-grid": "^6.0.0",
 ```
 
@@ -25,11 +27,14 @@ Described below are the steps needed to migrate from v5 to v6.
 
 The `preset-safe` codemod will automatically adjust the bulk of your code to account for breaking changes in v6. You can run `v6.0.0/data-grid/preset-safe` targeting only Data Grid or `v6.0.0/preset-safe` to target Date and Time pickers as well.
 
-```sh
-// Data Grid specific
-npx @mui/x-codemod v6.0.0/data-grid/preset-safe <path>
-// Target Date and Time pickers as well
-npx @mui/x-codemod v6.0.0/preset-safe <path>
+You can either run it on a specific file, folder, or your entire codebase when choosing the `<path>` argument.
+
+```bash
+# Data Grid specific
+npx @mui/x-codemod@latest v6.0.0/data-grid/preset-safe <path>
+
+# Target Date and Time Pickers as well
+npx @mui/x-codemod@latest v6.0.0/preset-safe <path>
 ```
 
 :::success
@@ -37,7 +42,7 @@ Apart from the removed methods and exports that require manual intervention, aro
 :::
 
 :::info
-If you want to run the codemods one by one, check out the codemods included in the [preset-safe codemod for data grid](https://github.com/mui/mui-x/blob/master/packages/x-codemod/README.md#preset-safe-for-data-grid) for more details.
+If you want to run the codemods one by one, check out the codemods included in the [preset-safe codemod for Data Grid](https://github.com/mui/mui-x/blob/master/packages/x-codemod/README.md#preset-safe-for-data-grid-v600) for more details.
 :::
 
 Breaking changes that are handled by `preset-safe` codemod are denoted by a ✅ emoji in the table of contents on the right side of the screen or next to the specific point that is handled by it.
@@ -67,7 +72,7 @@ These changes were done for consistency, improve stability and make room for new
 Below are described the steps you need to make to migrate from v5 to v6.
 
 :::warning
-The minimum supported Node.js version has been changed from 12.0.0 to 14.0.0, since [12.x.x has reached end-of-life this year](https://nodejs.org/en/blog/release/v12.22.12).
+The minimum supported Node.js version has been changed from 12.0.0 to 14.0.0, since [12.x.x reached end-of-life status](https://nodejs.org/en/blog/release/v12.22.12) in 2022.
 :::
 
 ### ✅ Renamed props
@@ -83,6 +88,8 @@ The minimum supported Node.js version has been changed from 12.0.0 to 14.0.0, si
   | `showCellRightBorder`      | `showCellVerticalBorder`      |
   | `showColumnRightBorder`    | `showColumnVerticalBorder`    |
   | `headerHeight`             | `columnHeaderHeight`          |
+
+- The corresponding type for `rowSelectionModel` (previously `selectionModel`) was renamed from `GridSelectionModel` to `GridRowSelectionModel`.
 
 ### Removed props
 
@@ -161,7 +168,7 @@ The minimum supported Node.js version has been changed from 12.0.0 to 14.0.0, si
 
 - ✅ The `selectionChange` event was renamed to `rowSelectionChange`.
 - ✅ The `rowsScroll` event was renamed to `scrollPositionChange`.
-- The `columnVisibilityChange` event was removed. Use [`columnVisibilityModelChange`](https://mui.com/x/react-data-grid/events/#catalog-of-events) instead.
+- The `columnVisibilityChange` event was removed. Use [`columnVisibilityModelChange`](https://v6.mui.com/x/react-data-grid/events/#catalog-of-events) instead.
 - The `cellNavigationKeyDown` event was removed. Use `cellKeyDown` and check the key provided in the event argument.
 - The `columnHeaderNavigationKeyDown` event was removed. Use `columnHeaderKeyDown` and check the key provided in the event argument.
 - The `cellKeyDown` event will also be fired for keyboard events that occur inside components that use Portals.
@@ -175,7 +182,10 @@ The minimum supported Node.js version has been changed from 12.0.0 to 14.0.0, si
         return;
       }
       // Check if the target is inside a Portal
-      if (!event.currentTarget.contains(event.target)) {
+      if (
+        (event.target as any).nodeType === 1 &&
+        !event.currentTarget.contains(event.target)
+      ) {
         event.defaultMuiPrevented = true;
       }
     }}
@@ -191,7 +201,7 @@ To know more about the supported events and their signatures, check the [events 
 
 ### Columns
 
-- The `GridColDef['hide']` property was removed. Use [`columnVisibilityModel`](https://mui.com/x/react-data-grid/column-visibility/#initialize-the-visible-columns) instead.
+- The `GridColDef['hide']` property was removed. Use [`columnVisibilityModel`](https://v6.mui.com/x/react-data-grid/column-visibility/#initialize-the-visible-columns) instead.
 - Returning `null` in `column.renderCell` or `column.renderEditCell` now renders an empty cell instead of the default formatted value. To fall back to the default formatted value, return `undefined` instead of `null`.
 
   ```diff
@@ -216,7 +226,7 @@ To know more about the supported events and their signatures, check the [events 
 
   This prop accepts a callback that is called with the item from `valueOptions` and must return the string to use as new label.
 
-- The `date` and `dateTime` columns now only support `Date` objects as values. To parse a string value, use the [`valueGetter`](https://mui.com/x/react-data-grid/column-definition/#value-getter):
+- The `date` and `dateTime` columns now only support `Date` objects as values. To parse a string value, use the [`valueGetter`](https://v6.mui.com/x/react-data-grid/column-definition/#value-getter):
 
   ```tsx
   <DataGrid
@@ -267,7 +277,8 @@ Most of this breaking change is handled by `preset-safe` codemod but some furthe
 
 - If you are using `GridRowGroupingColumnMenuItems` or `GridRowGroupableColumnMenuItems`, replace them with `GridColumnMenuGroupingItem` which provides a better API.
 - If you are using Custom Column Menu using `components.ColumnMenu` or `slots.columnMenu` slot, change `currentColumn` prop passed to the column menu to `colDef`.
-  :::
+
+:::
 
 ### Rows
 
@@ -287,12 +298,12 @@ Most of this breaking change is handled by `preset-safe` codemod but some furthe
   +  const focusedField = props.focusedCell;
   +  const tabIndex = props.tabbableCell === column.field ? 0 : 1;
   ```
-- Updating the [`rows` prop](/x/react-data-grid/row-updates/#the-rows-prop) or calling `apiRef.current.setRows` will now remove the expansion state of the grid as these methods are meant to replace the rows.
-  For partial row updates, use the [`apiRef.current.updateRows`](/x/react-data-grid/row-updates/#the-updaterows-method) method instead.
+- Updating the [`rows` prop](/x/react-data-grid/row-updates/#the-rows-prop) or calling `apiRef.current.setRows()` will now remove the expansion state of the grid as these methods are meant to replace the rows.
+  For partial row updates, use the [`apiRef.current.updateRows()`](/x/react-data-grid/row-updates/#the-updaterows-method) method instead.
 
 ### Pagination
 
-- The `page` and `pageSize` props and their respective event handlers `onPageChange` and `onPageSizeChange` were removed. Use `paginationModel` and `onPaginationModelChange` instead.
+- The `page` and `pageSize` props and their respective event handlers `onPageChange` and `onPageSizeChange` were removed. Use `paginationModel` and [`onPaginationModelChange`](/x/react-data-grid/pagination/#controlled-pagination-model) instead.
 
   ```diff
    <DataGrid
@@ -301,18 +312,18 @@ Most of this breaking change is handled by `preset-safe` codemod but some furthe
   -  onPageChange={handlePageChange}
   -  onPageSizeChange={handlePageSizeChange}
   +  paginationModel={{ page, pageSize }}
-  +  onPaginationModelChange={handlePaginationModelChange}
+  +  onPaginationModelChange={(paginationModel) => handlePaginationModelChange(paginationModel)}
    />
   ```
 
-- The properties `initialState.pagination.page` and `initialState.pagination.pageSize` were also removed. Use `initialState.pagination.paginationModel` instead.
+- The properties `initialState.pagination.page` and `initialState.pagination.pageSize` were also removed. Use [`initialState.pagination.paginationModel`](/x/react-data-grid/pagination/#initializing-the-pagination-model) instead.
 
   ```diff
   -initialState={{ pagination: { page: 1, pageSize: 10 } }}
   +initialState={{ pagination: { paginationModel: { page: 1, pageSize: 10 } } }}
   ```
 
-- ✅ The `rowsPerPageOptions` prop was renamed to `pageSizeOptions`.
+- ✅ The `rowsPerPageOptions` prop was renamed to [`pageSizeOptions`](/x/react-data-grid/pagination/#page-size-options).
 
   ```diff
   -<DataGrid rowsPerPageOptions={[10, 20, 50]} />
@@ -412,15 +423,15 @@ Most of this breaking change is handled by `preset-safe` codemod but some furthe
    />
   ```
 - The `editCellPropsChange` event was removed. If you still need it please file a new issue so we can propose an alternative.
-- The `cellEditCommit` event was removed and the `processRowUpdate` prop can be used in place. More information, check the [docs](https://mui.com/x/react-data-grid/editing/#persistence) section about the topic.
-- The `editRowsModel` and `onEditRowsModelChange` props were removed. The [`cellModesModel`](https://mui.com/x/react-data-grid/editing/#controlled-mode) or [`rowModesModel`](https://mui.com/x/react-data-grid/editing/#controlled-mode) props can be used to achieve the same goal.
+- The `cellEditCommit` event was removed and the `processRowUpdate` prop can be used in place. More information, check the [docs](https://mui.com/x/react-data-grid/editing/persistence/) section about the topic.
+- The `editRowsModel` and `onEditRowsModelChange` props were removed. The [`cellModesModel`](https://v6.mui.com/x/react-data-grid/editing/#controlled-mode) or [`rowModesModel`](https://v6.mui.com/x/react-data-grid/editing/#controlled-mode) props can be used to achieve the same goal.
 - The `GridEditRowsModel` type was removed.
 - The following API methods were removed:
   - Use `apiRef.current.stopCellEditMode` to replace `apiRef.current.commitCellChange`
   - Use `apiRef.current.startCellEditMode` to replace `apiRef.current.setCellMode(id, field, 'edit')`
   - Use `apiRef.current.stopRowEditMode` to replace `apiRef.current.commitRowChange`
   - Use `apiRef.current.startRowMode` to replace `apiRef.current.setRowMode(id, 'edit')`
-  - Use the [`cellModesModel`](https://mui.com/x/react-data-grid/editing/#controlled-mode) or [`rowModesModel`](https://mui.com/x/react-data-grid/editing/#controlled-mode) props to replace `apiRef.current.setEditRowsModel`.
+  - Use the [`cellModesModel`](https://v6.mui.com/x/react-data-grid/editing/#controlled-mode) or [`rowModesModel`](https://v6.mui.com/x/react-data-grid/editing/#controlled-mode) props to replace `apiRef.current.setEditRowsModel`.
 
 ### Other exports
 
@@ -469,7 +480,7 @@ Most of this breaking change is handled by `preset-safe` codemod but some furthe
 
 - Some CSS classes were removed or renamed
 
-  | MUI X v5 classes                           | MUI X v6 classes                            | Note                                            |
+  | MUI X v5 classes                           | MUI X v6 classes                            | Note                                            |
   | :----------------------------------------- | :------------------------------------------ | :---------------------------------------------- |
   | `.MuiDataGrid-withBorder`                  | `.MuiDataGrid-withBorderColor`              | The class only sets `border-color` CSS property |
   | `.MuiDataGrid-filterFormLinkOperatorInput` | `.MuiDataGrid-filterFormLogicOperatorInput` |                                                 |
@@ -482,13 +493,13 @@ Most of this breaking change is handled by `preset-safe` codemod but some furthe
 ## Rename `components` to `slots` (optional)
 
 The `components` and `componentsProps` props are being renamed to `slots` and `slotProps` props respectively.
-This is a slow and ongoing effort between the different MUI libraries.
-To smooth the transition, data grid support both the `components` props which are deprecated, and the new `slots` props.
+This is a slow and ongoing effort between all the different libraries maintained by MUI.
+To smooth the transition, Data Grid support both the `components` props which are deprecated, and the new `slots` props.
 
 If you would like to use the new API and do not want to see deprecated prop usage, consider running `rename-components-to-slots` codemod handling the prop renaming.
 
-```sh
-npx @mui/x-codemod v6.0.0/data-grid/rename-components-to-slots <path>
+```bash
+npx @mui/x-codemod@latest v6.0.0/data-grid/rename-components-to-slots <path>
 ```
 
 Take a look at [the RFC](https://github.com/mui/material-ui/issues/33416) for more information.

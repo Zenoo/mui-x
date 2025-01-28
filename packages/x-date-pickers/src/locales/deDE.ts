@@ -1,14 +1,16 @@
 import { PickersLocaleText } from './utils/pickersLocaleTextApi';
 import { getPickersLocalization } from './utils/getPickersLocalization';
+import { TimeViewWithMeridiem } from '../internals/models';
 
 // maps TimeView to its translation
-const timeViews = {
+const timeViews: Record<TimeViewWithMeridiem, string> = {
   hours: 'Stunden',
   minutes: 'Minuten',
   seconds: 'Sekunden',
+  meridiem: 'Meridiem',
 };
 
-const deDEPickers: Partial<PickersLocaleText<any>> = {
+const deDEPickers: Partial<PickersLocaleText> = {
   // Calendar navigation
   previousMonth: 'Letzter Monat',
   nextMonth: 'Nächster Monat',
@@ -21,9 +23,13 @@ const deDEPickers: Partial<PickersLocaleText<any>> = {
       ? 'Jahresansicht ist geöffnet, zur Kalenderansicht wechseln'
       : 'Kalenderansicht ist geöffnet, zur Jahresansicht wechseln',
 
-  // DateRange placeholders
+  // DateRange labels
   start: 'Beginn',
   end: 'Ende',
+  startDate: 'Startdatum',
+  startTime: 'Startzeit',
+  endDate: 'Enddatum',
+  endTime: 'Endzeit',
 
   // Action bar
   cancelButtonLabel: 'Abbrechen',
@@ -38,15 +44,14 @@ const deDEPickers: Partial<PickersLocaleText<any>> = {
   dateRangePickerToolbarTitle: 'Datumsbereich auswählen',
 
   // Clock labels
-  clockLabelText: (view, time, adapter) =>
-    `${timeViews[view] ?? view} auswählen. ${
-      time === null
-        ? 'Keine Uhrzeit ausgewählt'
-        : `Gewählte Uhrzeit ist ${adapter.format(time, 'fullTime')}`
-    }`,
+  clockLabelText: (view, formattedTime) =>
+    `${timeViews[view] ?? view} auswählen. ${!formattedTime ? 'Keine Uhrzeit ausgewählt' : `Gewählte Uhrzeit ist ${formattedTime}`}`,
   hoursClockNumberText: (hours) => `${hours} ${timeViews.hours}`,
   minutesClockNumberText: (minutes) => `${minutes} ${timeViews.minutes}`,
   secondsClockNumberText: (seconds) => `${seconds}  ${timeViews.seconds}`,
+
+  // Digital clock labels
+  selectViewText: (view) => `${timeViews[view]} auswählen`,
 
   // Calendar labels
   calendarWeekNumberHeaderLabel: 'Kalenderwoche',
@@ -55,14 +60,13 @@ const deDEPickers: Partial<PickersLocaleText<any>> = {
   calendarWeekNumberText: (weekNumber) => `${weekNumber}`,
 
   // Open picker labels
-  openDatePickerDialogue: (value, utils) =>
-    value !== null && utils.isValid(value)
-      ? `Datum auswählen, gewähltes Datum ist ${utils.format(value, 'fullDate')}`
-      : 'Datum auswählen',
-  openTimePickerDialogue: (value, utils) =>
-    value !== null && utils.isValid(value)
-      ? `Uhrzeit auswählen, gewählte Uhrzeit ist ${utils.format(value, 'fullTime')}`
+  openDatePickerDialogue: (formattedDate) =>
+    formattedDate ? `Datum auswählen, gewähltes Datum ist ${formattedDate}` : 'Datum auswählen',
+  openTimePickerDialogue: (formattedTime) =>
+    formattedTime
+      ? `Uhrzeit auswählen, gewählte Uhrzeit ist ${formattedTime}`
       : 'Uhrzeit auswählen',
+  fieldClearLabel: 'Wert leeren',
 
   // Table labels
   timeTableLabel: 'Uhrzeit auswählen',
@@ -72,11 +76,24 @@ const deDEPickers: Partial<PickersLocaleText<any>> = {
   fieldYearPlaceholder: (params) => 'J'.repeat(params.digitAmount),
   fieldMonthPlaceholder: (params) => (params.contentType === 'letter' ? 'MMMM' : 'MM'),
   fieldDayPlaceholder: () => 'TT',
-  // fieldWeekDayPlaceholder: params => params.contentType === 'letter' ? 'EEEE' : 'EE',
-  fieldHoursPlaceholder: () => 'ss',
+  fieldWeekDayPlaceholder: (params) => (params.contentType === 'letter' ? 'EEEE' : 'EE'),
+  fieldHoursPlaceholder: () => 'hh',
   fieldMinutesPlaceholder: () => 'mm',
   fieldSecondsPlaceholder: () => 'ss',
   fieldMeridiemPlaceholder: () => 'aa',
+
+  // View names
+  year: 'Jahr',
+  month: 'Monat',
+  day: 'Tag',
+  weekDay: 'Wochentag',
+  hours: 'Stunden',
+  minutes: 'Minuten',
+  seconds: 'Sekunden',
+  meridiem: 'Tageszeit',
+
+  // Common
+  empty: 'Leer',
 };
 
 export const deDE = getPickersLocalization(deDEPickers);

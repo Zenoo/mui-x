@@ -1,5 +1,4 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import {
   DataGrid,
@@ -28,27 +27,12 @@ function Pagination({ page, onPageChange, className }) {
   );
 }
 
-Pagination.propTypes = {
-  className: PropTypes.string,
-  /**
-   * Callback fired when the page is changed.
-   *
-   * @param {React.MouseEvent<HTMLButtonElement> | null} event The event source of the callback.
-   * @param {number} page The page selected.
-   */
-  onPageChange: PropTypes.func.isRequired,
-  /**
-   * The zero-based index of the current page.
-   */
-  page: PropTypes.number.isRequired,
-};
-
 function CustomPagination(props) {
   return <GridPagination ActionsComponent={Pagination} {...props} />;
 }
 
 export default function CustomPaginationGrid() {
-  const { data } = useDemoData({
+  const { data, loading } = useDemoData({
     dataSet: 'Commodity',
     rowLength: 100,
     maxColumns: 6,
@@ -57,6 +41,7 @@ export default function CustomPaginationGrid() {
   return (
     <Box sx={{ height: 400, width: '100%' }}>
       <DataGrid
+        loading={loading}
         pagination
         slots={{
           pagination: CustomPagination,

@@ -1,22 +1,19 @@
 import * as React from 'react';
+import { DefaultizedProps } from '@mui/x-internals/types';
 import { useThemeProps } from '@mui/material/styles';
 import { LocalizedComponent, PickersInputLocaleText } from '@mui/x-date-pickers/locales';
 import {
-  DefaultizedProps,
   useDefaultDates,
   useUtils,
   applyDefaultDate,
-  BaseDateValidationProps,
   BasePickerInputProps,
   PickerViewRendererLookup,
-  UncapitalizeObjectKeys,
-  uncapitalizeObjectKeys,
+  PickerRangeValue,
 } from '@mui/x-date-pickers/internals';
-import { DateRangeValidationError } from '../internal/hooks/validation/useDateRangeValidation';
-import { DateRange } from '../internal/models';
+import { DateRangeValidationError } from '../models';
 import {
-  DateRangeCalendarSlotsComponent,
-  DateRangeCalendarSlotsComponentsProps,
+  DateRangeCalendarSlots,
+  DateRangeCalendarSlotProps,
   ExportedDateRangeCalendarProps,
 } from '../DateRangeCalendar';
 import {
@@ -25,80 +22,61 @@ import {
   ExportedDateRangePickerToolbarProps,
 } from './DateRangePickerToolbar';
 import { DateRangeViewRendererProps } from '../dateRangeViewRenderers';
+import { ValidateDateRangePropsToDefault } from '../validation/validateDateRange';
 
-export interface BaseDateRangePickerSlotsComponent<TDate>
-  extends DateRangeCalendarSlotsComponent<TDate> {
+export interface BaseDateRangePickerSlots extends DateRangeCalendarSlots {
   /**
    * Custom component for the toolbar rendered above the views.
    * @default DateTimePickerToolbar
    */
-  Toolbar?: React.JSXElementConstructor<DateRangePickerToolbarProps<TDate>>;
+  toolbar?: React.JSXElementConstructor<DateRangePickerToolbarProps>;
 }
 
-export interface BaseDateRangePickerSlotsComponentsProps<TDate>
-  extends DateRangeCalendarSlotsComponentsProps<TDate> {
+export interface BaseDateRangePickerSlotProps extends DateRangeCalendarSlotProps {
   toolbar?: ExportedDateRangePickerToolbarProps;
 }
 
-export interface BaseDateRangePickerProps<TDate>
+export interface BaseDateRangePickerProps
   extends Omit<
-      BasePickerInputProps<DateRange<TDate>, TDate, 'day', DateRangeValidationError>,
+      BasePickerInputProps<PickerRangeValue, 'day', DateRangeValidationError>,
       'view' | 'views' | 'openTo' | 'onViewChange' | 'orientation'
     >,
-    ExportedDateRangeCalendarProps<TDate>,
-    BaseDateValidationProps<TDate> {
-  /**
-   * Overridable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: BaseDateRangePickerSlotsComponent<TDate>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: BaseDateRangePickerSlotsComponentsProps<TDate>;
+    ExportedDateRangeCalendarProps {
   /**
    * Overridable component slots.
    * @default {}
    */
-  slots?: UncapitalizeObjectKeys<BaseDateRangePickerSlotsComponent<TDate>>;
+  slots?: BaseDateRangePickerSlots;
   /**
    * The props used for each component slot.
    * @default {}
    */
-  slotProps?: BaseDateRangePickerSlotsComponentsProps<TDate>;
+  slotProps?: BaseDateRangePickerSlotProps;
   /**
    * Define custom view renderers for each section.
    * If `null`, the section will only have field editing.
-   * If `undefined`, internally defined view will be the used.
+   * If `undefined`, internally defined view will be used.
    */
   viewRenderers?: Partial<
-    PickerViewRendererLookup<DateRange<TDate>, 'day', DateRangeViewRendererProps<TDate, 'day'>, {}>
+    PickerViewRendererLookup<PickerRangeValue, 'day', DateRangeViewRendererProps<'day'>>
   >;
 }
 
-type UseDateRangePickerDefaultizedProps<
-  TDate,
-  Props extends BaseDateRangePickerProps<TDate>,
-> = LocalizedComponent<TDate, DefaultizedProps<Props, keyof BaseDateValidationProps<TDate>>>;
+type UseDateRangePickerDefaultizedProps<Props extends BaseDateRangePickerProps> =
+  LocalizedComponent<DefaultizedProps<Props, ValidateDateRangePropsToDefault>>;
 
-export function useDateRangePickerDefaultizedProps<
-  TDate,
-  Props extends BaseDateRangePickerProps<TDate>,
->(
+export function useDateRangePickerDefaultizedProps<Props extends BaseDateRangePickerProps>(
   props: Props,
   name: string,
-): UseDateRangePickerDefaultizedProps<TDate, Omit<Props, 'components' | 'componentsProps'>> {
-  const utils = useUtils<TDate>();
-  const defaultDates = useDefaultDates<TDate>();
-  const { components, componentsProps, ...themeProps } = useThemeProps({
+): UseDateRangePickerDefaultizedProps<Props> {
+  const utils = useUtils();
+  const defaultDates = useDefaultDates();
+  const themeProps = useThemeProps({
     props,
     name,
   });
 
-  const localeText = React.useMemo<PickersInputLocaleText<TDate> | undefined>(() => {
+  const localeText = React.useMemo<PickersInputLocaleText | undefined>(() => {
     if (themeProps.localeText?.toolbarTitle == null) {
       return themeProps.localeText;
     }
@@ -118,8 +96,7 @@ export function useDateRangePickerDefaultizedProps<
     maxDate: applyDefaultDate(utils, themeProps.maxDate, defaultDates.maxDate),
     slots: {
       toolbar: DateRangePickerToolbar,
-      ...(themeProps.slots ?? uncapitalizeObjectKeys(components)),
+      ...themeProps.slots,
     },
-    slotProps: themeProps.slotProps ?? componentsProps,
   };
 }

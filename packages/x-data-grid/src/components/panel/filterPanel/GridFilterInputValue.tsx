@@ -1,0 +1,147 @@
+import * as React from 'react';
+import PropTypes from 'prop-types';
+import { TextFieldProps } from '@mui/material/TextField';
+import { unstable_useId as useId } from '@mui/utils';
+import { useTimeout } from '../../../hooks/utils/useTimeout';
+import { GridFilterItem } from '../../../models/gridFilterItem';
+import { GridFilterInputValueProps } from './GridFilterInputValueProps';
+import { useGridRootProps } from '../../../hooks/utils/useGridRootProps';
+
+export type GridTypeFilterInputValueProps = GridFilterInputValueProps &
+  TextFieldProps & {
+    type?: 'text' | 'number' | 'date' | 'datetime-local';
+    headerFilterMenu?: React.ReactNode;
+    clearButton?: React.ReactNode | null;
+    /**
+     * It is `true` if the filter either has a value or an operator with no value
+     * required is selected (for example `isEmpty`)
+     */
+    isFilterActive?: boolean;
+  };
+
+type ItemPlusTag = GridFilterItem & { fromInput?: string };
+
+function GridFilterInputValue(props: GridTypeFilterInputValueProps) {
+  const {
+    item,
+    applyValue,
+    type,
+    apiRef,
+    focusElementRef,
+    tabIndex,
+    disabled,
+    isFilterActive,
+    clearButton,
+    headerFilterMenu,
+    InputProps,
+    variant = 'outlined',
+    ...others
+  } = props;
+
+  const filterTimeout = useTimeout();
+  const [filterValueState, setFilterValueState] = React.useState<string | undefined>(
+    sanitizeFilterItemValue(item.value),
+  );
+  const [applying, setIsApplying] = React.useState(false);
+  const id = useId();
+  const rootProps = useGridRootProps();
+
+  const onFilterChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = sanitizeFilterItemValue(event.target.value);
+
+      setFilterValueState(value);
+      setIsApplying(true);
+      filterTimeout.start(rootProps.filterDebounceMs, () => {
+        const newItem = {
+          ...item,
+          value: type === 'number' && !Number.isNaN(Number(value)) ? Number(value) : value,
+          fromInput: id!,
+        };
+        applyValue(newItem);
+        setIsApplying(false);
+      });
+    },
+    [filterTimeout, rootProps.filterDebounceMs, item, type, id, applyValue],
+  );
+
+  React.useEffect(() => {
+    const itemPlusTag = item as ItemPlusTag;
+    if (itemPlusTag.fromInput !== id || item.value == null) {
+      setFilterValueState(sanitizeFilterItemValue(item.value));
+    }
+  }, [id, item]);
+
+  return (
+    <React.Fragment>
+      <rootProps.slots.baseTextField
+        id={id}
+        label={apiRef.current.getLocaleText('filterPanelInputLabel')}
+        placeholder={apiRef.current.getLocaleText('filterPanelInputPlaceholder')}
+        value={filterValueState ?? ''}
+        onChange={onFilterChange}
+        variant={variant}
+        type={type || 'text'}
+        disabled={disabled}
+        InputProps={{
+          endAdornment: applying ? (
+            <rootProps.slots.baseInputAdornment position="end">
+              <rootProps.slots.loadIcon fontSize="small" color="action" />
+            </rootProps.slots.baseInputAdornment>
+          ) : null,
+          ...InputProps,
+          inputProps: {
+            tabIndex,
+            ...InputProps?.inputProps,
+          },
+        }}
+        InputLabelProps={{
+          shrink: true,
+        }}
+        inputRef={focusElementRef}
+        {...rootProps.slotProps?.baseTextField}
+        {...others}
+      />
+      {headerFilterMenu}
+      {clearButton}
+    </React.Fragment>
+  );
+}
+
+function sanitizeFilterItemValue(value: unknown) {
+  if (value == null || value === '') {
+    return undefined;
+  }
+
+  return String(value);
+}
+
+GridFilterInputValue.propTypes = {
+  // ----------------------------- Warning --------------------------------
+  // | These PropTypes are generated from the TypeScript type definitions |
+  // | To update them edit the TypeScript types and run "pnpm proptypes"  |
+  // ----------------------------------------------------------------------
+  apiRef: PropTypes.shape({
+    current: PropTypes.object.isRequired,
+  }).isRequired,
+  applyValue: PropTypes.func.isRequired,
+  clearButton: PropTypes.node,
+  focusElementRef: PropTypes /* @typescript-to-proptypes-ignore */.oneOfType([
+    PropTypes.func,
+    PropTypes.object,
+  ]),
+  headerFilterMenu: PropTypes.node,
+  /**
+   * It is `true` if the filter either has a value or an operator with no value
+   * required is selected (for example `isEmpty`)
+   */
+  isFilterActive: PropTypes.bool,
+  item: PropTypes.shape({
+    field: PropTypes.string.isRequired,
+    id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    operator: PropTypes.string.isRequired,
+    value: PropTypes.any,
+  }).isRequired,
+} as any;
+
+export { GridFilterInputValue };

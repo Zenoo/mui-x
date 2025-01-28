@@ -13,12 +13,13 @@ import {
 } from '@mui/x-data-grid-premium';
 import Link from '@mui/material/Link';
 import Chip from '@mui/material/Chip';
-import Avatar from '@mui/material/Avatar';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import ArrowUp from '@mui/icons-material/KeyboardArrowUp';
 import ArrowDown from '@mui/icons-material/KeyboardArrowDown';
-import { useTheme } from '@mui/material/styles';
+import KeyboardArrowRightRounded from '@mui/icons-material/KeyboardArrowRightRounded';
+import { useTheme, alpha } from '@mui/material/styles';
+import { yellow, blue, green } from '@mui/material/colors';
 import AggregationRowGrouping from '../aggregation/AggregationRowGrouping';
 import BasicColumnPinning from '../column-pinning/BasicColumnPinning';
 import ColumnSelectorGrid from '../column-visibility/ColumnSelectorGrid';
@@ -34,9 +35,10 @@ import ColumnVirtualizationGrid from '../virtualization/ColumnVirtualizationGrid
 import FullFeaturedDemo from './FullFeaturedDemo';
 import LazyLoadingGrid from '../row-updates/LazyLoadingGrid';
 import BasicGroupingDemo from '../column-groups/BasicGroupingDemo';
-import EditingWithDatePickers from '../recipes-editing/EditingWithDatePickers';
+import EditingWithDatePickers from '../custom-columns/EditingWithDatePickers';
 import CellSelectionGrid from '../cell-selection/CellSelectionRangeStyling';
-import AddNewColumnMenuGrid from '../column-menu/AddNewColumnMenuGrid';
+import HeaderFilteringDataGridPro from '../filtering/HeaderFilteringDataGridPro';
+import ClipboardPaste from '../clipboard/ClipboardPaste';
 
 type Row = {
   id: number;
@@ -44,132 +46,143 @@ type Row = {
   description: string;
   plan: string;
   detailPage: string;
-  demo: JSX.Element;
+  demo: React.JSX.Element;
   newBadge?: boolean;
+  linkToCode?: string;
 };
 
 export const featuresSet: Row[] = [
   {
     id: 1,
     name: 'Master detail',
-    description: 'A parent row with a collapsible child panel',
+    description: 'A parent row with a collapsible child panel.',
     plan: 'Pro',
     detailPage: '/master-detail/',
     demo: <BasicDetailPanels />,
+    linkToCode: '/master-detail/#system-BasicDetailPanels.tsx',
   },
   {
     id: 2,
     name: 'Inline editing',
-    description:
-      'Edit your data inside the cells by double-clicking or pressing Enter',
+    description: 'Edit data inside cells by double-clicking or pressing Enter.',
     plan: 'Community',
     detailPage: '/editing/',
     demo: <EditingWithDatePickers />,
+    linkToCode: '/recipes-editing/#system-EditingWithDatePickers.tsx',
   },
   {
     id: 3,
-    name: 'Column groups',
-    description: 'Group columns in a multi-level hierarchy',
+    name: 'Column grouping',
+    description: 'Group columns in a multi-level hierarchy.',
     plan: 'Community',
     detailPage: '/column-groups/',
-    newBadge: true,
     demo: <BasicGroupingDemo />,
+    linkToCode: '/column-groups/#system-BasicGroupingDemo.tsx',
   },
   {
     id: 4,
     name: 'Lazy loading',
-    description: 'Easily paginate your rows and only fetch what you need',
+    description: 'Paginate rows and only fetch what you need.',
     plan: 'Pro',
     detailPage: '/pagination/',
     demo: <LazyLoadingGrid />,
+    linkToCode: '/row-updates/#system-LazyLoadingGrid.tsx',
   },
   {
     id: 5,
     name: 'Save and restore state',
     description:
-      'Save and restore internal state and configurations like active filters and sorting',
+      'Save and restore internal state and configurations like active filters and sorting.',
     plan: 'Community',
     detailPage: '/state/#save-and-restore-the-state',
     demo: <RestoreStateInitialState />,
+    linkToCode: '/state/#system-RestoreStateInitialState.tsx',
   },
   {
     id: 6,
     name: 'Row grouping',
-    description: 'Group rows with repeating column values',
+    description: 'Group rows with repeating column values.',
     plan: 'Premium',
     detailPage: '/row-grouping/',
     demo: <RowGroupingInitialState />,
+    linkToCode: '/row-grouping/#system-RowGroupingInitialState.tsx',
   },
   {
     id: 7,
     name: 'Excel export',
-    description:
-      'Easily export the rows in various file formats such as CSV, PDF or Excel',
+    description: 'Export rows in various file formats such as CSV, PDF or Excel.',
     plan: 'Premium',
     detailPage: '/export/#excel-export',
     demo: <ExcelExport />,
+    linkToCode: '/export/#system-ExcelExport.tsx',
   },
   {
     id: 8,
     name: 'Quick filter',
-    description: 'Use a single text input to filter multiple fields',
+    description: 'Use a single text input to filter multiple fields.',
     plan: 'Community',
-    detailPage: '/filtering/#quick-filter',
+    detailPage: '/filtering/quick-filter/',
     demo: <QuickFilteringGrid />,
+    linkToCode: '/filtering/quick-filter/#system-QuickFilteringGrid.tsx',
   },
   {
     id: 9,
-    name: 'Row reorder',
-    description: 'Drag and drop to reorder your data',
+    name: 'Row reordering',
+    description: 'Drag and drop to reorder data.',
     plan: 'Pro',
     detailPage: '/row-ordering/',
     demo: <RowOrderingGrid />,
+    linkToCode: '/row-ordering/#system-RowOrderingGrid.tsx',
   },
   {
     id: 10,
     name: 'Column Pinning',
-    description: 'Pin your columns to the left or right',
+    description: 'Pin columns to the left or right.',
     plan: 'Pro',
     detailPage: '/column-pinning/',
     demo: <BasicColumnPinning />,
+    linkToCode: '/column-pinning/#system-BasicColumnPinning.tsx',
   },
   {
     id: 11,
     name: 'Row pinning',
-    description: 'Pin your rows up or down',
+    description: 'Pin rows to the top or bottom of the Grid.',
     plan: 'Pro',
     detailPage: '/row-pinning/',
     demo: <RowPinningWithPagination />,
+    linkToCode: '/row-pinning/#system-RowPinningWithPagination.tsx',
   },
   {
     id: 12,
     name: 'Aggregation and Summary rows',
-    description: 'Set summary footer rows or inline summaries with row grouping',
+    description: 'Set summary footer rows or inline summaries with row grouping.',
     plan: 'Premium',
     detailPage: '/aggregation/',
     demo: <AggregationRowGrouping />,
+    linkToCode: '/aggregation/#system-AggregationRowGrouping.tsx',
   },
   {
     id: 13,
     name: 'Column visibility',
-    description:
-      'Display different columns in different use cases by defining which columns are visible',
+    description: 'Display different columns for different use cases.',
     plan: 'Community',
     detailPage: '/column-visibility/',
     demo: <ColumnSelectorGrid />,
+    linkToCode: '/column-visibility/#system-ColumnSelectorGrid.tsx',
   },
   {
     id: 14,
     name: 'Column virtualization',
-    description: 'High performance support for thousands of columns',
+    description: 'High-performance support for thousands of columns.',
     plan: 'Community',
     detailPage: '/virtualization/#column-virtualization',
     demo: <ColumnVirtualizationGrid />,
+    linkToCode: '/virtualization/#system-ColumnVirtualizationGrid.tsx',
   },
   {
     id: 15,
     name: 'Row virtualization',
-    description: 'High performance support for vast volume of data',
+    description: 'High-performance support for large volumes of data.',
     plan: 'Pro',
     detailPage: '/virtualization/#row-virtualization',
     demo: <FullFeaturedDemo />,
@@ -177,60 +190,111 @@ export const featuresSet: Row[] = [
   {
     id: 16,
     name: 'Tree data',
-    description: 'Support rows with parent / child relationship',
+    description: 'Support rows with a parent/child relationship.',
     plan: 'Pro',
     detailPage: '/tree-data/',
     demo: <TreeDataFullExample />,
+    linkToCode: '/tree-data/#system-TreeDataFullExample.tsx',
   },
   {
     id: 17,
-    name: 'Cell Selection',
+    name: 'Cell selection',
     description:
-      'Allow users to select individual and multiple cells with mouse dragging and/or keyboard (using shift key)',
+      'Select one or more cells by dragging the mouse or using the Shift key.',
     plan: 'Premium',
     detailPage: '/cell-selection/',
     demo: <CellSelectionGrid />,
-    newBadge: true,
+    linkToCode: '/cell-selection/#system-CellSelectionGrid.tsx',
   },
   {
     id: 18,
-    name: 'Column menu',
-    description: 'More customization and improved design on v6',
-    plan: 'Community',
-    detailPage: '/column-menu/',
-    demo: <AddNewColumnMenuGrid />,
-    newBadge: true,
+    name: 'Clipboard paste',
+    description:
+      'Copy and paste selected cells and rows using standard keyboard shortcuts.',
+    plan: 'Premium',
+    detailPage: '/clipboard/#clipboard-paste',
+    demo: <ClipboardPaste />,
+    linkToCode: '/clipboard/#system-ClipboardPaste.tsx',
+  },
+  {
+    id: 19,
+    name: 'Header filters',
+    description:
+      'Quickly accessible and customizable header filters to filter the data.',
+    plan: 'Pro',
+    detailPage: '/filtering/#header-filters',
+    demo: <HeaderFilteringDataGridPro />,
+    linkToCode: '/filtering/header-filters/#system-HeaderFilteringDataGridPro.tsx',
   },
 ];
 
-const getChipProperties = (plan: string) => {
-  switch (plan.toLowerCase()) {
-    case 'premium':
-      return { avatarLink: '/static/x/premium.svg', color: '#ffecc8' };
-    case 'pro':
-      return { avatarLink: '/static/x/pro.svg', color: '#c8e9ff' };
+function getChipProperties(plan: string) {
+  switch (plan) {
+    case 'Premium':
+      return { avatarLink: '/static/x/premium.svg' };
+    case 'Pro':
+      return { avatarLink: '/static/x/pro.svg' };
     default:
-      return { avatarLink: undefined, color: '#c8ffdb' };
+      return { avatarLink: '/static/x/community.svg' };
   }
-};
+}
 
 function PlanTag(props: { plan: string }) {
-  const chipPropperties = getChipProperties(props.plan);
-  const avatar = !chipPropperties.avatarLink ? undefined : (
-    <Avatar src={chipPropperties.avatarLink} />
+  const theme = useTheme();
+  const chipProperties = getChipProperties(props.plan);
+  const avatar = !chipProperties.avatarLink ? undefined : (
+    <img src={chipProperties.avatarLink} width={21} height={24} alt="" />
   );
   return (
     <Chip
+      variant="outlined"
+      size="small"
       avatar={avatar}
-      sx={{ background: chipPropperties.color, color: 'rgba(0, 0, 0, 0.87)' }}
       label={props.plan}
+      sx={{
+        pl: 0.5,
+        ...(props.plan === 'Premium' && {
+          backgroundColor:
+            theme.palette.mode === 'dark' ? alpha(yellow[900], 0.4) : yellow[50],
+          borderColor:
+            theme.palette.mode === 'dark'
+              ? alpha(yellow[300], 0.4)
+              : alpha(yellow[900], 0.4),
+        }),
+        ...(props.plan === 'Pro' && {
+          backgroundColor:
+            theme.palette.mode === 'dark' ? alpha(blue[600], 0.4) : blue[50],
+          borderColor:
+            theme.palette.mode === 'dark'
+              ? alpha(blue[300], 0.4)
+              : alpha(blue[900], 0.2),
+        }),
+        ...(props.plan === 'Community' && {
+          backgroundColor:
+            theme.palette.mode === 'dark' ? alpha(green[600], 0.4) : green[50],
+          borderColor:
+            theme.palette.mode === 'dark'
+              ? alpha(green[300], 0.4)
+              : alpha(green[900], 0.2),
+        }),
+        '& .MuiChip-label': {
+          fontWeight: 'medium',
+          fontSize: theme.typography.pxToRem(12),
+          pl: 1,
+        },
+        '& .MuiChip-avatar': {
+          width: 16,
+        },
+      }}
     />
   );
 }
 
 function CustomToolbar() {
   return (
-    <GridToolbarContainer sx={{ p: 1 }}>
+    <GridToolbarContainer
+      sx={{ p: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}
+    >
       <GridToolbarQuickFilter />
     </GridToolbarContainer>
   );
@@ -239,15 +303,57 @@ function CustomToolbar() {
 function RowDemo(props: { row: Row }) {
   const { row } = props;
   const theme = useTheme();
-  const gridBgColor = theme.palette.mode === 'dark' ? '#000' : '#fff';
-  const panelColor = theme.palette.mode === 'dark' ? 'transparent' : '#efefef';
 
   return (
-    <Box sx={{ py: 2, background: panelColor }}>
-      <Box style={{ width: '90%', margin: 'auto', background: gridBgColor }}>
-        {row.demo}
-      </Box>
+    <Box
+      sx={{
+        py: 6,
+        bgcolor: theme.palette.mode === 'dark' ? '#141A1F' : 'grey.50', // dark color is the branding theme's primaryDark.800
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <div style={{ width: '90%', margin: 'auto' }}>
+        <Box
+          sx={{
+            backgroundColor: theme.palette.mode === 'dark' ? '#0B0D0E' : '#fff', // dark color is the branding theme's common black
+          }}
+        >
+          {row.demo}
+        </Box>
+        {row.linkToCode ? (
+          <Link
+            href={`/x/react-data-grid${row.linkToCode}`}
+            target="_blank"
+            color="primary"
+            variant="body2"
+            sx={{
+              mt: 1.5,
+              fontWeight: 'bold',
+              fontFamily: 'IBM Plex Sans',
+              display: 'inline-flex',
+              alignItems: 'center',
+              '& > svg': { transition: '0.2s' },
+              '&:hover > svg': { transform: 'translateX(2px)' },
+            }}
+          >
+            View the demo source
+            <KeyboardArrowRightRounded
+              fontSize="small"
+              sx={{ mt: '1px', ml: '2px' }}
+            />
+          </Link>
+        ) : null}
+      </div>
     </Box>
+  );
+}
+
+function CustomSizeAggregationFooter(props: { value: string | undefined }) {
+  return (
+    <Typography sx={{ fontWeight: 500, fontSize: '1em' }} color="primary">
+      Total: {props.value}
+    </Typography>
   );
 }
 
@@ -259,7 +365,11 @@ const columns: GridColDef[] = [
     flex: 0.2,
     minWidth: 100,
     groupable: false,
+    display: 'flex',
     renderCell: (params) => {
+      if (params.aggregation) {
+        return <CustomSizeAggregationFooter value={params.formattedValue} />;
+      }
       if (!params.value) {
         return '';
       }
@@ -273,7 +383,7 @@ const columns: GridColDef[] = [
             alignItems: 'center',
           }}
         >
-          <Typography sx={{ fontSize: '1rem', fontWeight: '500' }}>
+          <Typography variant="body2" fontWeight="medium" fontFamily="IBM Plex Sans">
             <Link
               href={`/x/react-data-grid${params.row.detailPage}`}
               target="_blank"
@@ -282,24 +392,23 @@ const columns: GridColDef[] = [
             </Link>
           </Typography>
           {params.row.newBadge && (
-            <Box
-              sx={{
-                width: 'fit-content',
-                height: 'fit-content',
-                fontSize: '0.8em',
-                fontWeight: 600,
-                position: 'absolute',
-                textAlign: 'center',
-                top: -13,
-                left: -20,
-                background: '#fcf0a0',
-                color: '#af5b00',
-                px: 1,
-                borderRadius: 10,
-              }}
-            >
-              New
-            </Box>
+            <Chip
+              label="New"
+              color="success"
+              size="small"
+              sx={(theme) => ({
+                ml: 1,
+                p: 0.2,
+                height: 'auto',
+                fontSize: theme.typography.pxToRem(10),
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                letterSpacing: '.04rem',
+                '& .MuiChip-label': {
+                  px: '4px',
+                },
+              })}
+            />
           )}
         </Box>
       );
@@ -307,7 +416,7 @@ const columns: GridColDef[] = [
   },
   {
     field: 'description',
-    headerName: 'Brief description',
+    headerName: 'Description',
     groupable: false,
     flex: 0.5,
     minWidth: 120,
@@ -319,7 +428,11 @@ const columns: GridColDef[] = [
     flex: 0.3,
     type: 'singleSelect',
     valueOptions: ['Premium', 'Pro', 'Community'],
+    display: 'flex',
     renderCell: (params: GridRenderCellParams<any, string>) => {
+      if (params.aggregation) {
+        return <CustomSizeAggregationFooter value={params.formattedValue} />;
+      }
       if (!params.value) {
         return '';
       }
@@ -361,11 +474,14 @@ export default function PopularFeaturesDemo() {
 
   const onRowClick = React.useCallback<GridEventListener<'rowClick'>>(
     (params) => {
-      const rowNode = apiRef.current.getRowNode(params.id);
+      const rowNode = apiRef.current?.getRowNode(params.id);
       if (rowNode && rowNode.type === 'group') {
-        apiRef.current.setRowChildrenExpansion(params.id, !rowNode.childrenExpanded);
+        apiRef.current?.setRowChildrenExpansion(
+          params.id,
+          !rowNode.childrenExpanded,
+        );
       } else {
-        apiRef.current.toggleDetailPanel(params.id);
+        apiRef.current?.toggleDetailPanel(params.id);
       }
     },
     [apiRef],
@@ -379,10 +495,19 @@ export default function PopularFeaturesDemo() {
   }, []);
 
   return (
-    <div style={{ height: 'fit-content', width: '100%' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 1000,
+        width: '100%',
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 3,
+      }}
+    >
       <DataGridPremium
         apiRef={apiRef}
-        autoHeight
         disableRowSelectionOnClick
         onRowClick={onRowClick}
         slots={{
@@ -391,7 +516,7 @@ export default function PopularFeaturesDemo() {
           detailPanelCollapseIcon: ArrowUp,
         }}
         slotProps={{
-          toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 500 } },
+          toolbar: { showQuickFilter: true },
         }}
         getDetailPanelContent={getDetailPanelContent}
         getDetailPanelHeight={getDetailPanelHeight}
@@ -402,11 +527,16 @@ export default function PopularFeaturesDemo() {
           },
         }}
         sx={{
-          [`& .${gridClasses.cell}`]: {
-            py: 2,
+          fontFamily: 'IBM Plex Sans',
+          // Do not target cells in nested grids
+          [`& > div > div > div > div > div > .${gridClasses.cell}`]: {
+            py: 1.5,
           },
           [`& .${gridClasses.columnHeaderTitle}`]: {
-            fontWeight: 400,
+            fontWeight: 'medium',
+          },
+          [`& .${gridClasses.withBorderColor}`]: {
+            borderColor: 'divider',
           },
           [`& .${gridClasses.detailPanel}`]: {
             background: 'transparent',
@@ -425,6 +555,6 @@ export default function PopularFeaturesDemo() {
         hideFooter
         groupingColDef={memoizedGroupingDef}
       />
-    </div>
+    </Box>
   );
 }

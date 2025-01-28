@@ -1,47 +1,38 @@
+import { MakeOptional } from '@mui/x-internals/types';
 import {
   BaseDateTimePickerProps,
-  BaseDateTimePickerSlotsComponent,
-  BaseDateTimePickerSlotsComponentsProps,
+  BaseDateTimePickerSlots,
+  BaseDateTimePickerSlotProps,
 } from '../DateTimePicker/shared';
 import {
   StaticOnlyPickerProps,
-  UseStaticPickerSlotsComponent,
-  UseStaticPickerSlotsComponentsProps,
+  UseStaticPickerSlots,
+  UseStaticPickerSlotProps,
 } from '../internals/hooks/useStaticPicker';
-import { MakeOptional, UncapitalizeObjectKeys } from '../internals';
 import { DateOrTimeView } from '../models';
 
-export interface StaticDateTimePickerSlotsComponent<TDate>
-  extends BaseDateTimePickerSlotsComponent<TDate>,
-    UseStaticPickerSlotsComponent<TDate, DateOrTimeView> {}
+export interface StaticDateTimePickerSlots extends BaseDateTimePickerSlots, UseStaticPickerSlots {}
 
-export interface StaticDateTimePickerSlotsComponentsProps<TDate>
-  extends BaseDateTimePickerSlotsComponentsProps<TDate>,
-    UseStaticPickerSlotsComponentsProps<TDate, DateOrTimeView> {}
+export interface StaticDateTimePickerSlotProps
+  extends BaseDateTimePickerSlotProps,
+    UseStaticPickerSlotProps {}
 
-export interface StaticDateTimePickerProps<TDate>
-  extends BaseDateTimePickerProps<TDate>,
+export interface StaticDateTimePickerProps
+  extends BaseDateTimePickerProps<DateOrTimeView>,
     MakeOptional<StaticOnlyPickerProps, 'displayStaticWrapperAs'> {
-  /**
-   * Overridable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: StaticDateTimePickerSlotsComponent<TDate>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: StaticDateTimePickerSlotsComponentsProps<TDate>;
   /**
    * Overridable component slots.
    * @default {}
    */
-  slots?: UncapitalizeObjectKeys<StaticDateTimePickerSlotsComponent<TDate>>;
+  slots?: StaticDateTimePickerSlots;
   /**
    * The props used for each component slot.
    * @default {}
    */
-  slotProps?: StaticDateTimePickerSlotsComponentsProps<TDate>;
+  slotProps?: StaticDateTimePickerSlotProps;
+  /**
+   * Years rendered per row.
+   * @default `4` when `displayStaticWrapperAs === 'desktop'`, `3` otherwise.
+   */
+  yearsPerRow?: 3 | 4;
 }

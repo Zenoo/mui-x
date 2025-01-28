@@ -2,58 +2,72 @@ import * as React from 'react';
 import { useUtils } from './useUtils';
 import { PickerOnChangeFn } from './useViews';
 import { getMeridiem, convertToMeridiem } from '../utils/time-utils';
+import { PickerSelectionState } from './usePicker';
+import { PickersTimezone, PickerValidDate } from '../../models';
 
-interface MonthValidationOptions<TDate> {
+export interface MonthValidationOptions {
   disablePast?: boolean;
   disableFuture?: boolean;
-  minDate: TDate;
-  maxDate: TDate;
+  minDate: PickerValidDate;
+  maxDate: PickerValidDate;
+  timezone: PickersTimezone;
 }
 
-export function useNextMonthDisabled<TDate>(
-  month: TDate,
-  { disableFuture, maxDate }: Pick<MonthValidationOptions<TDate>, 'disableFuture' | 'maxDate'>,
+export function useNextMonthDisabled(
+  month: PickerValidDate,
+  {
+    disableFuture,
+    maxDate,
+    timezone,
+  }: Pick<MonthValidationOptions, 'disableFuture' | 'maxDate' | 'timezone'>,
 ) {
-  const utils = useUtils<TDate>();
+  const utils = useUtils();
   return React.useMemo(() => {
-    const now = utils.date()!;
+    const now = utils.date(undefined, timezone);
     const lastEnabledMonth = utils.startOfMonth(
       disableFuture && utils.isBefore(now, maxDate) ? now : maxDate,
     );
     return !utils.isAfter(lastEnabledMonth, month);
-  }, [disableFuture, maxDate, month, utils]);
+  }, [disableFuture, maxDate, month, utils, timezone]);
 }
 
-export function usePreviousMonthDisabled<TDate>(
-  month: TDate,
-  { disablePast, minDate }: Pick<MonthValidationOptions<TDate>, 'disablePast' | 'minDate'>,
+export function usePreviousMonthDisabled(
+  month: PickerValidDate,
+  {
+    disablePast,
+    minDate,
+    timezone,
+  }: Pick<MonthValidationOptions, 'disablePast' | 'minDate' | 'timezone'>,
 ) {
-  const utils = useUtils<TDate>();
+  const utils = useUtils();
 
   return React.useMemo(() => {
-    const now = utils.date()!;
+    const now = utils.date(undefined, timezone);
     const firstEnabledMonth = utils.startOfMonth(
       disablePast && utils.isAfter(now, minDate) ? now : minDate,
     );
     return !utils.isBefore(firstEnabledMonth, month);
-  }, [disablePast, minDate, month, utils]);
+  }, [disablePast, minDate, month, utils, timezone]);
 }
 
-export function useMeridiemMode<TDate>(
-  date: TDate | null,
+export function useMeridiemMode(
+  date: PickerValidDate | null,
   ampm: boolean | undefined,
-  onChange: PickerOnChangeFn<TDate>,
+  onChange: PickerOnChangeFn,
+  selectionState?: PickerSelectionState,
 ) {
-  const utils = useUtils<TDate>();
-  const meridiemMode = getMeridiem(date, utils);
+  const utils = useUtils();
+  const cleanDate = React.useMemo(() => (!utils.isValid(date) ? null : date), [utils, date]);
+
+  const meridiemMode = getMeridiem(cleanDate, utils);
 
   const handleMeridiemChange = React.useCallback(
     (mode: 'am' | 'pm') => {
       const timeWithMeridiem =
-        date == null ? null : convertToMeridiem<TDate>(date, mode, Boolean(ampm), utils);
-      onChange(timeWithMeridiem, 'partial');
+        cleanDate == null ? null : convertToMeridiem(cleanDate, mode, Boolean(ampm), utils);
+      onChange(timeWithMeridiem, selectionState ?? 'partial');
     },
-    [ampm, date, onChange, utils],
+    [ampm, cleanDate, onChange, selectionState, utils],
   );
 
   return { meridiemMode, handleMeridiemChange };

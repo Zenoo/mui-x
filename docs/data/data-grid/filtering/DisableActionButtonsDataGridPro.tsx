@@ -5,7 +5,7 @@ import { useDemoData } from '@mui/x-data-grid-generator';
 const VISIBLE_FIELDS = ['name', 'rating', 'country', 'dateCreated', 'isAdmin'];
 
 export default function DisableActionButtonsDataGridPro() {
-  const { data } = useDemoData({
+  const { data, loading } = useDemoData({
     dataSet: 'Employee',
     visibleFields: VISIBLE_FIELDS,
     rowLength: 100,
@@ -15,8 +15,9 @@ export default function DisableActionButtonsDataGridPro() {
     <div style={{ height: 400, width: '100%' }}>
       <DataGridPro
         {...data}
-        components={{ Toolbar: GridToolbar }}
-        componentsProps={{
+        loading={loading}
+        slots={{ toolbar: GridToolbar }}
+        slotProps={{
           filterPanel: {
             disableAddFilterButton: true,
             disableRemoveAllButton: true,

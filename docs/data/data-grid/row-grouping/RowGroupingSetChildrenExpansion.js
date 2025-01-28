@@ -9,9 +9,15 @@ import { useMovieData } from '@mui/x-data-grid-generator';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 
+const debug = (params) => console.info('Row expansion changed for row ', params.id);
+
 export default function RowGroupingSetChildrenExpansion() {
   const data = useMovieData();
   const apiRef = useGridApiRef();
+
+  React.useEffect(() => {
+    apiRef.current?.subscribeEvent('rowExpansionChange', debug);
+  }, [apiRef]);
 
   const initialState = useKeepGroupedColumnsHidden({
     apiRef,
@@ -23,11 +29,11 @@ export default function RowGroupingSetChildrenExpansion() {
   });
 
   const toggle2ndGroup = () => {
-    const groups = apiRef.current.getRowNode(GRID_ROOT_GROUP_ID).children;
+    const groups = apiRef.current?.getRowNode(GRID_ROOT_GROUP_ID).children;
 
-    if (groups.length > 1) {
+    if (groups && groups.length > 1) {
       const groupId = groups[1];
-      apiRef.current.setRowChildrenExpansion(
+      apiRef.current?.setRowChildrenExpansion(
         groupId,
         !apiRef.current.getRowNode(groupId).childrenExpanded,
       );

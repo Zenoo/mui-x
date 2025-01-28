@@ -1,20 +1,20 @@
-import { describeValidation } from '@mui/x-date-pickers/tests/describeValidation';
-import { userEvent } from '@mui/monorepo/test/utils';
+import * as React from 'react';
 import {
   adapterToUse,
-  buildFieldInteractions,
   createPickerRenderer,
-  expectInputPlaceholder,
-  expectInputValue,
-  getTextbox,
-} from 'test/utils/pickers-utils';
-import { describeValue } from '@mui/x-date-pickers/tests/describeValue';
+  expectFieldValueV7,
+  describeValidation,
+  describeValue,
+  formatFullTimeValue,
+  getFieldInputRoot,
+} from 'test/utils/pickers';
 import { TimeField } from '@mui/x-date-pickers/TimeField';
+import { PickersTextField } from '@mui/x-date-pickers/PickersTextField';
+import { describeConformance } from 'test/utils/describeConformance';
+import { PickerValue } from '@mui/x-date-pickers/internals';
 
 describe('<TimeField /> - Describes', () => {
   const { render, clock } = createPickerRenderer({ clock: 'fake' });
-
-  const { clickOnInput } = buildFieldInteractions({ clock, render, Component: TimeField });
 
   describeValidation(TimeField, () => ({
     render,
@@ -23,29 +23,38 @@ describe('<TimeField /> - Describes', () => {
     componentFamily: 'field',
   }));
 
-  describeValue(TimeField, () => ({
+  describeConformance(<TimeField />, () => ({
+    classes: {} as any,
+    inheritComponent: PickersTextField,
+    render,
+    muiName: 'MuiTimeField',
+    refInstanceof: window.HTMLDivElement,
+    skip: ['componentProp', 'componentsProp', 'themeVariants', 'themeStyleOverrides'],
+  }));
+
+  describeValue<PickerValue, 'field'>(TimeField, () => ({
     render,
     componentFamily: 'field',
-    values: [adapterToUse.date(new Date(2018, 0, 1)), adapterToUse.date(new Date(2018, 0, 2))],
+    values: [adapterToUse.date('2018-01-01'), adapterToUse.date('2018-01-02')],
     emptyValue: null,
     clock,
     assertRenderedValue: (expectedValue: any) => {
       const hasMeridiem = adapterToUse.is12HourCycleInCurrentLocale();
-      const input = getTextbox();
-      if (!expectedValue) {
-        expectInputPlaceholder(input, hasMeridiem ? 'hh:mm aa' : 'hh:mm');
-      }
-      const expectedValueStr = expectedValue
-        ? adapterToUse.format(expectedValue, hasMeridiem ? 'fullTime12h' : 'fullTime24h')
-        : '';
-      expectInputValue(input, expectedValueStr, true);
-    },
-    setNewValue: (value) => {
-      const newValue = adapterToUse.addHours(value, 1);
+      const fieldRoot = getFieldInputRoot();
 
-      const input = getTextbox();
-      clickOnInput(input, 1); // Update the hour
-      userEvent.keyPress(input, { key: 'ArrowUp' });
+      let expectedValueStr: string;
+      if (expectedValue) {
+        expectedValueStr = formatFullTimeValue(adapterToUse, expectedValue);
+      } else {
+        expectedValueStr = hasMeridiem ? 'hh:mm aa' : 'hh:mm';
+      }
+
+      expectFieldValueV7(fieldRoot, expectedValueStr);
+    },
+    setNewValue: (value, { selectSection, pressKey }) => {
+      const newValue = adapterToUse.addHours(value!, 1);
+      selectSection('hours');
+      pressKey(undefined, 'ArrowUp');
 
       return newValue;
     },

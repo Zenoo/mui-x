@@ -26,7 +26,7 @@ const nameAdminSortComparator = (v1, v2, param1, param2) => {
 };
 
 export default function ExtendedSortComparator() {
-  const { data } = useDemoData({
+  const { data, loading } = useDemoData({
     dataSet: 'Employee',
     visibleFields: VISIBLE_FIELDS,
     rowLength: 100,
@@ -37,12 +37,11 @@ export default function ExtendedSortComparator() {
       {
         field: 'nameAdmin',
         headerName: 'Name',
-        valueGetter: (params) => ({
-          name: params.row.name,
-          isAdmin: params.row.isAdmin,
+        valueGetter: (value, row) => ({
+          name: row.name,
+          isAdmin: row.isAdmin,
         }),
-        valueFormatter: (params) => {
-          const value = params.value;
+        valueFormatter: (value) => {
           if (value.isAdmin) {
             return `${value.name} (admin)`;
           }
@@ -61,6 +60,7 @@ export default function ExtendedSortComparator() {
     <div style={{ height: 400, width: '100%' }}>
       <DataGrid
         {...data}
+        loading={loading}
         columns={columns}
         initialState={{
           ...data.initialState,

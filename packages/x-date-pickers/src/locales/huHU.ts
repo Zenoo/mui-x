@@ -1,14 +1,16 @@
 import { PickersLocaleText } from './utils/pickersLocaleTextApi';
 import { getPickersLocalization } from './utils/getPickersLocalization';
+import { TimeViewWithMeridiem } from '../internals/models';
 
 // maps TimeView to its translation
-const timeViews = {
+const timeViews: Record<TimeViewWithMeridiem, string> = {
   hours: 'Óra',
   minutes: 'Perc',
   seconds: 'Másodperc',
+  meridiem: 'Délután',
 };
 
-const huHUPickers: Partial<PickersLocaleText<any>> = {
+const huHUPickers: Partial<PickersLocaleText> = {
   // Calendar navigation
   previousMonth: 'Előző hónap',
   nextMonth: 'Következő hónap',
@@ -21,9 +23,13 @@ const huHUPickers: Partial<PickersLocaleText<any>> = {
       ? 'az évválasztó már nyitva, váltson a naptárnézetre'
       : 'a naptárnézet már nyitva, váltson az évválasztóra',
 
-  // DateRange placeholders
+  // DateRange labels
   start: 'Kezdő dátum',
   end: 'Záró dátum',
+  startDate: 'Kezdő dátum',
+  startTime: 'Kezdő idő',
+  endDate: 'Záró dátum',
+  endTime: 'Záró idő',
 
   // Action bar
   cancelButtonLabel: 'Mégse',
@@ -38,15 +44,14 @@ const huHUPickers: Partial<PickersLocaleText<any>> = {
   dateRangePickerToolbarTitle: 'Dátumhatárok kiválasztása',
 
   // Clock labels
-  clockLabelText: (view, time, adapter) =>
-    `${timeViews[view] ?? view} kiválasztása. ${
-      time === null
-        ? 'Nincs kiválasztva idő'
-        : `A kiválasztott idő ${adapter.format(time, 'fullTime')}`
-    }`,
+  clockLabelText: (view, formattedTime) =>
+    `${timeViews[view] ?? view} kiválasztása. ${!formattedTime ? 'Nincs kiválasztva idő' : `A kiválasztott idő ${formattedTime}`}`,
   hoursClockNumberText: (hours) => `${hours} ${timeViews.hours.toLowerCase()}`,
   minutesClockNumberText: (minutes) => `${minutes} ${timeViews.minutes.toLowerCase()}`,
   secondsClockNumberText: (seconds) => `${seconds}  ${timeViews.seconds.toLowerCase()}`,
+
+  // Digital clock labels
+  selectViewText: (view) => `${timeViews[view]} kiválasztása`,
 
   // Calendar labels
   calendarWeekNumberHeaderLabel: 'Hét',
@@ -55,14 +60,13 @@ const huHUPickers: Partial<PickersLocaleText<any>> = {
   calendarWeekNumberText: (weekNumber) => `${weekNumber}`,
 
   // Open picker labels
-  openDatePickerDialogue: (value, utils) =>
-    value !== null && utils.isValid(value)
-      ? `Válasszon dátumot, a kiválasztott dátum: ${utils.format(value, 'fullDate')}`
+  openDatePickerDialogue: (formattedDate) =>
+    formattedDate
+      ? `Válasszon dátumot, a kiválasztott dátum: ${formattedDate}`
       : 'Válasszon dátumot',
-  openTimePickerDialogue: (value, utils) =>
-    value !== null && utils.isValid(value)
-      ? `Válasszon időt, a kiválasztott idő: ${utils.format(value, 'fullTime')}`
-      : 'Válasszon időt',
+  openTimePickerDialogue: (formattedTime) =>
+    formattedTime ? `Válasszon időt, a kiválasztott idő: ${formattedTime}` : 'Válasszon időt',
+  fieldClearLabel: 'Tartalom ürítése',
 
   // Table labels
   timeTableLabel: 'válasszon időt',
@@ -72,11 +76,24 @@ const huHUPickers: Partial<PickersLocaleText<any>> = {
   fieldYearPlaceholder: (params) => 'É'.repeat(params.digitAmount),
   fieldMonthPlaceholder: (params) => (params.contentType === 'letter' ? 'HHHH' : 'HH'),
   fieldDayPlaceholder: () => 'NN',
-  // fieldWeekDayPlaceholder: params => params.contentType === 'letter' ? 'EEEE' : 'EE',
+  fieldWeekDayPlaceholder: (params) => (params.contentType === 'letter' ? 'NNNN' : 'NN'),
   fieldHoursPlaceholder: () => 'óó',
   fieldMinutesPlaceholder: () => 'pp',
   fieldSecondsPlaceholder: () => 'mm',
   fieldMeridiemPlaceholder: () => 'dd',
+
+  // View names
+  year: 'Év',
+  month: 'Hónap',
+  day: 'Nap',
+  weekDay: 'Hétköznap',
+  hours: timeViews.hours,
+  minutes: timeViews.minutes,
+  seconds: timeViews.seconds,
+  meridiem: timeViews.meridiem,
+
+  // Common
+  empty: 'Üres',
 };
 
 export const huHU = getPickersLocalization(huHUPickers);

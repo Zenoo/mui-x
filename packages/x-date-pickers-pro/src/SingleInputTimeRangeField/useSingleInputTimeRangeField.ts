@@ -1,74 +1,38 @@
-import { useUtils, useField } from '@mui/x-date-pickers/internals';
+'use client';
 import {
-  UseSingleInputTimeRangeFieldDefaultizedProps,
-  UseSingleInputTimeRangeFieldParams,
-  UseSingleInputTimeRangeFieldProps,
-} from './SingleInputTimeRangeField.types';
-import { rangeValueManager, rangeFieldValueManager } from '../internal/utils/valueManagers';
-import { validateTimeRange } from '../internal/hooks/validation/useTimeRangeValidation';
+  useField,
+  useFieldInternalPropsWithDefaults,
+  PickerRangeValue,
+} from '@mui/x-date-pickers/internals';
+import { useSplitFieldProps } from '@mui/x-date-pickers/hooks';
+import { UseSingleInputTimeRangeFieldProps } from './SingleInputTimeRangeField.types';
+import { useTimeRangeManager } from '../managers';
 
-export const useDefaultizedTimeRangeFieldProps = <TDate, AdditionalProps extends {}>(
-  props: UseSingleInputTimeRangeFieldProps<TDate>,
-): UseSingleInputTimeRangeFieldDefaultizedProps<TDate, AdditionalProps> => {
-  const utils = useUtils<TDate>();
+export const useSingleInputTimeRangeField = <
+  TEnableAccessibleFieldDOMStructure extends boolean,
+  TAllProps extends UseSingleInputTimeRangeFieldProps<TEnableAccessibleFieldDOMStructure>,
+>(
+  props: TAllProps,
+) => {
+  const manager = useTimeRangeManager(props);
+  const { forwardedProps, internalProps } = useSplitFieldProps(props, 'time');
+  const internalPropsWithDefaults = useFieldInternalPropsWithDefaults({
+    manager,
+    internalProps,
+  });
 
-  const ampm = props.ampm ?? utils.is12HourCycleInCurrentLocale();
-  const defaultFormat = ampm ? utils.formats.fullTime12h : utils.formats.fullTime24h;
-
-  return {
-    ...props,
-    disablePast: props.disablePast ?? false,
-    disableFuture: props.disableFuture ?? false,
-    format: props.format ?? defaultFormat,
-  } as any;
-};
-
-export const useSingleInputTimeRangeField = <TDate, TChildProps extends {}>({
-  props,
-  inputRef,
-}: UseSingleInputTimeRangeFieldParams<TDate, TChildProps>) => {
-  const {
-    value,
-    defaultValue,
-    format,
-    onChange,
-    readOnly,
-    onError,
-    minTime,
-    maxTime,
-    minutesStep,
-    shouldDisableTime,
-    disableFuture,
-    disablePast,
-    selectedSections,
-    onSelectedSectionsChange,
-    unstableFieldRef,
-    ...other
-  } = useDefaultizedTimeRangeFieldProps<TDate, TChildProps>(props);
-
-  return useField({
-    inputRef,
-    forwardedProps: other as Omit<TChildProps, keyof UseSingleInputTimeRangeFieldProps<TDate>>,
-    internalProps: {
-      value,
-      defaultValue,
-      format,
-      onChange,
-      readOnly,
-      onError,
-      minTime,
-      maxTime,
-      minutesStep,
-      shouldDisableTime,
-      disableFuture,
-      disablePast,
-      selectedSections,
-      onSelectedSectionsChange,
-      unstableFieldRef,
-    },
-    valueManager: rangeValueManager,
-    fieldValueManager: rangeFieldValueManager,
-    validator: validateTimeRange,
-    valueType: 'time',
+  return useField<
+    PickerRangeValue,
+    TEnableAccessibleFieldDOMStructure,
+    typeof forwardedProps,
+    typeof internalPropsWithDefaults
+  >({
+    forwardedProps,
+    internalProps: internalPropsWithDefaults,
+    valueManager: manager.internal_valueManager,
+    fieldValueManager: manager.internal_fieldValueManager,
+    validator: manager.validator,
+    valueType: manager.valueType,
+    getOpenPickerButtonAriaLabel: manager.internal_getOpenPickerButtonAriaLabel,
   });
 };

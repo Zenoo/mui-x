@@ -1,24 +1,8 @@
 import * as React from 'react';
-import { DateOrTimeView } from '../../../models';
+import { SxProps } from '@mui/system';
+import { Theme } from '@mui/material/styles';
 
-export interface BaseToolbarProps<TValue, TView extends DateOrTimeView>
-  extends ExportedBaseToolbarProps {
-  isLandscape: boolean;
-  onChange: (newValue: TValue) => void;
-  value: TValue;
-  /**
-   * Currently visible picker view.
-   */
-  view: TView;
-  /**
-   * Callback called when a toolbar is clicked
-   * @template TView
-   * @param {TView} view The view to open
-   */
-  onViewChange: (view: TView) => void;
-  views: readonly DateOrTimeView[];
-  disabled?: boolean;
-  readOnly?: boolean;
+export interface BaseToolbarProps extends ExportedBaseToolbarProps {
   titleId?: string;
 }
 
@@ -32,13 +16,14 @@ export interface ExportedBaseToolbarProps {
    * @default "––"
    */
   toolbarPlaceholder?: React.ReactNode;
-  /**
-   * className applied to the root component.
-   */
   className?: string;
   /**
    * If `true`, show the toolbar even in desktop mode.
    * @default `true` for Desktop, `false` for Mobile.
    */
   hidden?: boolean;
+  /**
+   * The system prop that allows defining system overrides as well as additional CSS styles.
+   */
+  sx?: SxProps<Theme>;
 }

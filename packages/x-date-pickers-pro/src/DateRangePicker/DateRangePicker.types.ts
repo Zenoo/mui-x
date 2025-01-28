@@ -1,26 +1,27 @@
-import { UncapitalizeObjectKeys } from '@mui/x-date-pickers/internals';
+import { BaseSingleInputFieldProps, PickerRangeValue } from '@mui/x-date-pickers/internals';
 import {
   DesktopDateRangePickerProps,
-  DesktopDateRangePickerSlotsComponent,
-  DesktopDateRangePickerSlotsComponentsProps,
+  DesktopDateRangePickerSlots,
+  DesktopDateRangePickerSlotProps,
 } from '../DesktopDateRangePicker';
 import {
   MobileDateRangePickerProps,
-  MobileDateRangePickerSlotsComponent,
-  MobileDateRangePickerSlotsComponentsProps,
+  MobileDateRangePickerSlots,
+  MobileDateRangePickerSlotProps,
 } from '../MobileDateRangePicker';
+import { ValidateDateRangeProps } from '../validation';
 
-export interface DateRangePickerSlotsComponents<TDate>
-  extends DesktopDateRangePickerSlotsComponent<TDate>,
-    MobileDateRangePickerSlotsComponent<TDate> {}
+export interface DateRangePickerSlots
+  extends DesktopDateRangePickerSlots,
+    MobileDateRangePickerSlots {}
 
-export interface DateRangePickerSlotsComponentsProps<TDate>
-  extends DesktopDateRangePickerSlotsComponentsProps<TDate>,
-    MobileDateRangePickerSlotsComponentsProps<TDate> {}
+export interface DateRangePickerSlotProps<TEnableAccessibleFieldDOMStructure extends boolean>
+  extends DesktopDateRangePickerSlotProps<TEnableAccessibleFieldDOMStructure>,
+    MobileDateRangePickerSlotProps<TEnableAccessibleFieldDOMStructure> {}
 
-export interface DateRangePickerProps<TDate>
-  extends DesktopDateRangePickerProps<TDate>,
-    MobileDateRangePickerProps<TDate> {
+export interface DateRangePickerProps<TEnableAccessibleFieldDOMStructure extends boolean = true>
+  extends DesktopDateRangePickerProps<TEnableAccessibleFieldDOMStructure>,
+    MobileDateRangePickerProps<TEnableAccessibleFieldDOMStructure> {
   /**
    * CSS media query when `Mobile` mode will be changed to `Desktop`.
    * @default '@media (pointer: fine)'
@@ -28,25 +29,24 @@ export interface DateRangePickerProps<TDate>
    */
   desktopModeMediaQuery?: string;
   /**
-   * Overridable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: DateRangePickerSlotsComponents<TDate>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: DateRangePickerSlotsComponentsProps<TDate>;
-  /**
    * Overridable component slots.
    * @default {}
    */
-  slots?: UncapitalizeObjectKeys<DateRangePickerSlotsComponents<TDate>>;
+  slots?: DateRangePickerSlots;
   /**
    * The props used for each component slot.
    * @default {}
    */
-  slotProps?: DateRangePickerSlotsComponentsProps<TDate>;
+  slotProps?: DateRangePickerSlotProps<TEnableAccessibleFieldDOMStructure>;
+  /**
+   * If `true`, the Picker will close after submitting the full date.
+   * @default `true` for desktop, `false` for mobile (based on the chosen wrapper and `desktopModeMediaQuery` prop).
+   */
+  closeOnSelect?: boolean;
 }
+
+/**
+ * Props the field can receive when used inside a date range picker (<DateRangePicker />, <DesktopDateRangePicker /> or <MobileDateRangePicker /> component).
+ */
+export type DateRangePickerFieldProps = ValidateDateRangeProps &
+  BaseSingleInputFieldProps<PickerRangeValue>;

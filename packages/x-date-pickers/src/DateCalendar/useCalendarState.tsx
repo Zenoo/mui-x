@@ -1,28 +1,30 @@
+'use client';
 import * as React from 'react';
 import useEventCallback from '@mui/utils/useEventCallback';
 import { SlideDirection } from './PickersSlideTransition';
-import { useIsDateDisabled } from '../internals/hooks/validation/useDateValidation';
-import { useUtils, useNow } from '../internals/hooks/useUtils';
-import { MuiPickersAdapter } from '../internals/models';
-import { clamp } from '../internals/utils/date-utils';
+import { useIsDateDisabled } from './useIsDateDisabled';
+import { useUtils } from '../internals/hooks/useUtils';
+import { MuiPickersAdapter, PickersTimezone, PickerValidDate } from '../models';
 import { DateCalendarDefaultizedProps } from './DateCalendar.types';
+import { singleItemValueManager } from '../internals/utils/valueManagers';
+import { SECTION_TYPE_GRANULARITY } from '../internals/utils/getDefaultReferenceDate';
 
-interface CalendarState<TDate> {
-  currentMonth: TDate;
-  focusedDay: TDate | null;
+interface CalendarState {
+  currentMonth: PickerValidDate;
+  focusedDay: PickerValidDate | null;
   isMonthSwitchingAnimating: boolean;
   slideDirection: SlideDirection;
 }
 
 type ReducerAction<TType, TAdditional = {}> = { type: TType } & TAdditional;
 
-interface ChangeMonthPayload<TDate> {
+interface ChangeMonthPayload {
   direction: SlideDirection;
-  newMonth: TDate;
+  newMonth: PickerValidDate;
 }
 
-interface ChangeFocusedDayPayload<TDate> {
-  focusedDay: TDate | null;
+interface ChangeFocusedDayPayload {
+  focusedDay: PickerValidDate | null;
   /**
    * The update does not trigger month switching animation.
    * For example: when selecting month from the month view.
@@ -31,18 +33,15 @@ interface ChangeFocusedDayPayload<TDate> {
 }
 
 export const createCalendarStateReducer =
-  <TDate extends unknown>(
-    reduceAnimations: boolean,
-    disableSwitchToMonthOnDayFocus: boolean,
-    utils: MuiPickersAdapter<TDate>,
-  ) =>
+  (reduceAnimations: boolean, disableSwitchToMonthOnDayFocus: boolean, utils: MuiPickersAdapter) =>
   (
-    state: CalendarState<TDate>,
+    state: CalendarState,
     action:
       | ReducerAction<'finishMonthSwitchingAnimation'>
-      | ReducerAction<'changeMonth', ChangeMonthPayload<TDate>>
-      | ReducerAction<'changeFocusedDay', ChangeFocusedDayPayload<TDate>>,
-  ): CalendarState<TDate> => {
+      | ReducerAction<'changeMonth', ChangeMonthPayload>
+      | ReducerAction<'changeMonthTimezone', { newTimezone: string }>
+      | ReducerAction<'changeFocusedDay', ChangeFocusedDayPayload>,
+  ): CalendarState => {
     switch (action.type) {
       case 'changeMonth':
         return {
@@ -51,6 +50,21 @@ export const createCalendarStateReducer =
           currentMonth: action.newMonth,
           isMonthSwitchingAnimating: !reduceAnimations,
         };
+
+      case 'changeMonthTimezone': {
+        const newTimezone = action.newTimezone;
+        if (utils.getTimezone(state.currentMonth) === newTimezone) {
+          return state;
+        }
+        let newCurrentMonth = utils.setTimezone(state.currentMonth, newTimezone);
+        if (utils.getMonth(newCurrentMonth) !== utils.getMonth(state.currentMonth)) {
+          newCurrentMonth = utils.setMonth(newCurrentMonth, utils.getMonth(state.currentMonth));
+        }
+        return {
+          ...state,
+          currentMonth: newCurrentMonth,
+        };
+      }
 
       case 'finishMonthSwitchingAnimation':
         return {
@@ -92,11 +106,10 @@ export const createCalendarStateReducer =
     }
   };
 
-interface CalendarStateInput<TDate>
+interface UseCalendarStateParameters
   extends Pick<
-    DateCalendarDefaultizedProps<TDate>,
-    | 'value'
-    | 'defaultCalendarMonth'
+    DateCalendarDefaultizedProps,
+    | 'referenceDate'
     | 'disableFuture'
     | 'disablePast'
     | 'minDate'
@@ -105,43 +118,81 @@ interface CalendarStateInput<TDate>
     | 'reduceAnimations'
     | 'shouldDisableDate'
   > {
+  value: PickerValidDate | null;
   disableSwitchToMonthOnDayFocus?: boolean;
+  timezone: PickersTimezone;
 }
 
-export const useCalendarState = <TDate extends unknown>({
-  value,
-  defaultCalendarMonth,
-  disableFuture,
-  disablePast,
-  disableSwitchToMonthOnDayFocus = false,
-  maxDate,
-  minDate,
-  onMonthChange,
-  reduceAnimations,
-  shouldDisableDate,
-}: CalendarStateInput<TDate>) => {
-  const now = useNow<TDate>();
-  const utils = useUtils<TDate>();
+interface UseCalendarStateReturnValue {
+  referenceDate: PickerValidDate;
+  calendarState: CalendarState;
+  changeMonth: (newDate: PickerValidDate) => void;
+  changeFocusedDay: (
+    newFocusedDate: PickerValidDate | null,
+    withoutMonthSwitchingAnimation?: boolean,
+  ) => void;
+  isDateDisabled: (day: PickerValidDate | null) => boolean;
+  onMonthSwitchingAnimationEnd: () => void;
+  handleChangeMonth: (payload: ChangeMonthPayload) => void;
+}
+
+export const useCalendarState = (
+  params: UseCalendarStateParameters,
+): UseCalendarStateReturnValue => {
+  const {
+    value,
+    referenceDate: referenceDateProp,
+    disableFuture,
+    disablePast,
+    disableSwitchToMonthOnDayFocus = false,
+    maxDate,
+    minDate,
+    onMonthChange,
+    reduceAnimations,
+    shouldDisableDate,
+    timezone,
+  } = params;
+
+  const utils = useUtils();
 
   const reducerFn = React.useRef(
-    createCalendarStateReducer<TDate>(
-      Boolean(reduceAnimations),
-      disableSwitchToMonthOnDayFocus,
-      utils,
-    ),
+    createCalendarStateReducer(Boolean(reduceAnimations), disableSwitchToMonthOnDayFocus, utils),
   ).current;
+
+  const referenceDate = React.useMemo<PickerValidDate>(
+    () => {
+      return singleItemValueManager.getInitialReferenceValue({
+        value,
+        utils,
+        timezone,
+        props: params,
+        referenceDate: referenceDateProp,
+        granularity: SECTION_TYPE_GRANULARITY.day,
+      });
+    },
+    // We want the `referenceDate` to update on prop and `timezone` change (https://github.com/mui/mui-x/issues/10804)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [referenceDateProp, timezone],
+  );
 
   const [calendarState, dispatch] = React.useReducer(reducerFn, {
     isMonthSwitchingAnimating: false,
-    focusedDay: value || now,
-    currentMonth: utils.startOfMonth(
-      value ?? defaultCalendarMonth ?? clamp(utils, now, minDate, maxDate),
-    ),
+    focusedDay: referenceDate,
+    currentMonth: utils.startOfMonth(referenceDate),
     slideDirection: 'left',
   });
 
+  // Ensure that `calendarState.currentMonth` timezone is updated when `referenceDate` (or timezone changes)
+  // https://github.com/mui/mui-x/issues/10804
+  React.useEffect(() => {
+    dispatch({
+      type: 'changeMonthTimezone',
+      newTimezone: utils.getTimezone(referenceDate),
+    });
+  }, [referenceDate, utils]);
+
   const handleChangeMonth = React.useCallback(
-    (payload: ChangeMonthPayload<TDate>) => {
+    (payload: ChangeMonthPayload) => {
       dispatch({
         type: 'changeMonth',
         ...payload,
@@ -155,7 +206,7 @@ export const useCalendarState = <TDate extends unknown>({
   );
 
   const changeMonth = React.useCallback(
-    (newDate: TDate) => {
+    (newDate: PickerValidDate) => {
       const newDateRequested = newDate;
       if (utils.isSameMonth(newDateRequested, calendarState.currentMonth)) {
         return;
@@ -177,6 +228,7 @@ export const useCalendarState = <TDate extends unknown>({
     maxDate,
     disableFuture,
     disablePast,
+    timezone,
   });
 
   const onMonthSwitchingAnimationEnd = React.useCallback(() => {
@@ -184,7 +236,7 @@ export const useCalendarState = <TDate extends unknown>({
   }, []);
 
   const changeFocusedDay = useEventCallback(
-    (newFocusedDate: TDate | null, withoutMonthSwitchingAnimation?: boolean) => {
+    (newFocusedDate: PickerValidDate | null, withoutMonthSwitchingAnimation?: boolean) => {
       if (!isDateDisabled(newFocusedDate)) {
         dispatch({
           type: 'changeFocusedDay',
@@ -196,6 +248,7 @@ export const useCalendarState = <TDate extends unknown>({
   );
 
   return {
+    referenceDate,
     calendarState,
     changeMonth,
     changeFocusedDay,

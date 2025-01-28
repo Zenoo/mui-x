@@ -18,6 +18,10 @@ export interface ClockClasses {
   amButton: string;
   /** Styles applied to the pm button element. */
   pmButton: string;
+  /** Styles applied to the meridiem typography element. */
+  meridiemText: string;
+  /** Styles applied to the selected meridiem button element */
+  selected: string;
 }
 
 export type ClockClassKey = keyof ClockClasses;
@@ -34,4 +38,6 @@ export const clockClasses: ClockClasses = generateUtilityClasses('MuiClock', [
   'pin',
   'amButton',
   'pmButton',
+  'meridiemText',
+  'selected',
 ]);

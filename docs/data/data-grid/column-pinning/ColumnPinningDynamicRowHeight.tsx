@@ -71,12 +71,12 @@ export default function ColumnPinningDynamicRowHeight() {
   }, []);
 
   React.useLayoutEffect(() => {
-    apiRef.current.resetRowHeights();
+    apiRef.current?.resetRowHeights();
   }, [apiRef, showEditDelete]);
 
   return (
     <div style={{ width: '100%' }}>
-      <Button sx={{ mb: 2 }} onClick={handleToggleClick}>
+      <Button sx={{ mb: 1 }} onClick={handleToggleClick}>
         Toggle edit & delete
       </Button>
       <div style={{ height: 400 }}>

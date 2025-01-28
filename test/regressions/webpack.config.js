@@ -5,7 +5,7 @@ const webpackBaseConfig = require('../../webpackBaseConfig');
 
 module.exports = {
   ...webpackBaseConfig,
-  entry: path.resolve(__dirname, 'index.js'),
+  entry: path.resolve(__dirname, 'index.tsx'),
   mode: process.env.NODE_ENV || 'development',
   optimization: {
     // Helps debugging and build perf.
@@ -25,8 +25,8 @@ module.exports = {
       DISABLE_CHANCE_RANDOM: JSON.stringify(true),
     }),
     new webpack.ProvidePlugin({
-      // required by enzyme > cheerio > parse5 > util
-      process: 'process/browser',
+      // required by code accessing `process.env` in the browser
+      process: 'process/browser.js',
     }),
   ],
   module: {
@@ -44,6 +44,14 @@ module.exports = {
   },
   resolve: {
     ...webpackBaseConfig.resolve,
+    fallback: {
+      // Exclude polyfill and treat 'fs' as an empty module since it is not required. next -> gzip-size relies on it.
+      fs: false,
+      // Exclude polyfill and treat 'stream' as an empty module since it is not required. next -> gzip-size relies on it.
+      stream: false,
+      // Exclude polyfill and treat 'zlib' as an empty module since it is not required. next -> gzip-size relies on it.
+      zlib: false,
+    },
     alias: {
       ...webpackBaseConfig.resolve.alias,
       docs: false, // Disable this alias as it creates a circular resolution loop with the docsx alias

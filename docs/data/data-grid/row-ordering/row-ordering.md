@@ -2,7 +2,7 @@
 title: Data Grid - Row ordering
 ---
 
-# Data Grid - Row ordering [<span class="plan-pro"></span>](/x/introduction/licensing/#pro-plan)
+# Data Grid - Row ordering [<span class="plan-pro"></span>](/x/introduction/licensing/#pro-plan 'Pro plan')
 
 <p class="description">Drag and drop your rows to reorder them.</p>
 
@@ -57,7 +57,7 @@ To change the icon used for the row reordering, you can provide a different comp
 Another way to customize is to add a column with `field: __reorder__` to your set of columns.
 That way, you can overwrite any of the properties from the `GRID_REORDER_COL_DEF` column.
 The grid will detect that there is already a reorder column defined and it will not add another one in the default position.
-If you only set the `field`, then it is up to you to configure the remaining options (e.g. disable the column menu, filtering, sorting).
+If you only set the `field`, then it is up to you to configure the remaining options (for example disable the column menu, filtering, sorting).
 To start with our suggested configuration, spread `GRID_REORDER_COL_DEF` when defining the column.
 
 ```tsx
@@ -74,24 +74,17 @@ To start with our suggested configuration, spread `GRID_REORDER_COL_DEF` when de
 This approach can also be used to change the location of the toggle column.
 
 :::warning
-For now, row reordering is disabled if sorting is applied to the data grid.
+For now, row reordering is disabled if sorting is applied to the Data Grid.
 :::
 
-## Reordering rows with row grouping 🚧
+## Reordering with tree data and grouping 🚧
 
 :::warning
-This feature isn't implemented yet. It's coming.
-
-👍 Upvote [issue #4821](https://github.com/mui/mui-x/issues/4821) if you want to see it land faster.
+This feature isn't available yet, but it is planned—you can 👍 upvote [this GitHub issue](https://github.com/mui/mui-x/issues/4821) to help us prioritize it.
+Please don't hesitate to leave a comment there to describe your needs, especially if you have a use case we should address or you're facing specific pain points with your current solution.
 :::
 
-## Reordering rows with tree data 🚧
-
-:::warning
-This feature isn't implemented yet. It's coming.
-
-👍 Upvote [issue #4821](https://github.com/mui/mui-x/issues/4821) if you want to see it land faster.
-:::
+With this feature, users would be able to reorder rows in use cases that also involve tree data and/or row grouping.
 
 ## API
 

@@ -29,7 +29,7 @@ export default function CellSelectionFormulaField() {
     const updates = [];
 
     Object.entries(cellSelectionModel).forEach(([id, fields]) => {
-      const updatedRow = { ...apiRef.current.getRow(id) };
+      const updatedRow = { ...apiRef.current?.getRow(id) };
 
       Object.entries(fields).forEach(([field, isSelected]) => {
         if (isSelected) {
@@ -40,11 +40,15 @@ export default function CellSelectionFormulaField() {
       updates.push(updatedRow);
     });
 
-    apiRef.current.updateRows(updates);
+    apiRef.current?.updateRows(updates);
   }, [apiRef, cellSelectionModel, value]);
 
   React.useEffect(() => {
-    const selectedCells = apiRef.current.unstable_getSelectedCellsAsArray();
+    if (apiRef.current === null) {
+      return;
+    }
+
+    const selectedCells = apiRef.current.getSelectedCellsAsArray();
     setNumberOfSelectedCells(selectedCells.length);
 
     if (selectedCells.length > 1) {
@@ -76,9 +80,9 @@ export default function CellSelectionFormulaField() {
         <DataGridPremium
           apiRef={apiRef}
           rowSelection={false}
-          unstable_cellSelectionModel={cellSelectionModel}
-          unstable_onCellSelectionModelChange={handleCellSelectionModelChange}
-          unstable_cellSelection
+          cellSelectionModel={cellSelectionModel}
+          onCellSelectionModelChange={handleCellSelectionModelChange}
+          cellSelection
           {...data}
         />
       </div>

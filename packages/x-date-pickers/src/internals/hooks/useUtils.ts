@@ -5,13 +5,14 @@ import {
 } from '../../LocalizationProvider/LocalizationProvider';
 import { DEFAULT_LOCALE } from '../../locales/enUS';
 import { PickersLocaleText } from '../../locales/utils/pickersLocaleTextApi';
+import { PickersTimezone, PickerValidDate } from '../../models';
 
-export const useLocalizationContext = <TDate>() => {
+export const useLocalizationContext = () => {
   const localization = React.useContext(MuiPickersAdapterContext);
   if (localization === null) {
     throw new Error(
       [
-        'MUI: Can not find the date and time pickers localization context.',
+        'MUI X: Can not find the date and time pickers localization context.',
         'It looks like you forgot to wrap your component in LocalizationProvider.',
         'This can also happen if you are bundling multiple versions of the `@mui/x-date-pickers` package',
       ].join('\n'),
@@ -21,7 +22,7 @@ export const useLocalizationContext = <TDate>() => {
   if (localization.utils === null) {
     throw new Error(
       [
-        'MUI: Can not find the date and time pickers adapter from its localization context.',
+        'MUI X: Can not find the date and time pickers adapter from its localization context.',
         'It looks like you forgot to pass a `dateAdapter` to your LocalizationProvider.',
       ].join('\n'),
     );
@@ -37,22 +38,27 @@ export const useLocalizationContext = <TDate>() => {
       ({
         ...localization,
         localeText,
-      } as Omit<MuiPickersAdapterContextValue<TDate>, 'localeText'> & {
-        localeText: PickersLocaleText<TDate>;
-      }),
+      }) as UseLocalizationContextReturnValue,
     [localization, localeText],
   );
 };
 
-export const useUtils = <TDate>() => useLocalizationContext<TDate>().utils;
+export const useUtils = () => useLocalizationContext().utils;
 
-export const useDefaultDates = <TDate>() => useLocalizationContext<TDate>().defaultDates;
+export const useDefaultDates = () => useLocalizationContext().defaultDates;
 
-export const useLocaleText = <TDate>() => useLocalizationContext<TDate>().localeText;
+export const useNow = (timezone: PickersTimezone): PickerValidDate => {
+  const utils = useUtils();
 
-export const useNow = <TDate>(): TDate => {
-  const utils = useUtils<TDate>();
-  const now = React.useRef(utils.date());
+  const now = React.useRef<PickerValidDate>(undefined);
+  if (now.current === undefined) {
+    now.current = utils.date(undefined, timezone);
+  }
 
   return now.current!;
 };
+
+export interface UseLocalizationContextReturnValue
+  extends Omit<MuiPickersAdapterContextValue, 'localeText'> {
+  localeText: PickersLocaleText;
+}

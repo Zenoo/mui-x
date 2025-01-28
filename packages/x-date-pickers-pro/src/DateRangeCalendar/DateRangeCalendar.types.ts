@@ -1,93 +1,88 @@
 import * as React from 'react';
 import { SxProps } from '@mui/system';
-import { SlotComponentProps } from '@mui/base';
+import { SlotComponentProps } from '@mui/utils';
 import { Theme } from '@mui/material/styles';
+import { DefaultizedProps } from '@mui/x-internals/types';
+import { PickerOwnerState, PickerValidDate, TimezoneProps } from '@mui/x-date-pickers/models';
+import {
+  PickersCalendarHeader,
+  PickersCalendarHeaderSlots,
+  PickersCalendarHeaderSlotProps,
+} from '@mui/x-date-pickers/PickersCalendarHeader';
+import { PickerDayOwnerState } from '@mui/x-date-pickers/DateCalendar';
 import {
   BaseDateValidationProps,
-  DefaultizedProps,
   ExportedDayCalendarProps,
-  DayCalendarSlotsComponent,
-  DayCalendarSlotsComponentsProps,
-  PickersArrowSwitcherSlotsComponent,
-  PickersArrowSwitcherSlotsComponentsProps,
-  PickerSelectionState,
-  PickersCalendarHeaderSlotsComponent,
-  PickersCalendarHeaderSlotsComponentsProps,
-  DayCalendarProps,
+  DayCalendarSlots,
+  DayCalendarSlotProps,
+  PickersArrowSwitcherSlots,
+  PickersArrowSwitcherSlotProps,
   ExportedUseViewsOptions,
-  UncapitalizeObjectKeys,
+  PickerRangeValue,
+  FormProps,
 } from '@mui/x-date-pickers/internals';
-import { DateRange, DayRangeValidationProps } from '../internal/models';
+import { RangePosition } from '../models';
 import { DateRangeCalendarClasses } from './dateRangeCalendarClasses';
 import { DateRangePickerDay, DateRangePickerDayProps } from '../DateRangePickerDay';
-import { UseRangePositionProps } from '../internal/hooks/useRangePosition';
+import { UseRangePositionProps } from '../internals/hooks/useRangePosition';
+import { PickersRangeCalendarHeaderProps } from '../PickersRangeCalendarHeader';
+import { ExportedValidateDateRangeProps } from '../validation/validateDateRange';
 
-export type DateRangePosition = 'start' | 'end';
-
-export interface DateRangeCalendarSlotsComponent<TDate>
-  extends PickersArrowSwitcherSlotsComponent,
-    Omit<DayCalendarSlotsComponent<TDate>, 'Day'>,
-    PickersCalendarHeaderSlotsComponent {
+export interface DateRangeCalendarSlots
+  extends PickersArrowSwitcherSlots,
+    Omit<DayCalendarSlots, 'day'>,
+    PickersCalendarHeaderSlots {
+  /**
+   * Custom component for calendar header.
+   * Check the [PickersCalendarHeader](https://mui.com/x/api/date-pickers/pickers-calendar-header/) component.
+   * @default PickersCalendarHeader
+   */
+  calendarHeader?: React.ElementType<PickersRangeCalendarHeaderProps>;
   /**
    * Custom component for day in range pickers.
    * Check the [DateRangePickersDay](https://mui.com/x/api/date-pickers/date-range-picker-day/) component.
    * @default DateRangePickersDay
    */
-  Day?: React.ElementType<DateRangePickerDayProps<TDate>>;
+  day?: React.ElementType<DateRangePickerDayProps>;
 }
 
-export interface DateRangeCalendarSlotsComponentsProps<TDate>
-  extends PickersArrowSwitcherSlotsComponentsProps,
-    Omit<DayCalendarSlotsComponentsProps<TDate>, 'day'>,
-    PickersCalendarHeaderSlotsComponentsProps<TDate> {
-  day?: SlotComponentProps<
-    typeof DateRangePickerDay,
+export interface DateRangeCalendarSlotProps
+  extends PickersArrowSwitcherSlotProps,
+    Omit<DayCalendarSlotProps, 'day'>,
+    PickersCalendarHeaderSlotProps {
+  calendarHeader?: SlotComponentProps<
+    typeof PickersCalendarHeader,
     {},
-    DayCalendarProps<TDate> & { day: TDate; selected: boolean }
+    DateRangeCalendarOwnerState
   >;
+  day?: SlotComponentProps<typeof DateRangePickerDay, {}, PickerDayOwnerState>;
 }
 
-export interface ExportedDateRangeCalendarProps<TDate>
+export interface ExportedDateRangeCalendarProps
   extends ExportedDayCalendarProps,
-    BaseDateValidationProps<TDate>,
-    DayRangeValidationProps<TDate>,
-    // TODO: Add the other props of `ExportedUseViewOptions` once `DateRangeCalendar` handles several views
-    Pick<ExportedUseViewsOptions<'day'>, 'autoFocus'> {
+    ExportedValidateDateRangeProps,
+    TimezoneProps,
+    FormProps {
   /**
    * If `true`, after selecting `start` date calendar will not automatically switch to the month of `end` date.
    * @default false
    */
   disableAutoMonthSwitching?: boolean;
   /**
-   * Default calendar month displayed when `value={[null, null]}`.
-   */
-  defaultCalendarMonth?: TDate;
-  /**
-   * If `true`, the picker and text field are disabled.
-   * @default false
-   */
-  disabled?: boolean;
-  /**
-   * Make picker read only.
-   * @default false
-   */
-  readOnly?: boolean;
-  /**
-   * Disable heavy animations.
-   * @default typeof navigator !== 'undefined' && /(android)/i.test(navigator.userAgent)
+   * If `true`, disable heavy animations.
+   * @default `@media(prefers-reduced-motion: reduce)` || `navigator.userAgent` matches Android <10 or iOS <13
    */
   reduceAnimations?: boolean;
   /**
    * Callback fired on month change.
-   * @template TDate
-   * @param {TDate} month The new month.
+   * @param {PickerValidDate} month The new month.
    */
-  onMonthChange?: (month: TDate) => void;
+  onMonthChange?: (month: PickerValidDate) => void;
   /**
-   * The number of calendars to render.
-   * @default 2
+   * Position the current month is rendered in.
+   * @default 1
    */
-  calendars?: 1 | 2 | 3;
+  currentMonthCalendarPosition?: 1 | 2 | 3;
   /**
    * If `true`, editing dates by dragging is disabled.
    * @default false
@@ -95,61 +90,70 @@ export interface ExportedDateRangeCalendarProps<TDate>
   disableDragEditing?: boolean;
 }
 
-export interface DateRangeCalendarProps<TDate>
-  extends ExportedDateRangeCalendarProps<TDate>,
-    UseRangePositionProps {
+export interface DateRangeCalendarProps
+  extends ExportedDateRangeCalendarProps,
+    UseRangePositionProps,
+    ExportedUseViewsOptions<PickerRangeValue, 'day'> {
   /**
    * The selected value.
    * Used when the component is controlled.
    */
-  value?: DateRange<TDate>;
+  value?: PickerRangeValue;
   /**
    * The default selected value.
    * Used when the component is not controlled.
    */
-  defaultValue?: DateRange<TDate>;
+  defaultValue?: PickerRangeValue;
   /**
-   * Callback fired when the value changes.
-   * @template TDate
-   * @param {DateRange<TDate>} value The new value.
-   * @param {PickerSelectionState | undefined} selectionState Indicates if the date range selection is complete.
+   * The date used to generate the new value when both `value` and `defaultValue` are empty.
+   * @default The closest valid date using the validation props, except callbacks such as `shouldDisableDate`.
    */
-  onChange?: (value: DateRange<TDate>, selectionState?: PickerSelectionState) => void;
+  referenceDate?: PickerValidDate;
+  /**
+   * The number of calendars to render.
+   * @default 2
+   */
+  calendars?: 1 | 2 | 3;
   className?: string;
+  /**
+   * Override or extend the styles applied to the component.
+   */
   classes?: Partial<DateRangeCalendarClasses>;
   /**
    * The system prop that allows defining system overrides as well as additional CSS styles.
    */
   sx?: SxProps<Theme>;
   /**
-   * Overridable components.
-   * @default {}
-   * @deprecated Please use `slots`.
-   */
-  components?: DateRangeCalendarSlotsComponent<TDate>;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   * @deprecated Please use `slotProps`.
-   */
-  componentsProps?: DateRangeCalendarSlotsComponentsProps<TDate>;
-  /**
    * Overridable component slots.
    * @default {}
    */
-  slots?: UncapitalizeObjectKeys<DateRangeCalendarSlotsComponent<TDate>>;
+  slots?: DateRangeCalendarSlots;
   /**
    * The props used for each component slot.
    * @default {}
    */
-  slotProps?: DateRangeCalendarSlotsComponentsProps<TDate>;
+  slotProps?: DateRangeCalendarSlotProps;
+  /**
+   * Range positions available for selection.
+   * This list is checked against when checking if a next range position can be selected.
+   *
+   * Used on Date Time Range pickers with current `rangePosition` to force a `finish` selection after just one range position selection.
+   * @default ['start', 'end']
+   */
+  availableRangePositions?: RangePosition[];
 }
 
-export interface DateRangeCalendarOwnerState<TDate> extends DateRangeCalendarProps<TDate> {
-  isDragging: boolean;
+export interface DateRangeCalendarOwnerState extends PickerOwnerState {
+  isDraggingDay: boolean;
 }
 
-export type DateRangeCalendarDefaultizedProps<TDate> = DefaultizedProps<
-  DateRangeCalendarProps<TDate>,
-  'reduceAnimations' | 'calendars' | 'disableDragEditing' | keyof BaseDateValidationProps<TDate>
+export type DateRangeCalendarDefaultizedProps = DefaultizedProps<
+  DateRangeCalendarProps,
+  | 'views'
+  | 'openTo'
+  | 'reduceAnimations'
+  | 'calendars'
+  | 'disableDragEditing'
+  | 'availableRangePositions'
+  | keyof BaseDateValidationProps
 >;

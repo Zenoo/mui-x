@@ -1,5 +1,5 @@
-Broken links found by `yarn docs:link-check` that exist:
+Broken links found by `docs:link-check` that exist:
 
-- https://mui.com/blog/material-ui-v4-is-out/#premium-themes-store-✨
-- https://mui.com/size-snapshot
-- https://mui.com/x/react-data-grid/migration-v4
+- https://mui.com/x/react-data-grid/#premium-plan
+- https://mui.com/x/react-data-grid/getting-started/#feature-comparison
+- https://mui.com/x/react-date-pickers/fields/#accessible-dom-structure

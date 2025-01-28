@@ -1,14 +1,15 @@
 import * as React from 'react';
 import { expect } from 'chai';
-import { describeConformance, userEvent, screen } from '@mui/monorepo/test/utils';
-import { adapterToUse, wrapPickerMount, createPickerRenderer } from 'test/utils/pickers-utils';
-import { describeValidation } from '@mui/x-date-pickers/tests/describeValidation';
-import { describeValue } from '@mui/x-date-pickers/tests/describeValue';
+import { fireEvent, screen } from '@mui/internal-test-utils';
 import {
-  MonthCalendar,
-  monthCalendarClasses as classes,
-  pickersMonthClasses,
-} from '@mui/x-date-pickers/MonthCalendar';
+  createPickerRenderer,
+  adapterToUse,
+  describeValidation,
+  describeValue,
+} from 'test/utils/pickers';
+import { MonthCalendar, monthCalendarClasses as classes } from '@mui/x-date-pickers/MonthCalendar';
+import { PickerValue } from '@mui/x-date-pickers/internals';
+import { describeConformance } from 'test/utils/describeConformance';
 
 describe('<MonthCalendar /> - Describes', () => {
   const { render, clock } = createPickerRenderer({ clock: 'fake' });
@@ -24,39 +25,37 @@ describe('<MonthCalendar /> - Describes', () => {
     classes,
     inheritComponent: 'div',
     render,
-    wrapMount: wrapPickerMount,
     muiName: 'MuiMonthCalendar',
     refInstanceof: window.HTMLDivElement,
-    // cannot test reactTestRenderer because of required context
-    skip: ['componentProp', 'componentsProp', 'reactTestRenderer', 'themeVariants'],
+    skip: ['componentProp', 'componentsProp', 'themeVariants'],
   }));
 
-  describeValue(MonthCalendar, () => ({
+  describeValue<PickerValue, 'calendar'>(MonthCalendar, () => ({
     render,
     componentFamily: 'calendar',
-    values: [adapterToUse.date(new Date(2018, 0, 1)), adapterToUse.date(new Date(2018, 1, 1))],
+    values: [adapterToUse.date('2018-01-01'), adapterToUse.date('2018-02-01')],
     emptyValue: null,
     clock,
     assertRenderedValue: (expectedValue: any) => {
-      const selectedCells = document.querySelectorAll(`.${pickersMonthClasses.selected}`);
+      const activeMonth = screen
+        .queryAllByRole('radio')
+        .find((cell) => cell.getAttribute('tabindex') === '0');
+      expect(activeMonth).not.to.equal(null);
       if (expectedValue == null) {
-        expect(selectedCells).to.have.length(1);
-        expect(selectedCells[0]).to.have.text(
+        expect(activeMonth).to.have.text(
           adapterToUse.format(adapterToUse.date(), 'monthShort').toString(),
         );
       } else {
-        expect(selectedCells).to.have.length(1);
-        expect(selectedCells[0]).to.have.text(
+        expect(activeMonth).to.have.text(
           adapterToUse.format(expectedValue, 'monthShort').toString(),
         );
+        expect(activeMonth).to.have.attribute('aria-checked', 'true');
       }
     },
     setNewValue: (value) => {
-      const newValue = adapterToUse.addMonths(value, 1);
+      const newValue = adapterToUse.addMonths(value!, 1);
 
-      userEvent.mousePress(
-        screen.getByRole('button', { name: adapterToUse.format(newValue, 'monthShort') }),
-      );
+      fireEvent.click(screen.getByRole('radio', { name: adapterToUse.format(newValue, 'month') }));
 
       return newValue;
     },

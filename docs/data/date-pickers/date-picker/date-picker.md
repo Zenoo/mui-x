@@ -1,7 +1,7 @@
 ---
-product: date-pickers
+productId: x-date-pickers
 title: React Date Picker component
-components: DatePicker, DesktopDatePicker, MobileDatePicker, StaticDatePicker
+components: DatePicker, DesktopDatePicker, MobileDatePicker, StaticDatePicker, DateCalendar
 githubLabel: 'component: DatePicker'
 packageName: '@mui/x-date-pickers'
 materialDesign: https://m2.material.io/components/date-pickers
@@ -9,7 +9,7 @@ materialDesign: https://m2.material.io/components/date-pickers
 
 # Date Picker
 
-<p class="description">The Date Picker component let the user select a date.</p>
+<p class="description">The Date Picker component lets users select a date.</p>
 
 ## Basic usage
 
@@ -18,28 +18,38 @@ materialDesign: https://m2.material.io/components/date-pickers
 ## Component composition
 
 The component is built using the `DateField` for the keyboard editing and the `DateCalendar` for the view editing.
-All the documented props of those two components can also be passed to the Date Picker component.
 
 Check-out their documentation page for more information:
 
 - [Date Field](/x/react-date-pickers/date-field/)
 - [Date Calendar](/x/react-date-pickers/date-calendar/)
 
-## Uncontrolled vs. Controlled
+You can check the available props of the combined component on the dedicated [API page](/x/api/date-pickers/date-picker/#props).
+Some [DateField props](/x/api/date-pickers/date-field/#props) are not available on the Picker component, you can use `slotProps.field` to pass them to the field.
 
-The component can be uncontrolled or controlled.
+## Uncontrolled vs. controlled value
+
+The value of the component can be uncontrolled or controlled.
 
 {{"demo": "DatePickerValue.js"}}
+
+:::info
+
+- The value is **controlled** when its parent manages it by providing a `value` prop.
+- The value is **uncontrolled** when it is managed by the component's own internal state. This state can be initialized using the `defaultValue` prop.
+
+Learn more about the _Controlled and uncontrolled_ pattern in the [React documentation](https://react.dev/learn/sharing-state-between-components#controlled-and-uncontrolled-components).
+:::
 
 ## Available components
 
 The component is available in four variants:
 
 - The `DesktopDatePicker` component which works best for mouse devices and large screens.
-  It renders the views inside a popover and allows editing values directly inside the field.
+  It renders the views inside a popover and a field for keyboard editing.
 
 - The `MobileDatePicker` component which works best for touch devices and small screens.
-  It renders the view inside a modal and does not allow editing values directly inside the field.
+  It renders the view inside a modal and a field for keyboard editing.
 
 - The `DatePicker` component which renders `DesktopDatePicker` or `MobileDatePicker` depending on the device it runs on.
 
@@ -78,8 +88,15 @@ Use the `openTo` prop to change this behavior:
 :::success
 The views will appear in the order defined by the `views` array.
 If the view defined in `openTo` is not the first view, then the views before will not be included in the default flow
-(e.g. view the default behaviors, the `year` is only accessible when clicking on the toolbar).
+(for example view the default behaviors, the `year` is only accessible when clicking on the toolbar).
 :::
+
+## Order of years
+
+By default, years are displayed in ascending order, chronologically from the minimum year to the maximum.
+Set the `yearsOrder` prop to `desc` to show the years in descending order.
+
+{{"demo": "DatePickerYearsOrder.js"}}
 
 ## Landscape orientation
 
@@ -88,16 +105,36 @@ You can force a specific orientation using the `orientation` prop:
 
 {{"demo": "StaticDatePickerLandscape.js", "bg": true}}
 
+:::info
+You can find more information about the layout customization in the [custom layout page](/x/react-date-pickers/custom-layout/).
+:::
+
 ## Helper text
 
 You can show a helper text with the date format accepted:
 
 {{"demo": "HelperText.js"}}
 
-## Validation
+## Clearing the value
 
-You can find the documentation in the [Validation page](/x/react-date-pickers/validation/).
+You can enable the clearable behavior:
+
+{{"demo": "ClearableProp.js"}}
+
+:::info
+See [Field components—Clearable behavior](/x/react-date-pickers/fields/#clearable-behavior) for more details.
+:::
 
 ## Localization
 
-You can find the documentation about localization in the [Date localization](/x/react-date-pickers/adapters-locale/) and [Component localization](/x/react-date-pickers/localization/).
+See the [Date format and localization](/x/react-date-pickers/adapters-locale/) and [Translated components](/x/react-date-pickers/localization/) documentation pages for more details.
+
+## Validation
+
+See the [Validation](/x/react-date-pickers/validation/) documentation page for more details.
+
+## Customization
+
+You can check out multiple examples of how to customize the date pickers and their subcomponents.
+
+{{"demo": "CustomizationExamplesNoSnap.js", "hideToolbar": true, "bg": "inline"}}

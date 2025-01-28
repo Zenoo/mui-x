@@ -6,25 +6,33 @@
   "commitMessageTopic": "{{depName}}",
   "dependencyDashboard": true,
   "rebaseWhen": "conflicted",
-  "ignoreDeps": [],
   "labels": ["dependencies"],
   "stopUpdatingLabel": "on hold",
   "packageRules": [
+    {
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
+    },
     {
       "matchDepTypes": ["peerDependencies"],
       "rangeStrategy": "widen"
     },
     {
       "groupName": "babel",
-      "matchPackagePatterns": "@babel/*"
+      "matchPackageNames": ["@babel/**"]
     },
     {
-      "groupName": "date-io",
-      "matchPackagePatterns": "@date-io/*"
+      "groupName": "D3",
+      "matchPackageNames": ["d3-*", "@types/d3-*"]
+    },
+    {
+      "groupName": "react-spring",
+      "matchPackageNames": ["@react-spring/**"]
     },
     {
       "groupName": "Emotion",
-      "matchPackagePatterns": "@emotion/*"
+      "matchPackageNames": ["@emotion/**"]
     },
     {
       "groupName": "core-js",
@@ -32,31 +40,31 @@
       "allowedVersions": "< 2.0.0"
     },
     {
-      "groupName": "raw-loader",
-      "matchPackageNames": ["raw-loader"],
-      "allowedVersions": "< 2.0.0"
-    },
-    {
-      "groupName": "react-spring",
-      "matchPackageNames": ["react-spring"],
-      "allowedVersions": "< 9.0.0"
-    },
-    {
       "groupName": "React",
-      "matchPackageNames": ["react", "react-dom", "react-is", "react-test-renderer"]
+      "matchPackageNames": ["react", "react-dom", "react-is", "@types/react", "@types/react-dom"]
     },
     {
       "groupName": "typescript-eslint",
-      "matchPackagePatterns": "@typescript-eslint/*"
+      "matchPackageNames": ["@typescript-eslint/**"]
+    },
+    {
+      "groupName": "ESLint plugins",
+      "matchPackageNames": ["eslint-plugin-*", "!eslint-plugin-react-compiler"]
+    },
+    {
+      "groupName": "@types/node",
+      "matchPackageNames": ["@types/node"],
+      "allowedVersions": "< 21.0.0",
+      "automerge": true
     },
     {
       "groupName": "bundling fixtures",
-      "matchPaths": ["test/bundling/fixtures/**/package.json"],
+      "matchFileNames": ["test/bundling/fixtures/**/package.json"],
       "schedule": "every 6 months on the first day of the month"
     },
     {
       "groupName": "examples",
-      "matchPaths": ["examples/**/package.json"],
+      "matchFileNames": ["examples/**/package.json"],
       "minor": {
         "enabled": false
       },
@@ -65,42 +73,60 @@
       }
     },
     {
-      "groupName": "AG Grid",
-      "matchPackagePatterns": "ag-grid-*"
-    },
-    {
       "groupName": "node",
       "matchPackageNames": ["node", "cimg/node"],
       "enabled": false
     },
     {
-      "groupName": "MUI Core",
+      "groupName": "Material UI",
       "matchPackageNames": [
-        "@mui/material",
-        "@mui/joy",
         "@mui/icons-material",
-        "@mui/base",
+        "@mui/joy",
+        "@mui/lab",
+        "@mui/material",
+        "@mui/material-nextjs",
+        "@mui/styles",
         "@mui/system",
+        "@mui/types",
         "@mui/utils"
-      ]
+      ],
+      "allowedVersions": "< 6.0.0"
+    },
+    {
+      "groupName": "MUI Internal",
+      "matchPackageNames": ["@mui/internal-*", "@mui/docs"]
     },
     {
       "groupName": "Playwright",
-      "matchPackagePatterns": ["playwright", "@playwright/test"]
+      "matchPackageNames": ["playwright", "@playwright/test", "mcr.microsoft.com/playwright"]
     },
     {
       "matchDepTypes": ["action"],
-      "pinDigests": true
+      "pinDigests": true,
+      "automerge": true
     },
     {
       "groupName": "GitHub Actions",
       "matchManagers": ["github-actions"]
+    },
+    {
+      "groupName": "Vite & Vitest",
+      "matchPackageNames": ["@vitejs/**", "/vitest/"]
+    },
+    {
+      "groupName": "date-fns-v2",
+      "matchPackageNames": ["date-fns-v2"],
+      "allowedVersions": "< 3.0.0"
     }
   ],
-  "postUpdateOptions": ["yarnDedupeHighest"],
+  "postUpdateOptions": ["pnpmDedupe"],
   "prConcurrentLimit": 30,
   "prHourlyLimit": 0,
   "rangeStrategy": "bump",
   "schedule": "on sunday before 6:00am",
-  "timezone": "UTC"
+  "timezone": "UTC",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": "before 6:00am on the first day of the month"
+  }
 }

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -9,13 +8,18 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { pickersLayoutClasses } from '@mui/x-date-pickers/PickersLayout';
 import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
 
+import { usePickerActionsContext } from '@mui/x-date-pickers/hooks';
+
 function ActionList(props) {
-  const { onAccept, onClear, onCancel, onSetToday, className } = props;
+  const { className } = props;
+  const { clearValue, setValueToToday, acceptValueChanges, cancelValueChanges } =
+    usePickerActionsContext();
+
   const actions = [
-    { text: 'Accept', method: onAccept },
-    { text: 'Clear', method: onClear },
-    { text: 'Cancel', method: onCancel },
-    { text: 'Today', method: onSetToday },
+    { text: 'Accept', method: acceptValueChanges },
+    { text: 'Clear', method: clearValue },
+    { text: 'Cancel', method: cancelValueChanges },
+    { text: 'Today', method: setValueToToday },
   ];
 
   return (
@@ -31,14 +35,6 @@ function ActionList(props) {
     </List>
   );
 }
-
-ActionList.propTypes = {
-  className: PropTypes.string,
-  onAccept: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  onClear: PropTypes.func.isRequired,
-  onSetToday: PropTypes.func.isRequired,
-};
 
 export default function MovingActions() {
   return (

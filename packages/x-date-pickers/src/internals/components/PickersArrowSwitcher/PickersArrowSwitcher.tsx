@@ -1,23 +1,26 @@
 import * as React from 'react';
 import clsx from 'clsx';
 import Typography from '@mui/material/Typography';
-import { useTheme, styled, useThemeProps } from '@mui/material/styles';
-import { unstable_composeClasses as composeClasses } from '@mui/utils';
-import { useSlotProps } from '@mui/base/utils';
+import { useRtl } from '@mui/system/RtlProvider';
+import { styled, useThemeProps } from '@mui/material/styles';
+import composeClasses from '@mui/utils/composeClasses';
+import useSlotProps from '@mui/utils/useSlotProps';
 import IconButton from '@mui/material/IconButton';
-import { ArrowLeft, ArrowRight } from '../icons';
+import { ArrowLeftIcon, ArrowRightIcon } from '../../../icons';
+import { PickersArrowSwitcherProps } from './PickersArrowSwitcher.types';
 import {
-  PickersArrowSwitcherOwnerState,
-  PickersArrowSwitcherProps,
-} from './PickersArrowSwitcher.types';
-import { getPickersArrowSwitcherUtilityClass } from './pickersArrowSwitcherClasses';
+  getPickersArrowSwitcherUtilityClass,
+  PickersArrowSwitcherClasses,
+} from './pickersArrowSwitcherClasses';
+import { usePickerPrivateContext } from '../../hooks/usePickerPrivateContext';
+import { PickerOwnerState } from '../../../models';
 
 const PickersArrowSwitcherRoot = styled('div', {
   name: 'MuiPickersArrowSwitcher',
   slot: 'Root',
   overridesResolver: (props, styles) => styles.root,
 })<{
-  ownerState: PickersArrowSwitcherProps;
+  ownerState: PickerOwnerState;
 }>({
   display: 'flex',
 });
@@ -27,7 +30,7 @@ const PickersArrowSwitcherSpacer = styled('div', {
   slot: 'Spacer',
   overridesResolver: (props, styles) => styles.spacer,
 })<{
-  ownerState: PickersArrowSwitcherProps;
+  ownerState: PickerOwnerState;
 }>(({ theme }) => ({
   width: theme.spacing(3),
 }));
@@ -37,19 +40,25 @@ const PickersArrowSwitcherButton = styled(IconButton, {
   slot: 'Button',
   overridesResolver: (props, styles) => styles.button,
 })<{
-  ownerState: PickersArrowSwitcherProps;
-}>(({ ownerState }) => ({
-  ...(ownerState.hidden && {
-    visibility: 'hidden',
-  }),
-}));
+  ownerState: PickerOwnerState;
+}>({
+  variants: [
+    {
+      props: { isButtonHidden: true },
+      style: { visibility: 'hidden' },
+    },
+  ],
+});
 
-const useUtilityClasses = (ownerState: PickersArrowSwitcherOwnerState) => {
-  const { classes } = ownerState;
+const useUtilityClasses = (classes: Partial<PickersArrowSwitcherClasses> | undefined) => {
   const slots = {
     root: ['root'],
     spacer: ['spacer'],
     button: ['button'],
+    previousIconButton: ['previousIconButton'],
+    nextIconButton: ['nextIconButton'],
+    leftArrowIcon: ['leftArrowIcon'],
+    rightArrowIcon: ['rightArrowIcon'],
   };
 
   return composeClasses(slots, getPickersArrowSwitcherUtilityClass, classes);
@@ -59,16 +68,12 @@ export const PickersArrowSwitcher = React.forwardRef(function PickersArrowSwitch
   inProps: PickersArrowSwitcherProps,
   ref: React.Ref<HTMLDivElement>,
 ) {
-  const theme = useTheme();
-  const isRTL = theme.direction === 'rtl';
-
+  const isRtl = useRtl();
   const props = useThemeProps({ props: inProps, name: 'MuiPickersArrowSwitcher' });
 
   const {
     children,
     className,
-    components,
-    componentsProps,
     slots,
     slotProps,
     isNextDisabled,
@@ -79,12 +84,14 @@ export const PickersArrowSwitcher = React.forwardRef(function PickersArrowSwitch
     isPreviousHidden,
     onGoToPrevious,
     previousLabel,
+    labelId,
+    classes: classesProp,
     ...other
   } = props;
 
-  const ownerState = props;
+  const { ownerState } = usePickerPrivateContext();
 
-  const classes = useUtilityClasses(ownerState);
+  const classes = useUtilityClasses(classesProp);
 
   const nextProps = {
     isDisabled: isNextDisabled,
@@ -100,62 +107,60 @@ export const PickersArrowSwitcher = React.forwardRef(function PickersArrowSwitch
     label: previousLabel,
   };
 
-  const [leftProps, rightProps] = isRTL ? [nextProps, previousProps] : [previousProps, nextProps];
-
-  const PreviousIconButton =
-    slots?.previousIconButton ?? components?.PreviousIconButton ?? PickersArrowSwitcherButton;
+  const PreviousIconButton = slots?.previousIconButton ?? PickersArrowSwitcherButton;
   const previousIconButtonProps = useSlotProps({
     elementType: PreviousIconButton,
-    externalSlotProps: slotProps?.previousIconButton ?? componentsProps?.previousIconButton,
+    externalSlotProps: slotProps?.previousIconButton,
     additionalProps: {
       size: 'medium',
-      title: leftProps.label,
-      'aria-label': leftProps.label,
-      disabled: leftProps.isDisabled,
+      title: previousProps.label,
+      'aria-label': previousProps.label,
+      disabled: previousProps.isDisabled,
       edge: 'end',
-      onClick: leftProps.goTo,
+      onClick: previousProps.goTo,
     },
-    ownerState: { ...ownerState, hidden: leftProps.isHidden },
-    className: classes.button,
+    ownerState: { ...ownerState, isButtonHidden: previousProps.isHidden ?? false },
+    className: clsx(classes.button, classes.previousIconButton),
   });
 
-  const NextIconButton =
-    slots?.nextIconButton ?? components?.NextIconButton ?? PickersArrowSwitcherButton;
+  const NextIconButton = slots?.nextIconButton ?? PickersArrowSwitcherButton;
   const nextIconButtonProps = useSlotProps({
     elementType: NextIconButton,
-    externalSlotProps: slotProps?.nextIconButton ?? componentsProps?.nextIconButton,
+    externalSlotProps: slotProps?.nextIconButton,
     additionalProps: {
       size: 'medium',
-      title: rightProps.label,
-      'aria-label': rightProps.label,
-      disabled: rightProps.isDisabled,
+      title: nextProps.label,
+      'aria-label': nextProps.label,
+      disabled: nextProps.isDisabled,
       edge: 'start',
-      onClick: rightProps.goTo,
+      onClick: nextProps.goTo,
     },
-    ownerState: { ...ownerState, hidden: rightProps.isHidden },
-    className: classes.button,
+    ownerState: { ...ownerState, isButtonHidden: nextProps.isHidden ?? false },
+    className: clsx(classes.button, classes.nextIconButton),
   });
 
-  const LeftArrowIcon = slots?.leftArrowIcon ?? components?.LeftArrowIcon ?? ArrowLeft;
+  const LeftArrowIcon = slots?.leftArrowIcon ?? ArrowLeftIcon;
   // The spread is here to avoid this bug mui/material-ui#34056
   const { ownerState: leftArrowIconOwnerState, ...leftArrowIconProps } = useSlotProps({
     elementType: LeftArrowIcon,
-    externalSlotProps: slotProps?.leftArrowIcon ?? componentsProps?.leftArrowIcon,
+    externalSlotProps: slotProps?.leftArrowIcon,
     additionalProps: {
       fontSize: 'inherit',
     },
-    ownerState: undefined,
+    ownerState,
+    className: classes.leftArrowIcon,
   });
 
-  const RightArrowIcon = slots?.rightArrowIcon ?? components?.RightArrowIcon ?? ArrowRight;
+  const RightArrowIcon = slots?.rightArrowIcon ?? ArrowRightIcon;
   // The spread is here to avoid this bug mui/material-ui#34056
   const { ownerState: rightArrowIconOwnerState, ...rightArrowIconProps } = useSlotProps({
     elementType: RightArrowIcon,
-    externalSlotProps: slotProps?.rightArrowIcon ?? componentsProps?.rightArrowIcon,
+    externalSlotProps: slotProps?.rightArrowIcon,
     additionalProps: {
       fontSize: 'inherit',
     },
-    ownerState: undefined,
+    ownerState,
+    className: classes.rightArrowIcon,
   });
 
   return (
@@ -166,21 +171,21 @@ export const PickersArrowSwitcher = React.forwardRef(function PickersArrowSwitch
       {...other}
     >
       <PreviousIconButton {...previousIconButtonProps}>
-        {isRTL ? (
+        {isRtl ? (
           <RightArrowIcon {...rightArrowIconProps} />
         ) : (
           <LeftArrowIcon {...leftArrowIconProps} />
         )}
       </PreviousIconButton>
       {children ? (
-        <Typography variant="subtitle1" component="span">
+        <Typography variant="subtitle1" component="span" id={labelId}>
           {children}
         </Typography>
       ) : (
         <PickersArrowSwitcherSpacer className={classes.spacer} ownerState={ownerState} />
       )}
       <NextIconButton {...nextIconButtonProps}>
-        {isRTL ? (
+        {isRtl ? (
           <LeftArrowIcon {...leftArrowIconProps} />
         ) : (
           <RightArrowIcon {...rightArrowIconProps} />
